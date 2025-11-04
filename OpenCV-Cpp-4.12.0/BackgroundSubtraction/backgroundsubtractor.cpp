@@ -1,15 +1,185 @@
 #include "backgroundsubtractor.h"
 #include <QApplication>
 #include <QDebug>
+#include <opencv2/imgproc.hpp>
+#include <vector>
 
 BackgroundSubtractor::BackgroundSubtractor(QWidget *parent)
-    : QWidget(parent), threshold(50)
+    : QWidget(parent), threshold(25)
 {
     setupUI();
 }
 
 BackgroundSubtractor::~BackgroundSubtractor()
 {
+}
+
+cv::Mat BackgroundSubtractor::BackgroundSubtractor::qImageToCvMat(const QImage &qimage) {
+    if (qimage.isNull()) {
+        return cv::Mat();
+    }
+
+    QImage swapped = qimage;
+
+    // 统一转换为RGB888格式
+    if (qimage.format() != QImage::Format_RGB888) {
+        swapped = qimage.convertToFormat(QImage::Format_RGB888);
+    }
+
+    cv::Mat mat(swapped.height(), swapped.width(), CV_8UC3,
+                (void*)swapped.bits(), swapped.bytesPerLine());
+
+    // 注意：QImage是RGB，OpenCV需要BGR
+    cv::Mat result;
+    cv::cvtColor(mat, result, cv::COLOR_RGB2BGR);
+
+    return result.clone(); // 克隆以确保数据独立
+}
+
+QImage BackgroundSubtractor::BackgroundSubtractor::cvMatToQImage(const cv::Mat &mat) {
+    if (mat.empty()) {
+        return QImage();
+    }
+
+    // 处理不同的图像格式
+    switch (mat.channels()) {
+    case 1: { // 灰度图
+        QImage image(mat.data, mat.cols, mat.rows,
+                     static_cast<int>(mat.step), QImage::Format_Grayscale8);
+        return image.copy();
+    }
+
+    case 3: { // 彩色图（BGR → RGB）
+        cv::Mat rgb;
+        cv::cvtColor(mat, rgb, cv::COLOR_BGR2RGB);
+        QImage image(rgb.data, rgb.cols, rgb.rows,
+                     static_cast<int>(rgb.step), QImage::Format_RGB888);
+        return image.copy();
+    }
+
+    case 4: { // 带透明通道
+        QImage image(mat.data, mat.cols, mat.rows,
+                     static_cast<int>(mat.step), QImage::Format_RGBA8888);
+        return image.copy();
+    }
+
+    default:
+        // 转换不支持的格式
+        cv::Mat temp;
+        if (mat.channels() == 2) {
+            cv::cvtColor(mat, temp, cv::COLOR_BGRA2BGR);
+        } else {
+            temp = mat;
+        }
+
+        if (temp.channels() == 3) {
+            cv::cvtColor(temp, temp, cv::COLOR_BGR2RGB);
+            QImage image(temp.data, temp.cols, temp.rows,
+                         static_cast<int>(temp.step), QImage::Format_RGB888);
+            return image.copy();
+        }
+
+        qWarning() << "无法转换的图像格式，通道数:" << mat.channels();
+        return QImage();
+    }
+}
+// 查找轮廓
+std::vector<std::vector<cv::Point>> BackgroundSubtractor::findContours(const cv::Mat &maskMat) {
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+
+    // 查找轮廓
+    cv::findContours(maskMat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    return contours;
+}
+
+// 过滤小轮廓
+std::vector<std::vector<cv::Point>> BackgroundSubtractor::filterLargeContours(
+    const std::vector<std::vector<cv::Point>> &contours,
+    double minArea) {
+
+    std::vector<std::vector<cv::Point>> largeContours;
+
+    for (const auto &contour : contours) {
+        double area = cv::contourArea(contour);
+        if (area > minArea) {
+            largeContours.push_back(contour);
+        }
+    }
+
+    return largeContours;
+}
+
+// 主函数：提取大物体并添加红色边框
+QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original) {
+    if (mask.isNull() || original.isNull()) {
+        return QImage();
+    }
+
+    // 将QImage转换为cv::Mat
+    cv::Mat maskMat = qImageToCvMat(mask);
+    cv::Mat originalMat = qImageToCvMat(original);
+
+    // 确保mask是二值图像
+    if (maskMat.channels() > 1) {
+        cv::cvtColor(maskMat, maskMat, cv::COLOR_BGR2GRAY);
+    }
+
+    // 二值化处理（确保是0和255）
+    cv::threshold(maskMat, maskMat, 128, 255, cv::THRESH_BINARY);
+
+    // 查找轮廓
+    std::vector<std::vector<cv::Point>> contours = findContours(maskMat);
+
+    if (contours.empty()) {
+        qDebug() << "未找到任何轮廓";
+        return original; // 返回原图
+    }
+
+    qDebug() << "找到轮廓数量:" << contours.size();
+
+    // 过滤小轮廓（面积阈值可调整）
+    std::vector<std::vector<cv::Point>> largeContours = filterLargeContours(contours, 1000.0);
+
+    if (largeContours.empty()) {
+        qDebug() << "未找到足够大的轮廓";
+        return original;
+    }
+
+    qDebug() << "大轮廓数量:" << largeContours.size();
+
+    // 创建结果图像（复制原图）
+    cv::Mat resultMat = originalMat.clone();
+
+    // 为每个大轮廓绘制红色边框
+    for (const auto &contour : largeContours) {
+        // 计算最小外接矩形
+        cv::Rect boundingRect = cv::boundingRect(contour);
+
+        // 计算轮廓面积
+        double area = cv::contourArea(contour);
+
+        // 绘制红色矩形边框（BGR格式：蓝色,绿色,红色）
+        cv::Scalar redColor(0, 0, 255); // 红色
+        int thickness = 3; // 边框粗细
+
+        cv::rectangle(resultMat, boundingRect, redColor, thickness);
+
+        // 可选：在矩形上方显示面积信息
+        std::string areaText = "Area: " + std::to_string(static_cast<int>(area));
+        cv::Point textPosition(boundingRect.x, boundingRect.y - 10);
+
+        cv::putText(resultMat, areaText, textPosition,
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, redColor, 1);
+
+        qDebug() << "绘制边框: x=" << boundingRect.x << "y=" << boundingRect.y
+                 << "width=" << boundingRect.width << "height=" << boundingRect.height
+                 << "area=" << area;
+    }
+
+    // 将结果转换回QImage
+    return cvMatToQImage(resultMat);
 }
 
 void BackgroundSubtractor::setupUI()
@@ -23,29 +193,29 @@ void BackgroundSubtractor::setupUI()
     // 控制面板
     QHBoxLayout *controlLayout = new QHBoxLayout();
 
-    loadButtonA = new QPushButton("加载图像 A（with_object）", this);
-    loadButtonB = new QPushButton("加载图像 B（纯背景）", this);
-    subtractButton = new QPushButton("执行背景减除", this);
-    saveButton = new QPushButton("保存结果", this);
+    m_loadButtonA = new QPushButton("加载图像 A（with_object）", this);
+    m_loadButtonB = new QPushButton("加载图像 B（纯背景）", this);
+    m_subtractButton = new QPushButton("执行背景减除", this);
+    m_saveButton = new QPushButton("保存结果", this);
 
-    thresholdValueLabel = new QLabel(QString("阈值: %1").arg(threshold), this);
-    thresholdSlider = new QSlider(Qt::Horizontal, this);
-    thresholdSlider->setRange(0, 255);
-    thresholdSlider->setValue(threshold);
+    m_thresholdValueLabel = new QLabel(QString("阈值: %1").arg(threshold), this);
+    m_thresholdSlider = new QSlider(Qt::Horizontal, this);
+    m_thresholdSlider->setRange(0, 255);
+    m_thresholdSlider->setValue(threshold);
 
-    methodComboBox = new QComboBox(this);
-    methodComboBox->addItem("简单差值法");
-    methodComboBox->addItem("高级背景减除");
+    m_methodComboBox = new QComboBox(this);
+    m_methodComboBox->addItem("简单差值法");
+    m_methodComboBox->addItem("高级背景减除");
 
-    controlLayout->addWidget(loadButtonA);
-    controlLayout->addWidget(loadButtonB);
-    controlLayout->addWidget(subtractButton);
-    controlLayout->addWidget(saveButton);
+    controlLayout->addWidget(m_loadButtonA);
+    controlLayout->addWidget(m_loadButtonB);
+    controlLayout->addWidget(m_subtractButton);
+    controlLayout->addWidget(m_saveButton);
     controlLayout->addWidget(new QLabel("方法:", this));
-    controlLayout->addWidget(methodComboBox);
+    controlLayout->addWidget(m_methodComboBox);
     controlLayout->addWidget(new QLabel("阈值:", this));
-    controlLayout->addWidget(thresholdSlider);
-    controlLayout->addWidget(thresholdValueLabel);
+    controlLayout->addWidget(m_thresholdSlider);
+    controlLayout->addWidget(m_thresholdValueLabel);
 
     // 图像显示区域
     QHBoxLayout *imageLayout = new QHBoxLayout();
@@ -53,41 +223,49 @@ void BackgroundSubtractor::setupUI()
     QGroupBox *groupA = new QGroupBox("图像 A（with_object）", this);
     QGroupBox *groupB = new QGroupBox("图像 B（背景）", this);
     QGroupBox *groupMask = new QGroupBox("背景掩码", this);
+    QGroupBox *groupMaskBefore = new QGroupBox("未经形态学", this);
     QGroupBox *groupResult = new QGroupBox("提取结果", this);
 
     QVBoxLayout *layoutA = new QVBoxLayout(groupA);
     QVBoxLayout *layoutB = new QVBoxLayout(groupB);
     QVBoxLayout *layoutMask = new QVBoxLayout(groupMask);
+    QVBoxLayout *layoutMaskBefore = new QVBoxLayout(groupMaskBefore);
     QVBoxLayout *layoutResult = new QVBoxLayout(groupResult);
 
-    imageALabel = new QLabel("未加载图像", this);
-    imageBLabel = new QLabel("未加载图像", this);
-    maskLabel = new QLabel("未计算", this);
-    resultLabel = new QLabel("无结果", this);
+    m_imageALabel = new QLabel("未加载图像", this);
+    m_imageBLabel = new QLabel("未加载图像", this);
+    m_maskLabel = new QLabel("未计算", this);
+    m_maskLabelBefore = new QLabel("无结果", this);
+    m_resultLabel = new QLabel("无结果", this);
 
-    imageALabel->setAlignment(Qt::AlignCenter);
-    imageBLabel->setAlignment(Qt::AlignCenter);
-    maskLabel->setAlignment(Qt::AlignCenter);
-    resultLabel->setAlignment(Qt::AlignCenter);
+    m_imageALabel->setAlignment(Qt::AlignCenter);
+    m_imageBLabel->setAlignment(Qt::AlignCenter);
+    m_maskLabel->setAlignment(Qt::AlignCenter);
+    m_maskLabelBefore->setAlignment(Qt::AlignCenter);
+    m_resultLabel->setAlignment(Qt::AlignCenter);
 
-    imageALabel->setMinimumSize(300, 300);
-    imageBLabel->setMinimumSize(300, 300);
-    maskLabel->setMinimumSize(300, 300);
-    resultLabel->setMinimumSize(300, 300);
+    m_imageALabel->setMinimumSize(300, 300);
+    m_imageBLabel->setMinimumSize(300, 300);
+    m_maskLabel->setMinimumSize(300, 300);
+    m_resultLabel->setMinimumSize(300, 300);
+    m_maskLabelBefore->setMinimumSize(300, 300);
 
-    imageALabel->setStyleSheet("border: 1px solid gray;");
-    imageBLabel->setStyleSheet("border: 1px solid gray;");
-    maskLabel->setStyleSheet("border: 1px solid gray;");
-    resultLabel->setStyleSheet("border: 1px solid gray;");
+    m_imageALabel->setStyleSheet("border: 1px solid gray;");
+    m_imageBLabel->setStyleSheet("border: 1px solid gray;");
+    m_maskLabel->setStyleSheet("border: 1px solid gray;");
+    m_resultLabel->setStyleSheet("border: 1px solid gray;");
+    m_maskLabelBefore->setStyleSheet("border: 1px solid gray;");
 
-    layoutA->addWidget(imageALabel);
-    layoutB->addWidget(imageBLabel);
-    layoutMask->addWidget(maskLabel);
-    layoutResult->addWidget(resultLabel);
+    layoutA->addWidget(m_imageALabel);
+    layoutB->addWidget(m_imageBLabel);
+    layoutMask->addWidget(m_maskLabel);
+    layoutResult->addWidget(m_resultLabel);
+    layoutMaskBefore->addWidget(m_maskLabelBefore);
 
     QHBoxLayout *groupsLayout = new QHBoxLayout();
     groupsLayout->addWidget(groupA);
     groupsLayout->addWidget(groupB);
+    groupsLayout->addWidget(groupMaskBefore);
 
     QHBoxLayout *groupsLayout2 = new QHBoxLayout();
     groupsLayout2->addWidget(groupMask);
@@ -99,12 +277,12 @@ void BackgroundSubtractor::setupUI()
     mainLayout->addLayout(groupsLayout2);
 
     // 连接信号槽
-    connect(loadButtonA, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageA);
-    connect(loadButtonB, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageB);
-    connect(subtractButton, &QPushButton::clicked, this, &BackgroundSubtractor::subtractBackground);
-    connect(saveButton, &QPushButton::clicked, this, &BackgroundSubtractor::saveResult);
-    connect(thresholdSlider, &QSlider::valueChanged, this, &BackgroundSubtractor::onThresholdChanged);
-    connect(methodComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(m_loadButtonA, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageA);
+    connect(m_loadButtonB, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageB);
+    connect(m_subtractButton, &QPushButton::clicked, this, &BackgroundSubtractor::subtractBackground);
+    connect(m_saveButton, &QPushButton::clicked, this, &BackgroundSubtractor::saveResult);
+    connect(m_thresholdSlider, &QSlider::valueChanged, this, &BackgroundSubtractor::onThresholdChanged);
+    connect(m_methodComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &BackgroundSubtractor::onMethodChanged);
 }
 
@@ -114,9 +292,9 @@ void BackgroundSubtractor::loadImageA()
                                                     "打开with_object的图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
 
     if (!fileName.isEmpty()) {
-        imageA.load(fileName);
-        if (!imageA.isNull()) {
-            imageA = imageA.convertToFormat(QImage::Format_RGB32);
+        m_imageA.load(fileName);
+        if (!m_imageA.isNull()) {
+            m_imageA = m_imageA.convertToFormat(QImage::Format_RGB32);
             updateDisplays();
         }
     }
@@ -128,9 +306,9 @@ void BackgroundSubtractor::loadImageB()
                                                     "打开背景图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
 
     if (!fileName.isEmpty()) {
-        imageB.load(fileName);
-        if (!imageB.isNull()) {
-            imageB = imageB.convertToFormat(QImage::Format_RGB32);
+        m_imageB.load(fileName);
+        if (!m_imageB.isNull()) {
+            m_imageB = m_imageB.convertToFormat(QImage::Format_RGB32);
             updateDisplays();
         }
     }
@@ -138,20 +316,20 @@ void BackgroundSubtractor::loadImageB()
 
 void BackgroundSubtractor::subtractBackground()
 {
-    if (imageA.isNull() || imageB.isNull()) {
+    if (m_imageA.isNull() || m_imageB.isNull()) {
         qDebug() << "请先加载图像A和图像B";
         return;
     }
 
-    if (imageA.size() != imageB.size()) {
+    if (m_imageA.size() != m_imageB.size()) {
         qDebug() << "图像尺寸不匹配，正在调整...";
-        imageB = imageB.scaled(imageA.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        m_imageB = m_imageB.scaled(m_imageA.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     }
 
-    if (methodComboBox->currentIndex() == 0) {
-        resultImage = subtractSimple(imageA, imageB);
+    if (m_methodComboBox->currentIndex() == 0) {
+        m_resultImage = subtractSimple(m_imageA, m_imageB);
     } else {
-        resultImage = subtractAdvanced(imageA, imageB);
+        m_resultImage = subtractAdvanced(m_imageA, m_imageB);
     }
 
     updateDisplays();
@@ -160,13 +338,13 @@ void BackgroundSubtractor::subtractBackground()
 QImage BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &imgB)
 {
     QImage result(imgA.size(), QImage::Format_ARGB32);
-    maskImage = QImage(imgA.size(), QImage::Format_Grayscale8);
+    m_maskImageBefore = QImage(imgA.size(), QImage::Format_Grayscale8);
 
     for (int y = 0; y < imgA.height(); ++y) {
         const QRgb *lineA = reinterpret_cast<const QRgb*>(imgA.constScanLine(y));
         const QRgb *lineB = reinterpret_cast<const QRgb*>(imgB.constScanLine(y));
         QRgb *lineResult = reinterpret_cast<QRgb*>(result.scanLine(y));
-        uchar *lineMask = maskImage.scanLine(y);
+        uchar *lineMask = m_maskImageBefore.scanLine(y);
 
         for (int x = 0; x < imgA.width(); ++x) {
             QRgb pixelA = lineA[x];
@@ -194,9 +372,12 @@ QImage BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &im
     }
 
     // 对掩码进行形态学处理
-    maskImage = applyMorphologicalOperations(maskImage);
+    m_maskImage = applyMorphologicalOperations(m_maskImageBefore);
 
-    return result;
+    // 提取大物体并添加红色边框
+    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA);
+
+    return finalResult;
 }
 
 QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &imgB)
@@ -206,13 +387,13 @@ QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &
     QImage grayB = imgB.convertToFormat(QImage::Format_Grayscale8);
 
     QImage result(imgA.size(), QImage::Format_ARGB32);
-    maskImage = QImage(imgA.size(), QImage::Format_Grayscale8);
+    m_maskImageBefore = QImage(imgA.size(), QImage::Format_Grayscale8);
 
     // 第一遍：计算灰度差异
     for (int y = 0; y < grayA.height(); ++y) {
         const uchar *lineA = grayA.constScanLine(y);
         const uchar *lineB = grayB.constScanLine(y);
-        uchar *lineMask = maskImage.scanLine(y);
+        uchar *lineMask = m_maskImageBefore.scanLine(y);
 
         for (int x = 0; x < grayA.width(); ++x) {
             int diff = qAbs(lineA[x] - lineB[x]);
@@ -221,13 +402,13 @@ QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &
     }
 
     // 应用形态学操作
-    // maskImage = applyMorphologicalOperations(maskImage);
+    m_maskImage = applyMorphologicalOperations(m_maskImageBefore);
 
     // 第二遍：使用处理后的掩码提取前景
     for (int y = 0; y < imgA.height(); ++y) {
         const QRgb *lineA = reinterpret_cast<const QRgb*>(imgA.constScanLine(y));
         QRgb *lineResult = reinterpret_cast<QRgb*>(result.scanLine(y));
-        const uchar *lineMask = maskImage.constScanLine(y);
+        const uchar *lineMask = m_maskImage.constScanLine(y);
 
         for (int x = 0; x < imgA.width(); ++x) {
             if (lineMask[x] > 128) {  // 前景
@@ -245,71 +426,35 @@ QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &
 
 QImage BackgroundSubtractor::applyMorphologicalOperations(const QImage &binaryImage)
 {
-    QImage result = binaryImage;
+    // 将QImage转换为cv::Mat
+    cv::Mat mat = qImageToCvMat(binaryImage);
 
-    // 简单的形态学操作：先腐蚀后膨胀（开运算）
-    int kernelSize = 3;
-
-    // 创建临时图像用于处理
-    QImage temp = binaryImage;
-
-    // 腐蚀：去除小噪声点
-    for (int y = kernelSize/2; y < binaryImage.height() - kernelSize/2; ++y) {
-        const uchar *lines[3];
-        for (int i = 0; i < 3; ++i) {
-            lines[i] = binaryImage.constScanLine(y + i - kernelSize/2);
-        }
-        uchar *lineTemp = temp.scanLine(y);
-
-        for (int x = kernelSize/2; x < binaryImage.width() - kernelSize/2; ++x) {
-            bool allWhite = true;
-            for (int ky = 0; ky < 3; ++ky) {
-                for (int kx = 0; kx < 3; ++kx) {
-                    if (lines[ky][x + kx - kernelSize/2] < 128) {
-                        allWhite = false;
-                        break;
-                    }
-                }
-                if (!allWhite) break;
-            }
-            lineTemp[x] = allWhite ? 255 : 0;
-        }
+    if (mat.channels() > 1) {
+        cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
     }
 
-    // 膨胀：填充空洞
-    result = temp;
-    for (int y = kernelSize/2; y < temp.height() - kernelSize/2; ++y) {
-        const uchar *lines[3];
-        for (int i = 0; i < 3; ++i) {
-            lines[i] = temp.constScanLine(y + i - kernelSize/2);
-        }
-        uchar *lineResult = result.scanLine(y);
+    // 二值化确保是0和255
+    cv::threshold(mat, mat, 128, 255, cv::THRESH_BINARY);
 
-        for (int x = kernelSize/2; x < temp.width() - kernelSize/2; ++x) {
-            bool hasWhite = false;
-            for (int ky = 0; ky < 3; ++ky) {
-                for (int kx = 0; kx < 3; ++kx) {
-                    if (lines[ky][x + kx - kernelSize/2] > 128) {
-                        hasWhite = true;
-                        break;
-                    }
-                }
-                if (hasWhite) break;
-            }
-            lineResult[x] = hasWhite ? 255 : 0;
-        }
-    }
+    // 创建形态学操作核（大小可调整）
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
 
-    return result;
+    // 先开运算去除小噪声
+    cv::morphologyEx(mat, mat, cv::MORPH_OPEN, kernel);
+
+    // 再闭运算填充空洞
+    cv::morphologyEx(mat, mat, cv::MORPH_CLOSE, kernel);
+
+    return cvMatToQImage(mat);
 }
 
 void BackgroundSubtractor::onThresholdChanged(int value)
 {
     threshold = value;
-    thresholdValueLabel->setText(QString("阈值: %1").arg(threshold));
+    m_thresholdValueLabel->setText(QString("阈值: %1").arg(threshold));
 
     // 实时更新结果
-    if (!imageA.isNull() && !imageB.isNull()) {
+    if (!m_imageA.isNull() && !m_imageB.isNull()) {
         subtractBackground();
     }
 }
@@ -317,47 +462,50 @@ void BackgroundSubtractor::onThresholdChanged(int value)
 void BackgroundSubtractor::onMethodChanged(int index)
 {
     Q_UNUSED(index)
-    if (!imageA.isNull() && !imageB.isNull()) {
+    if (!m_imageA.isNull() && !m_imageB.isNull()) {
         subtractBackground();
     }
 }
 
 void BackgroundSubtractor::saveResult()
 {
-    if (resultImage.isNull()) return;
+    if (m_resultImage.isNull()) return;
 
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     "保存结果图像", "", "PNG图像 (*.png);;JPEG图像 (*.jpg)");
 
     if (!fileName.isEmpty()) {
-        resultImage.save(fileName);
+        m_resultImage.save(fileName);
     }
 }
 
 void BackgroundSubtractor::updateDisplays()
 {
     // 显示图像A
-    if (!imageA.isNull()) {
-        QPixmap pixmapA = QPixmap::fromImage(imageA)
+    if (!m_imageA.isNull()) {
+        QPixmap pixmapA = QPixmap::fromImage(m_imageA)
         .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        imageALabel->setPixmap(pixmapA);
+        m_imageALabel->setPixmap(pixmapA);
     }
 
     // 显示图像B
-    if (!imageB.isNull()) {
-        QPixmap pixmapB = QPixmap::fromImage(imageB)
+    if (!m_imageB.isNull()) {
+        QPixmap pixmapB = QPixmap::fromImage(m_imageB)
         .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        imageBLabel->setPixmap(pixmapB);
+        m_imageBLabel->setPixmap(pixmapB);
     }
 
     // 显示结果和掩码
-    if (!resultImage.isNull()) {
-        QPixmap pixmapResult = QPixmap::fromImage(resultImage)
-        .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        resultLabel->setPixmap(pixmapResult);
+    if (!m_resultImage.isNull()) {
+        QPixmap pixmapResultBefore = QPixmap::fromImage(m_maskImageBefore)
+                                         .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap pixmapResult = QPixmap::fromImage(m_resultImage)
+                                   .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        m_resultLabel->setPixmap(pixmapResult);
+        m_maskLabelBefore->setPixmap(pixmapResultBefore);
 
-        QPixmap pixmapMask = QPixmap::fromImage(maskImage)
+        QPixmap pixmapMask = QPixmap::fromImage(m_maskImage)
                                  .scaled(300, 300, Qt::KeepAspectRatio, Qt::FastTransformation);
-        maskLabel->setPixmap(pixmapMask);
+        m_maskLabel->setPixmap(pixmapMask);
     }
 }
