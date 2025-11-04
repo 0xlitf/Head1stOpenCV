@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-    if (auto usingQt = false) {
+    if (auto usingQt = true) {
         QApplication a(argc, argv);
 
         BackgroundSubtractor window;
@@ -21,7 +21,8 @@ int main(int argc, char *argv[])
         // bgSubtractor = cv::createBackgroundSubtractorMOG2();  // 高斯混合模型
         bgSubtractor = cv::createBackgroundSubtractorKNN();      // K最近邻算法
 
-        cv::Mat imageA = cv::imread("with_object.png");
+        cv::Mat imageA = cv::imread("obj.jpg");
+        cv::imshow("imageA", imageA);
 
         // 由于我们只有单张图片，需要"训练"背景模型
         // 在实际视频流中，这个模型会持续更新
@@ -36,8 +37,8 @@ int main(int argc, char *argv[])
         cv::Mat result;
         imageA.copyTo(result, fgMask);
 
-        cv::imshow("前景掩码", fgMask);
-        cv::imshow("提取的物体", result);
+        cv::imshow("foreground", fgMask);
+        cv::imshow("object", result);
         cv::waitKey(0);
 
         return 0;

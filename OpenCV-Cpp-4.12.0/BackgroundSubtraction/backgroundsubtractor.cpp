@@ -221,7 +221,7 @@ QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &
     }
 
     // 应用形态学操作
-    maskImage = applyMorphologicalOperations(maskImage);
+    // maskImage = applyMorphologicalOperations(maskImage);
 
     // 第二遍：使用处理后的掩码提取前景
     for (int y = 0; y < imgA.height(); ++y) {
