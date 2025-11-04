@@ -1,0 +1,1 @@
+#include "imagebinarizer.h"
