@@ -23,7 +23,7 @@ void BackgroundSubtractor::setupUI()
     // 控制面板
     QHBoxLayout *controlLayout = new QHBoxLayout();
 
-    loadButtonA = new QPushButton("加载图像 A（有物体）", this);
+    loadButtonA = new QPushButton("加载图像 A（with_object）", this);
     loadButtonB = new QPushButton("加载图像 B（纯背景）", this);
     subtractButton = new QPushButton("执行背景减除", this);
     saveButton = new QPushButton("保存结果", this);
@@ -50,7 +50,7 @@ void BackgroundSubtractor::setupUI()
     // 图像显示区域
     QHBoxLayout *imageLayout = new QHBoxLayout();
 
-    QGroupBox *groupA = new QGroupBox("图像 A（有物体）", this);
+    QGroupBox *groupA = new QGroupBox("图像 A（with_object）", this);
     QGroupBox *groupB = new QGroupBox("图像 B（背景）", this);
     QGroupBox *groupMask = new QGroupBox("背景掩码", this);
     QGroupBox *groupResult = new QGroupBox("提取结果", this);
@@ -111,7 +111,7 @@ void BackgroundSubtractor::setupUI()
 void BackgroundSubtractor::loadImageA()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    "打开有物体的图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
+                                                    "打开with_object的图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
 
     if (!fileName.isEmpty()) {
         imageA.load(fileName);
