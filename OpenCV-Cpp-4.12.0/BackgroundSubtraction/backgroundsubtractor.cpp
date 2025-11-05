@@ -8,6 +8,9 @@ BackgroundSubtractor::BackgroundSubtractor(QWidget *parent)
     : QWidget(parent), threshold(25)
 {
     setupUI();
+    m_imageA.load("obj.jpg");
+    m_imageB.load("bg.jpg");
+    updateDisplays();
 }
 
 BackgroundSubtractor::~BackgroundSubtractor()
@@ -222,45 +225,52 @@ void BackgroundSubtractor::setupUI()
 
     QGroupBox *groupA = new QGroupBox("图像 A（with_object）", this);
     QGroupBox *groupB = new QGroupBox("图像 B（背景）", this);
-    QGroupBox *groupMask = new QGroupBox("背景掩码", this);
-    QGroupBox *groupMaskBefore = new QGroupBox("未经形态学", this);
+    QGroupBox *groupMaskBefore = new QGroupBox("未经形态学背景掩码", this);
+    QGroupBox *groupMask = new QGroupBox("经形态学后背景掩码", this);
     QGroupBox *groupResult = new QGroupBox("提取结果", this);
+    QGroupBox *groupResultWithRect = new QGroupBox("框选", this);
 
     QVBoxLayout *layoutA = new QVBoxLayout(groupA);
     QVBoxLayout *layoutB = new QVBoxLayout(groupB);
     QVBoxLayout *layoutMask = new QVBoxLayout(groupMask);
     QVBoxLayout *layoutMaskBefore = new QVBoxLayout(groupMaskBefore);
     QVBoxLayout *layoutResult = new QVBoxLayout(groupResult);
+    QVBoxLayout *layoutResultWithRect = new QVBoxLayout(groupResultWithRect);
 
     m_imageALabel = new QLabel("未加载图像", this);
     m_imageBLabel = new QLabel("未加载图像", this);
     m_maskLabel = new QLabel("未计算", this);
     m_maskLabelBefore = new QLabel("无结果", this);
     m_resultLabel = new QLabel("无结果", this);
+    m_resultLabelWithRect = new QLabel("无结果", this);
 
     m_imageALabel->setAlignment(Qt::AlignCenter);
     m_imageBLabel->setAlignment(Qt::AlignCenter);
     m_maskLabel->setAlignment(Qt::AlignCenter);
     m_maskLabelBefore->setAlignment(Qt::AlignCenter);
     m_resultLabel->setAlignment(Qt::AlignCenter);
+    m_resultLabelWithRect->setAlignment(Qt::AlignCenter);
 
     m_imageALabel->setMinimumSize(300, 300);
     m_imageBLabel->setMinimumSize(300, 300);
+    m_maskLabelBefore->setMinimumSize(300, 300);
     m_maskLabel->setMinimumSize(300, 300);
     m_resultLabel->setMinimumSize(300, 300);
-    m_maskLabelBefore->setMinimumSize(300, 300);
+    m_resultLabelWithRect->setMinimumSize(300, 300);
 
     m_imageALabel->setStyleSheet("border: 1px solid gray;");
     m_imageBLabel->setStyleSheet("border: 1px solid gray;");
     m_maskLabel->setStyleSheet("border: 1px solid gray;");
-    m_resultLabel->setStyleSheet("border: 1px solid gray;");
     m_maskLabelBefore->setStyleSheet("border: 1px solid gray;");
+    m_resultLabel->setStyleSheet("border: 1px solid gray;");
+    m_resultLabelWithRect->setStyleSheet("border: 1px solid gray;");
 
     layoutA->addWidget(m_imageALabel);
     layoutB->addWidget(m_imageBLabel);
+    layoutMaskBefore->addWidget(m_maskLabelBefore);
     layoutMask->addWidget(m_maskLabel);
     layoutResult->addWidget(m_resultLabel);
-    layoutMaskBefore->addWidget(m_maskLabelBefore);
+    layoutResultWithRect->addWidget(m_resultLabelWithRect);
 
     QHBoxLayout *groupsLayout = new QHBoxLayout();
     groupsLayout->addWidget(groupA);
@@ -270,6 +280,7 @@ void BackgroundSubtractor::setupUI()
     QHBoxLayout *groupsLayout2 = new QHBoxLayout();
     groupsLayout2->addWidget(groupMask);
     groupsLayout2->addWidget(groupResult);
+    groupsLayout2->addWidget(groupResultWithRect);
 
     // 组装主布局
     mainLayout->addLayout(controlLayout);
@@ -327,15 +338,19 @@ void BackgroundSubtractor::subtractBackground()
     }
 
     if (m_methodComboBox->currentIndex() == 0) {
-        m_resultImage = subtractSimple(m_imageA, m_imageB);
+        std::tie(m_resultImage, m_resultImageWithRect) = subtractSimple(m_imageA, m_imageB);
+        // auto t = subtractSimple(m_imageA, m_imageB);
+        // m_resultImage = std::get<1>(t);
     } else {
-        m_resultImage = subtractAdvanced(m_imageA, m_imageB);
+        std::tie(m_resultImage, m_resultImageWithRect) = subtractAdvanced(m_imageA, m_imageB);
+        // auto t = subtractAdvanced(m_imageA, m_imageB);
+        // m_resultImage = std::get<1>(t);
     }
 
     updateDisplays();
 }
 
-QImage BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &imgB)
+std::tuple<QImage, QImage> BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &imgB)
 {
     QImage result(imgA.size(), QImage::Format_ARGB32);
     m_maskImageBefore = QImage(imgA.size(), QImage::Format_Grayscale8);
@@ -377,10 +392,10 @@ QImage BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &im
     // 提取大物体并添加红色边框
     QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA);
 
-    return finalResult;
+    return std::make_tuple(result, finalResult);
 }
 
-QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &imgB)
+std::tuple<QImage, QImage> BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &imgB)
 {
     // 转换为灰度图进行更精确的处理
     QImage grayA = imgA.convertToFormat(QImage::Format_Grayscale8);
@@ -421,7 +436,7 @@ QImage BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &
         }
     }
 
-    return result;
+    return std::make_tuple(result, result);
 }
 
 QImage BackgroundSubtractor::applyMorphologicalOperations(const QImage &binaryImage)
@@ -496,16 +511,27 @@ void BackgroundSubtractor::updateDisplays()
     }
 
     // 显示结果和掩码
-    if (!m_resultImage.isNull()) {
-        QPixmap pixmapResultBefore = QPixmap::fromImage(m_maskImageBefore)
+    if (!m_maskImageBefore.isNull()) {
+        QPixmap maskResult = QPixmap::fromImage(m_maskImageBefore)
                                          .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QPixmap pixmapResult = QPixmap::fromImage(m_resultImage)
-                                   .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        m_resultLabel->setPixmap(pixmapResult);
-        m_maskLabelBefore->setPixmap(pixmapResultBefore);
+        m_maskLabelBefore->setPixmap(maskResult);
+    }
 
+    if (!m_maskImage.isNull()) {
         QPixmap pixmapMask = QPixmap::fromImage(m_maskImage)
                                  .scaled(300, 300, Qt::KeepAspectRatio, Qt::FastTransformation);
         m_maskLabel->setPixmap(pixmapMask);
+    }
+
+    if (!m_resultImage.isNull()) {
+        QPixmap pixmapResult = QPixmap::fromImage(m_resultImage)
+                                   .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        m_resultLabel->setPixmap(pixmapResult);
+    }
+
+    if (!m_resultImageWithRect.isNull()) {
+        QPixmap pixmapResultWithRect = QPixmap::fromImage(m_resultImageWithRect)
+                                           .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        m_resultLabelWithRect->setPixmap(pixmapResultWithRect);
     }
 }

@@ -24,10 +24,8 @@ public:
     BackgroundSubtractor(QWidget *parent = nullptr);
     ~BackgroundSubtractor();
 
-    // QImage 转 cv::Mat
     cv::Mat qImageToCvMat(const QImage &qimage);
 
-    // cv::Mat 转 QImage
     QImage cvMatToQImage(const cv::Mat &mat);
 private slots:
     void loadImageA();
@@ -40,8 +38,8 @@ private slots:
 private:
     void setupUI();
     void updateDisplays();
-    QImage subtractSimple(const QImage &imgA, const QImage &imgB);
-    QImage subtractAdvanced(const QImage &imgA, const QImage &imgB);
+    std::tuple<QImage, QImage> subtractSimple(const QImage &imgA, const QImage &imgB);
+    std::tuple<QImage, QImage> subtractAdvanced(const QImage &imgA, const QImage &imgB);
     QImage applyMorphologicalOperations(const QImage &binaryImage);
 
     // 新增函数：提取大物体并画红框
@@ -61,6 +59,8 @@ private:
     QLabel *m_imageALabel;
     QLabel *m_imageBLabel;
     QLabel *m_resultLabel;
+    QLabel *m_resultLabelWithRect;
+
     QLabel *m_maskLabelBefore;
     QLabel *m_maskLabel;
     QPushButton *m_loadButtonA;
