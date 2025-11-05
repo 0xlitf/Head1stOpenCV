@@ -165,7 +165,7 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
 
         // 绘制红色矩形边框（BGR格式：蓝色,绿色,红色）
         cv::Scalar redColor(0, 0, 255); // 红色
-        int thickness = 3; // 边框粗细
+        int thickness = 3;
 
         cv::rectangle(resultMat, boundingRect, redColor, thickness);
 
@@ -181,19 +181,16 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
                  << "area=" << area;
     }
 
-    // 将结果转换回QImage
     return cvMatToQImage(resultMat);
 }
 
 void BackgroundSubtractor::setupUI()
 {
-    setWindowTitle("Qt6 背景减除工具");
+    setWindowTitle("Qt6 背景减除");
     setMinimumSize(1000, 800);
 
-    // 创建主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // 控制面板
     QHBoxLayout *controlLayout = new QHBoxLayout();
 
     m_loadButtonA = new QPushButton("加载图像 A（with_object）", this);
@@ -283,9 +280,9 @@ void BackgroundSubtractor::setupUI()
     groupsLayout2->addWidget(groupResultWithRect);
 
     // 组装主布局
-    mainLayout->addLayout(controlLayout);
-    mainLayout->addLayout(groupsLayout);
-    mainLayout->addLayout(groupsLayout2);
+    mainLayout->addLayout(controlLayout, 1);
+    mainLayout->addLayout(groupsLayout, 5);
+    mainLayout->addLayout(groupsLayout2, 5);
 
     // 连接信号槽
     connect(m_loadButtonA, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageA);
@@ -339,12 +336,8 @@ void BackgroundSubtractor::subtractBackground()
 
     if (m_methodComboBox->currentIndex() == 0) {
         std::tie(m_resultImage, m_resultImageWithRect) = subtractSimple(m_imageA, m_imageB);
-        // auto t = subtractSimple(m_imageA, m_imageB);
-        // m_resultImage = std::get<1>(t);
     } else {
         std::tie(m_resultImage, m_resultImageWithRect) = subtractAdvanced(m_imageA, m_imageB);
-        // auto t = subtractAdvanced(m_imageA, m_imageB);
-        // m_resultImage = std::get<1>(t);
     }
 
     updateDisplays();
@@ -486,8 +479,7 @@ void BackgroundSubtractor::saveResult()
 {
     if (m_resultImage.isNull()) return;
 
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    "保存结果图像", "", "PNG图像 (*.png);;JPEG图像 (*.jpg)");
+    QString fileName = QFileDialog::getSaveFileName(this, "保存结果图像", "", "PNG图像 (*.png);;JPEG图像 (*.jpg)");
 
     if (!fileName.isEmpty()) {
         m_resultImage.save(fileName);
@@ -498,40 +490,34 @@ void BackgroundSubtractor::updateDisplays()
 {
     // 显示图像A
     if (!m_imageA.isNull()) {
-        QPixmap pixmapA = QPixmap::fromImage(m_imageA)
-        .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap pixmapA = QPixmap::fromImage(m_imageA).scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_imageALabel->setPixmap(pixmapA);
     }
 
     // 显示图像B
     if (!m_imageB.isNull()) {
-        QPixmap pixmapB = QPixmap::fromImage(m_imageB)
-        .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap pixmapB = QPixmap::fromImage(m_imageB).scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_imageBLabel->setPixmap(pixmapB);
     }
 
     // 显示结果和掩码
     if (!m_maskImageBefore.isNull()) {
-        QPixmap maskResult = QPixmap::fromImage(m_maskImageBefore)
-                                         .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap maskResult = QPixmap::fromImage(m_maskImageBefore).scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_maskLabelBefore->setPixmap(maskResult);
     }
 
     if (!m_maskImage.isNull()) {
-        QPixmap pixmapMask = QPixmap::fromImage(m_maskImage)
-                                 .scaled(300, 300, Qt::KeepAspectRatio, Qt::FastTransformation);
+        QPixmap pixmapMask = QPixmap::fromImage(m_maskImage).scaled(300, 300, Qt::KeepAspectRatio, Qt::FastTransformation);
         m_maskLabel->setPixmap(pixmapMask);
     }
 
     if (!m_resultImage.isNull()) {
-        QPixmap pixmapResult = QPixmap::fromImage(m_resultImage)
-                                   .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap pixmapResult = QPixmap::fromImage(m_resultImage).scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_resultLabel->setPixmap(pixmapResult);
     }
 
     if (!m_resultImageWithRect.isNull()) {
-        QPixmap pixmapResultWithRect = QPixmap::fromImage(m_resultImageWithRect)
-                                           .scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap pixmapResultWithRect = QPixmap::fromImage(m_resultImageWithRect).scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_resultLabelWithRect->setPixmap(pixmapResultWithRect);
     }
 }
