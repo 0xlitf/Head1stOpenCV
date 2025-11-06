@@ -44,6 +44,7 @@ private:
 
     // 新增函数：提取大物体并画红框
     QImage extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original);
+    QImage extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original, double minArea);
 
     // 辅助函数：查找轮廓
     std::vector<std::vector<cv::Point>> findContours(const cv::Mat &maskMat);

@@ -193,6 +193,101 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
     return cvMatToQImage(resultMat);
 }
 
+QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original, double minArea) {
+    if (mask.isNull() || original.isNull() || mask.size() != original.size()) {
+        qWarning() << "输入图像无效或尺寸不匹配";
+        return QImage();
+    }
+
+    // 将QImage转换为cv::Mat
+    cv::Mat maskMat = qImageToCvMat(mask);
+    cv::Mat originalMat = qImageToCvMat(original);
+
+    // 确保mask是二值图像
+    if (maskMat.channels() > 1) {
+        cv::cvtColor(maskMat, maskMat, cv::COLOR_BGR2GRAY);
+    }
+
+    // 二值化处理
+    cv::threshold(maskMat, maskMat, 128, 255, cv::THRESH_BINARY);
+
+    // 查找轮廓
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(maskMat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    if (contours.empty()) {
+        qDebug() << "未找到任何轮廓";
+        return original;
+    }
+
+    qDebug() << "找到轮廓数量:" << contours.size();
+
+    // 过滤小轮廓并统计像素数量
+    std::vector<std::vector<cv::Point>> largeContours;
+    std::vector<int> pixelCounts; // 存储每个轮廓的像素数量
+
+    for (const auto& contour : contours) {
+        double area = cv::contourArea(contour);
+        if (area >= minArea) {
+            largeContours.push_back(contour);
+
+            // 方法1: 使用轮廓面积（近似）
+            // pixelCounts.push_back(static_cast<int>(area));
+
+            // 方法2: 精确计算轮廓内像素数量
+            cv::Mat contourMask = cv::Mat::zeros(maskMat.size(), CV_8UC1);
+            cv::drawContours(contourMask, std::vector<std::vector<cv::Point>>{contour}, -1, 255, cv::FILLED);
+            int pixelCount = cv::countNonZero(contourMask);
+            pixelCounts.push_back(pixelCount);
+        }
+    }
+
+    if (largeContours.empty()) {
+        qDebug() << "未找到面积大于" << minArea << "的轮廓";
+        return original;
+    }
+
+    qDebug() << "大轮廓数量:" << largeContours.size();
+
+    // 创建结果图像
+    cv::Mat resultMat = originalMat.clone();
+
+    // 为每个大轮廓绘制边界框并显示统计信息
+    for (size_t i = 0; i < largeContours.size(); ++i) {
+        const auto& contour = largeContours[i];
+        int pixelCount = pixelCounts[i];
+
+        // 计算边界矩形和轮廓面积
+        cv::Rect boundingRect = cv::boundingRect(contour);
+        double contourArea = cv::contourArea(contour);
+
+        // 绘制红色矩形边框
+        cv::Scalar redColor(0, 0, 255);
+        int thickness = 2;
+        cv::rectangle(resultMat, boundingRect, redColor, thickness);
+
+        // 创建信息标签
+        std::stringstream label;
+        label << "Obj_" << (i+1)
+              << " Pixels:" << pixelCount
+              << " Area:" << static_cast<int>(contourArea);
+
+        cv::Point textPos(boundingRect.x, boundingRect.y - 5);
+        if (textPos.y < 20) textPos.y = boundingRect.y + 20;
+
+        cv::putText(resultMat, label.str(), textPos,
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, redColor, 1);
+
+        qDebug() << QString("物体%1: 位置(%2,%3) 尺寸(%4×%5) 轮廓面积%6 像素数量%7")
+                        .arg(i+1).arg(boundingRect.x).arg(boundingRect.y)
+                        .arg(boundingRect.width).arg(boundingRect.height)
+                        .arg(contourArea).arg(pixelCount);
+    }
+
+    return cvMatToQImage(resultMat);
+}
+
 void BackgroundSubtractor::setupUI()
 {
     setWindowTitle("Qt6 背景减除");
@@ -392,7 +487,7 @@ std::tuple<QImage, QImage> BackgroundSubtractor::subtractSimple(const QImage &im
     m_maskImage = applyMorphologicalOperations(m_maskImageBefore);
 
     // 提取大物体并添加红色边框
-    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA);
+    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA, 1000);
 
     return std::make_tuple(result, finalResult);
 }
@@ -439,7 +534,7 @@ std::tuple<QImage, QImage> BackgroundSubtractor::subtractAdvanced(const QImage &
     }
 
     // 提取大物体并添加红色边框
-    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA);
+    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA, 1000);
 
     return std::make_tuple(result, finalResult);
 }
