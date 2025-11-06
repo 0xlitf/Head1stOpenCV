@@ -8,8 +8,12 @@ BackgroundSubtractor::BackgroundSubtractor(QWidget *parent)
     : QWidget(parent), threshold(25)
 {
     setupUI();
-    m_imageA.load("obj.jpg");
-    m_imageB.load("bg.jpg");
+
+    m_fileNameA = qApp->applicationDirPath() + QDir::separator() + "obj.jpg";
+    m_fileNameB = qApp->applicationDirPath() + QDir::separator() + "bg.jpg";
+
+    m_imageA.load(m_fileNameA);
+    m_imageB.load(m_fileNameB);
     updateDisplays();
 }
 
@@ -116,7 +120,8 @@ std::vector<std::vector<cv::Point>> BackgroundSubtractor::filterLargeContours(
 
 // 主函数：提取大物体并添加红色边框
 QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original) {
-    if (mask.isNull() || original.isNull()) {
+    if (mask.isNull() || original.isNull() || mask.size() != original.size()) {
+        qWarning() << "输入图像无效或尺寸不匹配";
         return QImage();
     }
 
@@ -131,6 +136,10 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
 
     // 二值化处理（确保是0和255）
     cv::threshold(maskMat, maskMat, 128, 255, cv::THRESH_BINARY);
+
+    // 形态学操作（可选，去除噪声）
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::morphologyEx(maskMat, maskMat, cv::MORPH_OPEN, kernel);
 
     // 查找轮廓
     std::vector<std::vector<cv::Point>> contours = findContours(maskMat);
@@ -296,11 +305,11 @@ void BackgroundSubtractor::setupUI()
 
 void BackgroundSubtractor::loadImageA()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
+    QString m_fileNameA = QFileDialog::getOpenFileName(this,
                                                     "打开with_object的图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
 
-    if (!fileName.isEmpty()) {
-        m_imageA.load(fileName);
+    if (!m_fileNameA.isEmpty()) {
+        m_imageA.load(m_fileNameA);
         if (!m_imageA.isNull()) {
             m_imageA = m_imageA.convertToFormat(QImage::Format_RGB32);
             updateDisplays();
@@ -429,7 +438,10 @@ std::tuple<QImage, QImage> BackgroundSubtractor::subtractAdvanced(const QImage &
         }
     }
 
-    return std::make_tuple(result, result);
+    // 提取大物体并添加红色边框
+    QImage finalResult = extractLargeObjectsWithBoundingBox(m_maskImage, imgA);
+
+    return std::make_tuple(result, finalResult);
 }
 
 QImage BackgroundSubtractor::applyMorphologicalOperations(const QImage &binaryImage)
@@ -477,12 +489,28 @@ void BackgroundSubtractor::onMethodChanged(int index)
 
 void BackgroundSubtractor::saveResult()
 {
-    if (m_resultImage.isNull()) return;
+    qDebug() << "m_fileNameA: " << m_fileNameA;
+    if (m_resultImage.isNull()) {
+        return;
+    }
+    if (m_fileNameA.isEmpty()) {
+        return;
+    }
 
-    QString fileName = QFileDialog::getSaveFileName(this, "保存结果图像", "", "PNG图像 (*.png);;JPEG图像 (*.jpg)");
+    QFileInfo fileInfo(m_fileNameA);
+    QString dirPath = fileInfo.absolutePath();
+    QString baseName = fileInfo.baseName();
+    QString suffix = fileInfo.suffix();
 
-    if (!fileName.isEmpty()) {
-        m_resultImage.save(fileName);
+    QString fileName5 = dirPath + QDir::separator() + baseName + "-5." + suffix;
+    QString fileName6 = dirPath + QDir::separator() + baseName + "-6." + suffix;
+
+    qDebug() << "saveResult: " << fileName5;
+    qDebug() << "saveResult: " << fileName6;
+
+    if (!m_fileNameA.isEmpty()) {
+        m_resultImage.save(fileName5);
+        m_resultImageWithRect.save(fileName6);
     }
 }
 

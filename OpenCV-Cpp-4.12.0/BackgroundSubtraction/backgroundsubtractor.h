@@ -80,6 +80,9 @@ private:
     QImage m_maskImage;
     QImage m_maskImageBefore;
 
+    QString m_fileNameA;
+    QString m_fileNameB;
+
     // 参数
     int threshold;
 };
