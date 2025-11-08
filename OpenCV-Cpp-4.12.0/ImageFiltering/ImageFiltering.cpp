@@ -1,11 +1,11 @@
-#include "backgroundsubtractor.h"
+#include "ImageFiltering.h"
 #include <QApplication>
 #include <QDebug>
 #include <opencv2/imgproc.hpp>
 #include <vector>
 
 
-BackgroundSubtractor::BackgroundSubtractor(QWidget *parent)
+ImageFiltering::ImageFiltering(QWidget *parent)
     : QWidget(parent), threshold(25)
 {
     setupUI();
@@ -18,11 +18,11 @@ BackgroundSubtractor::BackgroundSubtractor(QWidget *parent)
     updateDisplays();
 }
 
-BackgroundSubtractor::~BackgroundSubtractor()
+ImageFiltering::~ImageFiltering()
 {
 }
 
-cv::Mat BackgroundSubtractor::BackgroundSubtractor::qImageToCvMat(const QImage &qimage) {
+cv::Mat ImageFiltering::ImageFiltering::qImageToCvMat(const QImage &qimage) {
     if (qimage.isNull()) {
         return cv::Mat();
     }
@@ -44,7 +44,7 @@ cv::Mat BackgroundSubtractor::BackgroundSubtractor::qImageToCvMat(const QImage &
     return result.clone(); // 克隆以确保数据独立
 }
 
-QImage BackgroundSubtractor::BackgroundSubtractor::cvMatToQImage(const cv::Mat &mat) {
+QImage ImageFiltering::ImageFiltering::cvMatToQImage(const cv::Mat &mat) {
     if (mat.empty()) {
         return QImage();
     }
@@ -92,7 +92,7 @@ QImage BackgroundSubtractor::BackgroundSubtractor::cvMatToQImage(const cv::Mat &
     }
 }
 // 查找轮廓
-std::vector<std::vector<cv::Point>> BackgroundSubtractor::findContours(const cv::Mat &maskMat) {
+std::vector<std::vector<cv::Point>> ImageFiltering::findContours(const cv::Mat &maskMat) {
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
 
@@ -103,7 +103,7 @@ std::vector<std::vector<cv::Point>> BackgroundSubtractor::findContours(const cv:
 }
 
 // 过滤小轮廓
-std::vector<std::vector<cv::Point>> BackgroundSubtractor::filterLargeContours(
+std::vector<std::vector<cv::Point>> ImageFiltering::filterLargeContours(
     const std::vector<std::vector<cv::Point>> &contours,
     double minArea) {
 
@@ -120,7 +120,7 @@ std::vector<std::vector<cv::Point>> BackgroundSubtractor::filterLargeContours(
 }
 
 // 主函数：提取大物体并添加红色边框
-QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original) {
+QImage ImageFiltering::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original) {
     if (mask.isNull() || original.isNull() || mask.size() != original.size()) {
         qWarning() << "输入图像无效或尺寸不匹配";
         return QImage();
@@ -194,7 +194,7 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
     return cvMatToQImage(resultMat);
 }
 
-QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original, double minArea) {
+QImage ImageFiltering::extractLargeObjectsWithBoundingBox(const QImage &mask, const QImage &original, double minArea) {
     if (mask.isNull() || original.isNull() || mask.size() != original.size()) {
         qWarning() << "输入图像无效或尺寸不匹配";
         return QImage();
@@ -289,7 +289,7 @@ QImage BackgroundSubtractor::extractLargeObjectsWithBoundingBox(const QImage &ma
     return cvMatToQImage(resultMat);
 }
 
-void BackgroundSubtractor::setupUI()
+void ImageFiltering::setupUI()
 {
     setWindowTitle("Qt6 背景减除");
     setMinimumSize(1000, 800);
@@ -390,16 +390,16 @@ void BackgroundSubtractor::setupUI()
     mainLayout->addLayout(groupsLayout2, 5);
 
     // 连接信号槽
-    connect(m_loadButtonA, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageA);
-    connect(m_loadButtonB, &QPushButton::clicked, this, &BackgroundSubtractor::loadImageB);
-    connect(m_subtractButton, &QPushButton::clicked, this, &BackgroundSubtractor::subtractBackground);
-    connect(m_saveButton, &QPushButton::clicked, this, &BackgroundSubtractor::saveResult);
-    connect(m_thresholdSlider, &QSlider::valueChanged, this, &BackgroundSubtractor::onThresholdChanged);
+    connect(m_loadButtonA, &QPushButton::clicked, this, &ImageFiltering::loadImageA);
+    connect(m_loadButtonB, &QPushButton::clicked, this, &ImageFiltering::loadImageB);
+    connect(m_subtractButton, &QPushButton::clicked, this, &ImageFiltering::subtractBackground);
+    connect(m_saveButton, &QPushButton::clicked, this, &ImageFiltering::saveResult);
+    connect(m_thresholdSlider, &QSlider::valueChanged, this, &ImageFiltering::onThresholdChanged);
     connect(m_methodComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &BackgroundSubtractor::onMethodChanged);
+            this, &ImageFiltering::onMethodChanged);
 }
 
-void BackgroundSubtractor::loadImageA()
+void ImageFiltering::loadImageA()
 {
     QString m_fileNameA = QFileDialog::getOpenFileName(this,
                                                     "打开with_object的图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
@@ -413,7 +413,7 @@ void BackgroundSubtractor::loadImageA()
     }
 }
 
-void BackgroundSubtractor::loadImageB()
+void ImageFiltering::loadImageB()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     "打开背景图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
@@ -427,7 +427,7 @@ void BackgroundSubtractor::loadImageB()
     }
 }
 
-void BackgroundSubtractor::subtractBackground()
+void ImageFiltering::subtractBackground()
 {
     if (m_imageA.isNull() || m_imageB.isNull()) {
         qDebug() << "请先加载图像A和图像B";
@@ -448,7 +448,7 @@ void BackgroundSubtractor::subtractBackground()
     updateDisplays();
 }
 
-std::tuple<QImage, QImage> BackgroundSubtractor::subtractSimple(const QImage &imgA, const QImage &imgB)
+std::tuple<QImage, QImage> ImageFiltering::subtractSimple(const QImage &imgA, const QImage &imgB)
 {
     QImage result(imgA.size(), QImage::Format_ARGB32);
     m_maskImageBefore = QImage(imgA.size(), QImage::Format_Grayscale8);
@@ -493,7 +493,7 @@ std::tuple<QImage, QImage> BackgroundSubtractor::subtractSimple(const QImage &im
     return std::make_tuple(result, finalResult);
 }
 
-std::tuple<QImage, QImage> BackgroundSubtractor::subtractAdvanced(const QImage &imgA, const QImage &imgB)
+std::tuple<QImage, QImage> ImageFiltering::subtractAdvanced(const QImage &imgA, const QImage &imgB)
 {
     // 转换为灰度图进行更精确的处理
     QImage grayA = imgA.convertToFormat(QImage::Format_Grayscale8);
@@ -540,7 +540,7 @@ std::tuple<QImage, QImage> BackgroundSubtractor::subtractAdvanced(const QImage &
     return std::make_tuple(result, finalResult);
 }
 
-QImage BackgroundSubtractor::applyMorphologicalOperations(const QImage &binaryImage)
+QImage ImageFiltering::applyMorphologicalOperations(const QImage &binaryImage)
 {
     // 将QImage转换为cv::Mat
     cv::Mat mat = qImageToCvMat(binaryImage);
@@ -564,7 +564,7 @@ QImage BackgroundSubtractor::applyMorphologicalOperations(const QImage &binaryIm
     return cvMatToQImage(mat);
 }
 
-void BackgroundSubtractor::onThresholdChanged(int value)
+void ImageFiltering::onThresholdChanged(int value)
 {
     threshold = value;
     m_thresholdValueLabel->setText(QString("阈值: %1").arg(threshold));
@@ -575,7 +575,7 @@ void BackgroundSubtractor::onThresholdChanged(int value)
     }
 }
 
-void BackgroundSubtractor::onMethodChanged(int index)
+void ImageFiltering::onMethodChanged(int index)
 {
     Q_UNUSED(index)
     if (!m_imageA.isNull() && !m_imageB.isNull()) {
@@ -583,7 +583,7 @@ void BackgroundSubtractor::onMethodChanged(int index)
     }
 }
 
-void BackgroundSubtractor::saveResult()
+void ImageFiltering::saveResult()
 {
     qDebug() << "m_fileNameA: " << m_fileNameA;
     if (m_resultImage.isNull()) {
@@ -610,7 +610,7 @@ void BackgroundSubtractor::saveResult()
     }
 }
 
-void BackgroundSubtractor::updateDisplays()
+void ImageFiltering::updateDisplays()
 {
     // 显示图像A
     if (!m_imageA.isNull()) {
