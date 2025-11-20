@@ -15,11 +15,11 @@ int main(int argc, char *argv[])
         return a.exec();
     } else {
         // 动态背景减除
-        cv::Ptr<cv::ImageFiltering> bgSubtractor;
+        cv::Ptr<cv::BackgroundSubtractor> bgSubtractor;
 
         // 选择一种背景减除算法
         // bgSubtractor = cv::createImageFilteringMOG2();  // 高斯混合模型
-        bgSubtractor = cv::createImageFilteringKNN();      // K最近邻算法
+        bgSubtractor = cv::createBackgroundSubtractorKNN();      // K最近邻算法
 
         cv::Mat imageA = cv::imread("obj.jpg");
         cv::imshow("imageA", imageA);

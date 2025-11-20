@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(BackgroundSubtraction VERSION 0.1 LANGUAGES CXX)
+project(ImageFiltering VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -38,41 +38,41 @@ set(PROJECT_SOURCES
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-    qt_add_executable(BackgroundSubtraction
+    qt_add_executable(ImageFiltering
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET BackgroundSubtraction APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#    set_property(TARGET ImageFiltering APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(BackgroundSubtraction SHARED
+        add_library(ImageFiltering SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(BackgroundSubtraction
+        add_executable(ImageFiltering
             ${PROJECT_SOURCES}
         )
     endif()
 endif()
 
-target_link_libraries(BackgroundSubtraction PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(BackgroundSubtraction PRIVATE Qt6::Widgets)
+target_link_libraries(ImageFiltering PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(ImageFiltering PRIVATE Qt6::Widgets)
 
-target_link_libraries(BackgroundSubtraction PRIVATE ${OpenCV_LIBS})
-target_include_directories(BackgroundSubtraction PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(ImageFiltering PRIVATE ${OpenCV_LIBS})
+target_include_directories(ImageFiltering PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.BackgroundSubtraction)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.ImageFiltering)
 endif()
-set_target_properties(BackgroundSubtraction PROPERTIES
+set_target_properties(ImageFiltering PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -81,12 +81,12 @@ set_target_properties(BackgroundSubtraction PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS BackgroundSubtraction
+install(TARGETS ImageFiltering
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(BackgroundSubtraction)
+    qt_finalize_executable(ImageFiltering)
 endif()
