@@ -246,7 +246,6 @@ endif()
 message(STATUS "***** EXACT_OUTPUT_DIRECTORY: ${EXACT_OUTPUT_DIRECTORY} *****")
 
 message(STATUS "***** CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR} *****")
-message(STATUS "***** libxl_3800_BIN: ${libxl_3800_BIN} *****")
 
 message(STATUS "***** CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR} *****")
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
