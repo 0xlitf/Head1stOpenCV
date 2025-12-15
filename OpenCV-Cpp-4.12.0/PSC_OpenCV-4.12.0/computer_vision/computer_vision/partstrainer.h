@@ -24,10 +24,10 @@ class PartsTrainer
 public:
 	PartsTrainer();
 	~PartsTrainer();
-	bool updateParam_train();                                                      //¸üĞÂÏµÍ³²ÎÊı
+	bool updateParam_train();                                                      //æ›´æ–°ç³»ç»Ÿå‚æ•°
 	void reset(std::string strProjectPath, std::string strRoiPath);
 	bool training(cv::Mat *trainImg, cv::Mat *trainResult, int thresh = 200);
-	void estimateTrainObj();   // ÆÀ¹ÀÎïÁÏÊÇ·ñÎ´ÑµÁ·¹ı
+	void estimateTrainObj();   // è¯„ä¼°ç‰©æ–™æ˜¯å¦æœªè®­ç»ƒè¿‡
 	void saveData();
 	void cleanData();
 	int dataCount() { return (int)m_trainContours.size(); }
@@ -38,25 +38,25 @@ public:
 	bool HPDetection_start(std::string strProject, std::string roiPath);
 	bool HPDetection_train(cv::Mat &image, cv::Mat &trainResult);
 	bool HPDetection_finish();
-	int getDetectObjNum();            // »ñÈ¡ÒÑÑµÁ·»º´æÄ£ĞÍ¸öÊı
-	int getTrainedObjNum();           // »ñÈ¡´ïµ½ÑµÁ·Éî¶ÈµÄÄ£ĞÍ¸öÊı
+	int getDetectObjNum();            // è·å–å·²è®­ç»ƒç¼“å­˜æ¨¡å‹ä¸ªæ•°
+	int getTrainedObjNum();           // è·å–è¾¾åˆ°è®­ç»ƒæ·±åº¦çš„æ¨¡å‹ä¸ªæ•°
 	cv::Mat getTrainedImage();
 	cv::Size getTrainedSize();  
 	double getCalibFactor(cv::Mat &image);
-	void dynamicTrainModeOpen();      // ¿ªÆô¶¯Ì¬ÑµÁ·
-	void dynamicTrainModeClose();     // ¹Ø±Õ¶¯Ì¬ÑµÁ·
-	void setCountDebug();     // Ê¹ÓÃdebugÄ£Ê½£¬»ùÓÚÊÓ¾õ¼ÆÊı
-	void setHalonMode(bool flag);      // Ê¹ÓÃhalcon×ö¾«Ï¸¼ì²â
+	void dynamicTrainModeOpen();      // å¼€å¯åŠ¨æ€è®­ç»ƒ
+	void dynamicTrainModeClose();     // å…³é—­åŠ¨æ€è®­ç»ƒ
+	void setCountDebug();     // ä½¿ç”¨debugæ¨¡å¼ï¼ŒåŸºäºè§†è§‰è®¡æ•°
+	void setHalonMode(bool flag);      // ä½¿ç”¨halconåšç²¾ç»†æ£€æµ‹
 	void trainCountAdd();
-	void setTrainTarget(int num);  // ÉèÖÃÄ¿±êÑµÁ·´ÎÊı£¬´ïµ½²ÅÄÜ±£´æÊı¾İ
+	void setTrainTarget(int num);  // è®¾ç½®ç›®æ ‡è®­ç»ƒæ¬¡æ•°ï¼Œè¾¾åˆ°æ‰èƒ½ä¿å­˜æ•°æ®
 private:
 	int m_openElementSize;
-	int m_objHeight, m_objWidth, m_objArea, m_modelID;        //Ä¿±ê¸ß¶È¡¢¿í¶È¡¢Ãæ»ı¡¢Ä£ĞÍID
+	int m_objHeight, m_objWidth, m_objArea, m_modelID;        //ç›®æ ‡é«˜åº¦ã€å®½åº¦ã€é¢ç§¯ã€æ¨¡å‹ID
 
-	int m_trainNum = 3;              // ÎïÁÏÑµÁ·Éî¶È
-	int m_isOutBoundry = 0;      // ³öÊÓÒ°±ß½çflag
-	bool m_isDynamic = false;         // false - ÊÖ¶¯Ä£Ê½  && true - ¶¯Ì¬Ä£Ê½
-	bool m_useHalcon = false;    // ÊÇ·ñÊ¹ÓÃhalcon£¬ true-Ê¹ÓÃ
+	int m_trainNum = 3;              // ç‰©æ–™è®­ç»ƒæ·±åº¦
+	int m_isOutBoundry = 0;      // å‡ºè§†é‡è¾¹ç•Œflag
+	bool m_isDynamic = false;         // false - æ‰‹åŠ¨æ¨¡å¼  && true - åŠ¨æ€æ¨¡å¼
+	bool m_useHalcon = false;    // æ˜¯å¦ä½¿ç”¨halconï¼Œ true-ä½¿ç”¨
 	std::vector<int> ModelAreaAll;
 	std::vector<int> ModelWidthAll;
 	std::vector<int> ModelHeightAll;
@@ -72,7 +72,7 @@ private:
 	int m_roiWidth;
 	int m_roiHeight;
 	std::string m_strProjectPath;
-	int isTrained;      // ÊÇ·ñÒÑ¾­ÑµÁ·, 0-Î´ÑµÁ·£¬ 1-ÑµÁ·³É¹¦£¬ 2-ÒÑÑµÁ·£¬ 3-³öÊÓÒ°±ß½çÖĞ
+	int isTrained;      // æ˜¯å¦å·²ç»è®­ç»ƒ, 0-æœªè®­ç»ƒï¼Œ 1-è®­ç»ƒæˆåŠŸï¼Œ 2-å·²è®­ç»ƒï¼Œ 3-å‡ºè§†é‡è¾¹ç•Œä¸­
 
 	struct CvTrainData* m_pTrainData;
 	

@@ -15,33 +15,33 @@ PartsCounter::PartsCounter()
 	: m_errorStatus(0)
 {
 	///////////////////////////////////////projectPath
-		//¶ÁÈ¡ÏµÍ³²ÎÊı
+		//è¯»å–ç³»ç»Ÿå‚æ•°
 	bool bOk = readSysParamFromXml(CONFIG_PATH);
 
-	/*  Sysparam.xml ²ÎÊıËµÃ÷  */
-	m_threshValue = 200;      //Í¼Ïñ¶şÖµ»¯ãĞÖµ¡£ Ò»°ã²»ÓÃĞŞ¸Ä¡£ 
-	m_xCompensate = -20;      //ÎïÁÏÔÊĞíÔ­µØÏòºó¹ö¶¯×î´ó¾àÀë¡£ µ¥Î»£ºpixÏñËØ¡£ Ò»°ã²»ÓÃĞŞ¸Ä¡£
-	m_openElementSize = 15;    //±ÕºÏÎïÁÏÖ®¼ä¼äÏ¶¡£  ÖµÉèÖÃµÄÌ«Ğ¡£¬ÎïÁÏ·´¹âµ¹Ó°ÈİÒ××÷ÎªÔÓÁÏÎó¼Æ¡£ÖµÉèÖÃÌ«´ó£¬°¤µÃ½üµÄÎïÁÏ»áËã³ÉÒ»¸ö´óÔÓÁÏ¡£µ¥Î»£ºpixÏñËØ
+	/*  Sysparam.xml å‚æ•°è¯´æ˜  */
+	m_threshValue = 200;      //å›¾åƒäºŒå€¼åŒ–é˜ˆå€¼ã€‚ ä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚ 
+	m_xCompensate = -20;      //ç‰©æ–™å…è®¸åŸåœ°å‘åæ»šåŠ¨æœ€å¤§è·ç¦»ã€‚ å•ä½ï¼špixåƒç´ ã€‚ ä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚
+	m_openElementSize = 15;    //é—­åˆç‰©æ–™ä¹‹é—´é—´éš™ã€‚  å€¼è®¾ç½®çš„å¤ªå°ï¼Œç‰©æ–™åå…‰å€’å½±å®¹æ˜“ä½œä¸ºæ‚æ–™è¯¯è®¡ã€‚å€¼è®¾ç½®å¤ªå¤§ï¼ŒæŒ¨å¾—è¿‘çš„ç‰©æ–™ä¼šç®—æˆä¸€ä¸ªå¤§æ‚æ–™ã€‚å•ä½ï¼špixåƒç´ 
 
-	m_matchMethod = 2;        //¼ì²â·½·¨¡£  0 ±È½ÏÂÖÀªÏàËÆ¶È£¬1 ±È½Ï³ß´ç£¨°´Îó²î°Ù·Ö±È¼ÆËã£©£¬2 ±È½Ï³ß´ç£¨°´ÏñËØÖµ¼ÆËã£©¡£ Ä¬ÈÏÑ¡2£¬Ò»°ã²»ÓÃĞŞ¸Ä¡£
-	m_similarity = 0.95;      //ÎïÁÏÂÖÀªºÍÑµÁ·Ä£ĞÍµÄÏàËÆ¶È¡£È¡Öµ·¶Î§0.0~1.0£¬ÖµÔ½´ó£¬¼ì²â¾«¶ÈÔ½¸ß¡£ Ö»ÔÚ m_matchMethod = 0 Ê±Æğ×÷ÓÃ
-	m_Lcoefficient = 0.8;     //ÎïÁÏ³¤¿í³ß´çÔÊĞíÆ«Ğ¡°Ù·Ö±È¡£È¡Öµ·¶Î§0.0~1.0£¬ÖµÔ½´ó£¬¼ì²â¾«¶ÈÔ½¸ß¡£  Ö»ÔÚ m_matchMethod = 1 Ê±Æğ×÷ÓÃ
-	m_Hcoefficient = 1.2;     //ÎïÁÏ³¤¿í³ß´çÔÊĞíÆ«´ó°Ù·Ö±È¡£È¡Öµ·¶Î§1.0~2.0£¬ÖµÔ½Ğ¡£¬¼ì²â¾«¶ÈÔ½¸ß¡£  Ö»ÔÚ m_matchMethod = 1 Ê±Æğ×÷ÓÃ
-	m_AdiffValue = 0.2;       //Ãæ»ı´óĞ¡Îó²î°Ù·Ö±È¡£  È¡Öµ·¶Î§0.0~1.0£¬ÖµÔ½Ğ¡£¬¼ì²â¾«¶ÈÔ½¸ß¡£ ²»ÂÛÄÄÖÖ m_matchMethod ·½·¨¶¼Æğ×÷ÓÃ¡£
-	m_WdiffValue = 8;         //ÎïÁÏ³¤¶È³ß´çÔÊĞíÎó²îÏñËØ·¶Î§¡£  µ¥Î»£ºpixÏñËØ¡£ È¡Öµ·¶Î§>0£¬ÖµÔ½Ğ¡£¬¼ì²â¾«¶ÈÔ½¸ß¡£ Ö»ÔÚ m_matchMethod = 2 Ê±Æğ×÷ÓÃ
-	m_HdiffValue = 8;		  //ÎïÁÏ¿í¶È³ß´çÔÊĞíÎó²îÏñËØ·¶Î§¡£  µ¥Î»£ºpixÏñËØ¡£ È¡Öµ·¶Î§>0£¬ÖµÔ½Ğ¡£¬¼ì²â¾«¶ÈÔ½¸ß¡£ Ö»ÔÚ m_matchMethod = 2 Ê±Æğ×÷ÓÃ
-	m_roiLineLimitC = 0.98;   //ROI ×ó±ß½çÆğµ½Ö¸¶¨°Ù·Ö±ÈÇøÓò£¨°´Õû¸öROI¿í±ÈÀıËã£©£¬¸ÃÇøÓòÄÚÖ»¸ú×Ù²»Ê¶±ğ¡£ 
-	m_allowContourArea0 = 30000;     //ÂÖÀªÓĞĞ§Ãæ»ıÉÏÏŞ¡£Ãæ»ı³¬¹ı¸ÃÖµµÄÂÖÀªÎŞĞ§¡£ Ò»°ã²»ÓÃĞŞ¸Ä¡£
-	m_allowContourArea1 = 50;        //ÂÖÀªÓĞĞ§Ãæ»ıÏÂÏŞ¡£Ãæ»ıµÍÓÚ¸ÃÖµµÄÂÖÀªÎŞĞ§¡£ Ò»°ã²»ÓÃĞŞ¸Ä¡£
-	m_detectLineC = 20 * mySysParam.imgWidth / 320;   //ROI Ç°±ß½çºóÒÆ m_detectLineC ¸öÏñËØ£¬¸ÃÇøÓòÄÚÖ»¸ú×Ù²»Ê¶±ğ¡£
-	m_MinScore = 0.55;    //halconÄ£°æÆ¥ÅäËã·¨×îĞ¡Æ¥Åä·ÖÖµ¡£¸ù¾İÎïÁÏÂÖÀªÏàËÆ¶ÈÒªÇóÉè¶¨¡£È¡Öµ·¶Î§0.0~1.0£¬ÖµÔ½´ó£¬Æ¥Åä¶ÈÒªÇó¸ü¸ß£¬¼ì²â¾«¶ÈÔ½¸ß¡£
-	m_MinDefectInnerRadian = 4;    //halcon¾«Ï¸¼ì²âËã·¨È±Ïİ²¿·Ö×îĞ¡ÄÚÔ²°ë¾¶¡£  µ¥Î»£ºpixÏñËØ¡£ È¡Öµ·¶Î§>0£¬ÖµÔ½Ğ¡£¬¼ì²â¾«¶ÈÔ½¸ß¡£Èç¹ûÖµÌ«Ğ¡£¬Ò»Ğ¡µãÈ±½º¶¼»áÅĞ¶ÏÎª²»ºÏ¸ñ¡£Ò»°ã²»ÓÃĞŞ¸Ä¡£
+	m_matchMethod = 2;        //æ£€æµ‹æ–¹æ³•ã€‚  0 æ¯”è¾ƒè½®å»“ç›¸ä¼¼åº¦ï¼Œ1 æ¯”è¾ƒå°ºå¯¸ï¼ˆæŒ‰è¯¯å·®ç™¾åˆ†æ¯”è®¡ç®—ï¼‰ï¼Œ2 æ¯”è¾ƒå°ºå¯¸ï¼ˆæŒ‰åƒç´ å€¼è®¡ç®—ï¼‰ã€‚ é»˜è®¤é€‰2ï¼Œä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚
+	m_similarity = 0.95;      //ç‰©æ–™è½®å»“å’Œè®­ç»ƒæ¨¡å‹çš„ç›¸ä¼¼åº¦ã€‚å–å€¼èŒƒå›´0.0~1.0ï¼Œå€¼è¶Šå¤§ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚ åªåœ¨ m_matchMethod = 0 æ—¶èµ·ä½œç”¨
+	m_Lcoefficient = 0.8;     //ç‰©æ–™é•¿å®½å°ºå¯¸å…è®¸åå°ç™¾åˆ†æ¯”ã€‚å–å€¼èŒƒå›´0.0~1.0ï¼Œå€¼è¶Šå¤§ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚  åªåœ¨ m_matchMethod = 1 æ—¶èµ·ä½œç”¨
+	m_Hcoefficient = 1.2;     //ç‰©æ–™é•¿å®½å°ºå¯¸å…è®¸åå¤§ç™¾åˆ†æ¯”ã€‚å–å€¼èŒƒå›´1.0~2.0ï¼Œå€¼è¶Šå°ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚  åªåœ¨ m_matchMethod = 1 æ—¶èµ·ä½œç”¨
+	m_AdiffValue = 0.2;       //é¢ç§¯å¤§å°è¯¯å·®ç™¾åˆ†æ¯”ã€‚  å–å€¼èŒƒå›´0.0~1.0ï¼Œå€¼è¶Šå°ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚ ä¸è®ºå“ªç§ m_matchMethod æ–¹æ³•éƒ½èµ·ä½œç”¨ã€‚
+	m_WdiffValue = 8;         //ç‰©æ–™é•¿åº¦å°ºå¯¸å…è®¸è¯¯å·®åƒç´ èŒƒå›´ã€‚  å•ä½ï¼špixåƒç´ ã€‚ å–å€¼èŒƒå›´>0ï¼Œå€¼è¶Šå°ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚ åªåœ¨ m_matchMethod = 2 æ—¶èµ·ä½œç”¨
+	m_HdiffValue = 8;		  //ç‰©æ–™å®½åº¦å°ºå¯¸å…è®¸è¯¯å·®åƒç´ èŒƒå›´ã€‚  å•ä½ï¼špixåƒç´ ã€‚ å–å€¼èŒƒå›´>0ï¼Œå€¼è¶Šå°ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚ åªåœ¨ m_matchMethod = 2 æ—¶èµ·ä½œç”¨
+	m_roiLineLimitC = 0.98;   //ROI å·¦è¾¹ç•Œèµ·åˆ°æŒ‡å®šç™¾åˆ†æ¯”åŒºåŸŸï¼ˆæŒ‰æ•´ä¸ªROIå®½æ¯”ä¾‹ç®—ï¼‰ï¼Œè¯¥åŒºåŸŸå†…åªè·Ÿè¸ªä¸è¯†åˆ«ã€‚ 
+	m_allowContourArea0 = 30000;     //è½®å»“æœ‰æ•ˆé¢ç§¯ä¸Šé™ã€‚é¢ç§¯è¶…è¿‡è¯¥å€¼çš„è½®å»“æ— æ•ˆã€‚ ä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚
+	m_allowContourArea1 = 50;        //è½®å»“æœ‰æ•ˆé¢ç§¯ä¸‹é™ã€‚é¢ç§¯ä½äºè¯¥å€¼çš„è½®å»“æ— æ•ˆã€‚ ä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚
+	m_detectLineC = 20 * mySysParam.imgWidth / 320;   //ROI å‰è¾¹ç•Œåç§» m_detectLineC ä¸ªåƒç´ ï¼Œè¯¥åŒºåŸŸå†…åªè·Ÿè¸ªä¸è¯†åˆ«ã€‚
+	m_MinScore = 0.55;    //halconæ¨¡ç‰ˆåŒ¹é…ç®—æ³•æœ€å°åŒ¹é…åˆ†å€¼ã€‚æ ¹æ®ç‰©æ–™è½®å»“ç›¸ä¼¼åº¦è¦æ±‚è®¾å®šã€‚å–å€¼èŒƒå›´0.0~1.0ï¼Œå€¼è¶Šå¤§ï¼ŒåŒ¹é…åº¦è¦æ±‚æ›´é«˜ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚
+	m_MinDefectInnerRadian = 4;    //halconç²¾ç»†æ£€æµ‹ç®—æ³•ç¼ºé™·éƒ¨åˆ†æœ€å°å†…åœ†åŠå¾„ã€‚  å•ä½ï¼špixåƒç´ ã€‚ å–å€¼èŒƒå›´>0ï¼Œå€¼è¶Šå°ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ã€‚å¦‚æœå€¼å¤ªå°ï¼Œä¸€å°ç‚¹ç¼ºèƒ¶éƒ½ä¼šåˆ¤æ–­ä¸ºä¸åˆæ ¼ã€‚ä¸€èˆ¬ä¸ç”¨ä¿®æ”¹ã€‚
 
 	///////////////////////////////////
 
 	// initialize();
 	m_width = mySysParam.imgWidth;
-	m_height = mySysParam.imgHeight;; // Ä¬ÈÏÖµ
+	m_height = mySysParam.imgHeight;; // é»˜è®¤å€¼
 	m_targetNumber = 0;
 	m_errorNumber = 0;
 
@@ -124,11 +124,11 @@ int PartsCounter::getStatus()
 
 bool  PartsCounter::updateParam()
 {
-	//¶ÁÈ¡ÏµÍ³²ÎÊı
+	//è¯»å–ç³»ç»Ÿå‚æ•°
 	bool bOk = readSysParamFromXml(CONFIG_PATH);
 	
 	if (bOk) {
-		//¸üĞÂ²ÎÊı
+		//æ›´æ–°å‚æ•°
 		m_width = mySysParam.imgWidth;
 		m_height = mySysParam.imgHeight;
 		m_threshValue = mySysParam.threshValue;
@@ -174,7 +174,7 @@ bool PartsCounter::updateProjectHP(std::string strPath, int trainID)
 	if (!readTrainDataFromXml(strProject, &trainData))
 		return false;
 
-	trainData.modelID = trainID;  // ÑµÁ·ID¸³Öµ
+	trainData.modelID = trainID;  // è®­ç»ƒIDèµ‹å€¼
 
 	m_projectState = true;
 	//m_trainArea.swap(trainData.trainArea);
@@ -187,7 +187,7 @@ bool PartsCounter::updateProjectHP(std::string strPath, int trainID)
 	m_trainContours.insert(m_trainContours.end(), trainData.trainContours.begin(), trainData.trainContours.end());
 	vector<int> vec(trainData.trainWidth.size(), trainData.modelID);
 	m_trainID.insert(m_trainID.end(), vec.begin(), vec.end());
-	////¸üĞÂÏµÍ³²ÎÊı	
+	////æ›´æ–°ç³»ç»Ÿå‚æ•°	
 	if (!updateParam())
 		return false;
 	m_sysparamState = true;
@@ -204,7 +204,7 @@ bool PartsCounter::updateProject(std::string strPath, int trainID)
 	if (!readTrainDataFromXml(strProject, &trainData))
 		return false;
 
-	trainData.modelID = trainID;  // ÑµÁ·ID¸³Öµ
+	trainData.modelID = trainID;  // è®­ç»ƒIDèµ‹å€¼
 
 	m_projectState = true;
 	//m_trainArea.swap(trainData.trainArea);
@@ -217,7 +217,7 @@ bool PartsCounter::updateProject(std::string strPath, int trainID)
 	m_trainContours.insert(m_trainContours.end(), trainData.trainContours.begin(), trainData.trainContours.end());
 	vector<int> vec(trainData.trainWidth.size(), trainData.modelID);
 	m_trainID.insert(m_trainID.end(), vec.begin(), vec.end());
-	//¸üĞÂ²ÎÊı
+	//æ›´æ–°å‚æ•°
 	if (!updateParam())
 		return false;
 	m_sysparamState = true;
@@ -239,7 +239,7 @@ bool PartsCounter::updateRoi(std::string strPath)
 {
 	cout << "read roi from:" << strPath << endl;
 	m_roiState = false;
-	//¶ÁÈ¡ROIÎÄ¼ş
+	//è¯»å–ROIæ–‡ä»¶
 	if (!readRoiDataFromXml(strPath, &m_roi))
 	{
 		return false;
@@ -249,7 +249,7 @@ bool PartsCounter::updateRoi(std::string strPath)
 		return false;
 
 	m_roiState = true;
-	//Ä¬ÈÏ×î´óÖµÎªROI¿í¶È
+	//é»˜è®¤æœ€å¤§å€¼ä¸ºROIå®½åº¦
 	m_preMaxX = m_roi.roiWidth;
 	m_currentMaxX = m_roi.roiWidth;
 	return true;
@@ -257,10 +257,10 @@ bool PartsCounter::updateRoi(std::string strPath)
 
 void PartsCounter::drawObjData(cv::Mat* image, bool showImg)
 {
-	// opencv »æÖÆÎïÁÏÂÖÀªºÍroi±ß¿ò
+	// opencv ç»˜åˆ¶ç‰©æ–™è½®å»“å’Œroiè¾¹æ¡†
 
 		m_objData.clear();
-		//Èç¹ûÓĞÄ¿±ê´æÔÚ£¬ÇÒÉèÖÃshowImg Îªtrue£¬ÔòÏÔÊ¾ÂÖÀª
+		//å¦‚æœæœ‰ç›®æ ‡å­˜åœ¨ï¼Œä¸”è®¾ç½®showImg ä¸ºtrueï¼Œåˆ™æ˜¾ç¤ºè½®å»“
 		if (m_num && showImg)
 		{
 			m_errorStatus = 16;
@@ -270,12 +270,12 @@ void PartsCounter::drawObjData(cv::Mat* image, bool showImg)
 
 			m_RoiImage = m_image(Range(m_roi.roiLTY, min(m_image.rows, m_roi.roiLTY + m_roi.roiHeight)), Range(m_roi.roiLTX, min(m_image.cols, m_roi.roiLTX + m_roi.roiWidth)));
 
-			//»­¾ØĞÎ¿ò
+			//ç”»çŸ©å½¢æ¡†
 			vector<vector<Point>>::const_iterator itContours = m_objContour.begin();
 			while (itContours != m_objContour.end())
 			{
 				ri = boundingRect(*itContours);
-				//»ñÈ¡ROIÍ¼Ïñ
+				//è·å–ROIå›¾åƒ
 				obj_data.objRoiImage = m_RoiImage(Range(ri.y, min(m_RoiImage.rows, ri.y + ri.height)), Range(ri.x, min(m_RoiImage.cols, ri.x + ri.width)));
 				obj_data.area = contourArea(*itContours);
 				ri.x = ri.x + m_roi.roiLTX;
@@ -286,20 +286,20 @@ void PartsCounter::drawObjData(cv::Mat* image, bool showImg)
 				obj_data.y = ri.y + ri.height*0.5;
 				obj_data.width = ri.width;
 				obj_data.objRoi = ri;
-				obj_data.isOK_halcon = 0;  // ºÏ¸ñ
-				m_objData.push_back(obj_data);    // ÊÕ¼¯ÎïÁÏÍ¼Æ¬
+				obj_data.isOK_halcon = 0;  // åˆæ ¼
+				m_objData.push_back(obj_data);    // æ”¶é›†ç‰©æ–™å›¾ç‰‡
 				++itContours;
 			}
-			//»­ÂÖÀª
+			//ç”»è½®å»“
 			drawContours(*image, m_objContour, -1, color, 2, 8, noArray(), INT_MAX, Point(m_roi.roiLTX, m_roi.roiLTY));
 
 			color = Scalar(0, 0, 255);
-			//»­¾ØĞÎ¿ò
+			//ç”»çŸ©å½¢æ¡†
 			itContours = m_impurityContour.begin();
 			while (itContours != m_impurityContour.end())
 			{
 				ri = boundingRect(*itContours);
-				//»ñÈ¡ROIÍ¼Ïñ
+				//è·å–ROIå›¾åƒ
 				obj_data.objRoiImage = m_RoiImage(Range(ri.y, min(m_RoiImage.rows, ri.y + ri.height)), Range(ri.x, min(m_RoiImage.cols, ri.x + ri.width)));
 			
 				obj_data.area = contourArea(*itContours);
@@ -311,14 +311,14 @@ void PartsCounter::drawObjData(cv::Mat* image, bool showImg)
 				obj_data.y = ri.y + ri.height*0.5;
 				obj_data.width = ri.width;
 				obj_data.objRoi = ri;
-				obj_data.isOK_halcon = 1;  // ²»ºÏ¸ñ
-				m_objData.push_back(obj_data);    // ÊÕ¼¯ÎïÁÏÍ¼Æ¬
+				obj_data.isOK_halcon = 1;  // ä¸åˆæ ¼
+				m_objData.push_back(obj_data);    // æ”¶é›†ç‰©æ–™å›¾ç‰‡
 				++itContours;
 			}
-			//»­ÂÖÀª
+			//ç”»è½®å»“
 			drawContours(*image, m_impurityContour, -1, color, 2, 8, noArray(), INT_MAX, Point(m_roi.roiLTX, m_roi.roiLTY));
 
-			//»­ROI¿ò
+			//ç”»ROIæ¡†
 			cv::Rect rect;
 			rect.x = m_roi.roiLTX;
 			rect.y = m_roi.roiLTY;
@@ -347,7 +347,7 @@ bool PartsCounter::autoSetRoi(Mat* image, int& roiLTX, int& roiLTY, int& roiWidt
 {
 
 	m_errorStatus = 11;
-	//ÅĞ¶ÏÍ¼ÏñÊÇ·ñÎª¿Õ
+	//åˆ¤æ–­å›¾åƒæ˜¯å¦ä¸ºç©º
 	if (NULL == image || image->empty())
 	{
 		throw std::exception();
@@ -355,36 +355,36 @@ bool PartsCounter::autoSetRoi(Mat* image, int& roiLTX, int& roiLTY, int& roiWidt
 
 	Mat_<uchar> m_imageTemp, outThreshold;
 
-	//Èç¹ûÊÇ3Í¨µÀÍ¼ÏñÔò×ª»»Îªµ¥Í¨µÀ
+	//å¦‚æœæ˜¯3é€šé“å›¾åƒåˆ™è½¬æ¢ä¸ºå•é€šé“
 	if (3 == image->channels())
 		cvtColor(*image, m_imageTemp, CV_BGR2GRAY);
 	else
 		m_imageTemp = *image;
 
 	threshold(m_imageTemp, outThreshold, m_threshValue, 255, THRESH_BINARY);
-	//´´½¨½á¹¹ÔªËØ£¬´óĞ¡ÒÀ¾İm_openElementSize²ÎÊı¶ø¶¨
+	//åˆ›å»ºç»“æ„å…ƒç´ ï¼Œå¤§å°ä¾æ®m_openElementSizeå‚æ•°è€Œå®š
 	// 	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2, 2));
-	// 	//ĞÎÌ¬Ñ§¿ªÔËËã´¦Àí¡£·ÀÖ¹ÎïÁÏ·´¹â±»Ò»·ÖÎª¶ş¡£
+	// 	//å½¢æ€å­¦å¼€è¿ç®—å¤„ç†ã€‚é˜²æ­¢ç‰©æ–™åå…‰è¢«ä¸€åˆ†ä¸ºäºŒã€‚
 	// 	morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element);
 	Mat element1 = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
 	morphologyEx(outThreshold, outThreshold, MORPH_OPEN, element1);
 
 	cv::Mat horMat;
-	reduce(outThreshold, horMat, 1, CV_REDUCE_MIN);    //Í¶Ó°Í¼Ïñ³ÉÒ»ĞĞÁĞÏòÁ¿
+	reduce(outThreshold, horMat, 1, CV_REDUCE_MIN);    //æŠ•å½±å›¾åƒæˆä¸€è¡Œåˆ—å‘é‡
 
 	vector<int> m_roiLTY;
 	for (int y = 0; y < horMat.rows - 1; y++)
 	{
 		if (horMat.at<uchar>(y) > 0)
 		{
-			m_roiLTY.push_back(y);   //¼ìË÷ÁĞÏòÁ¿ÖĞËùÓĞ°×µãÎ»ÖÃ
+			m_roiLTY.push_back(y);   //æ£€ç´¢åˆ—å‘é‡ä¸­æ‰€æœ‰ç™½ç‚¹ä½ç½®
 		}
 	}
 
 	roiLTX = 2;
 	roiWidth = outThreshold.cols - 2;
 
-	// È¡ÉÏÏÂÁ½¸ö°×µãÎ»ÖÃÎªROI±ß½ç£¬Èô²éÕÒ²»µ½ÔòÄ¬ÈÏÉèÖÃROIÎªÖĞ¼äÁ½ĞĞÏñËØ
+	// å–ä¸Šä¸‹ä¸¤ä¸ªç™½ç‚¹ä½ç½®ä¸ºROIè¾¹ç•Œï¼Œè‹¥æŸ¥æ‰¾ä¸åˆ°åˆ™é»˜è®¤è®¾ç½®ROIä¸ºä¸­é—´ä¸¤è¡Œåƒç´ 
 	if (0 == m_roiLTY.size())
 	{
 		roiLTY = outThreshold.rows / 2;
@@ -395,7 +395,7 @@ bool PartsCounter::autoSetRoi(Mat* image, int& roiLTX, int& roiLTY, int& roiWidt
 		roiHeight = m_roiLTY[m_roiLTY.size() - 1] - m_roiLTY[0];
 	}
 
-	// ÏÔÊ¾»æ»­´°¿Ú
+	// æ˜¾ç¤ºç»˜ç”»çª—å£
 	cv::Rect rect;
 	rect.x = roiLTX;
 	rect.y = roiLTY;
@@ -409,7 +409,7 @@ bool PartsCounter::autoSetRoi(Mat* image, int& roiLTX, int& roiLTY, int& roiWidt
 void PartsCounter::segmentObj(Mat* image, bool showImg)
 {
 	m_errorStatus = 11;
-	//ÅĞ¶ÏÍ¼ÏñÊÇ·ñÎª¿Õ
+	//åˆ¤æ–­å›¾åƒæ˜¯å¦ä¸ºç©º
 	if (NULL == image || image->empty())
 	{
 		throw std::exception();
@@ -418,7 +418,7 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 
 	Mat_<uchar> outThreshold, outThreshold2;
 
-	//Èç¹ûÊÇ3Í¨µÀÍ¼ÏñÔò×ª»»Îªµ¥Í¨µÀ
+	//å¦‚æœæ˜¯3é€šé“å›¾åƒåˆ™è½¬æ¢ä¸ºå•é€šé“
 	if (3 == image->channels())
 		cvtColor(*image, m_image, CV_BGR2GRAY);
 	else
@@ -427,48 +427,48 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 
 	m_errorStatus = 12;
 
-	//»ñÈ¡ROIÍ¼Ïñ
+	//è·å–ROIå›¾åƒ
 	m_RoiImage = m_image(Range(m_roi.roiLTY, min(m_image.rows, m_roi.roiLTY + m_roi.roiHeight)), Range(m_roi.roiLTX, min(m_image.cols, m_roi.roiLTX + m_roi.roiWidth)));
 
 	m_errorStatus = 13;
 
 
 
-	//ãĞÖµ·Ö¸î
+	//é˜ˆå€¼åˆ†å‰²
 	threshold(m_RoiImage, outThreshold, m_threshValue, 255, THRESH_BINARY_INV);
-	//´´½¨½á¹¹ÔªËØ£¬´óĞ¡ÒÀ¾İm_openElementSize²ÎÊı¶ø¶¨
+	//åˆ›å»ºç»“æ„å…ƒç´ ï¼Œå¤§å°ä¾æ®m_openElementSizeå‚æ•°è€Œå®š
 
 	//Mat element1 = getStructuringElement(MORPH_ELLIPSE, Size(m_openElementSize, m_openElementSize));    //MORPH_ELLIPSE
 	Mat element1 = getStructuringElement(MORPH_RECT, Size(m_openElementSize, 2));    //MORPH_ELLIPSE
 	//Mat element2 = getStructuringElement(MORPH_RECT, Size(1, m_openElemesntSize*0.5));
-	//´´½¨3*3µÄÔ²ĞÎ½á¹¹ÔªËØ
+	//åˆ›å»º3*3çš„åœ†å½¢ç»“æ„å…ƒç´ 
 	//Mat element1 = getStructuringElement(MORPH_RECT, Size(1, 8));
 
-	//Ä¿µÄÊÇÈ¥³ıµ²±ßÏ¸Ğ¡ÂÖÀª¸ÉÈÅ
+	//ç›®çš„æ˜¯å»é™¤æŒ¡è¾¹ç»†å°è½®å»“å¹²æ‰°
 	outThreshold.row(0) = uchar(0);
 	outThreshold.row(1) = uchar(0);
 	outThreshold.row(outThreshold.rows - 1) = uchar(0);
 	outThreshold.row(outThreshold.rows - 2) = uchar(0);
 
-	//Ìî³äÖĞ¼ä¿Õ¶´
+	//å¡«å……ä¸­é—´ç©ºæ´
 	//Mat fill = outThreshold.clone();
 	//for (int y = 1; y < fill.rows - 1; y++)
 	//{
-	//	if (!fill.at<uchar>(y, 90))   //ÒÔºÚÉ«±³¾°ÇøÓò¿ªÊ¼Ìî³ä
+	//	if (!fill.at<uchar>(y, 90))   //ä»¥é»‘è‰²èƒŒæ™¯åŒºåŸŸå¼€å§‹å¡«å……
 	//	{
 	//		floodFill(fill, Point(90, y), Scalar(255));
 	//		break;
 	//	}
 	//}	
-	//Mat invertFill = inverseColor6(fill);   	//Í¼Ïñ·´×ª
+	//Mat invertFill = inverseColor6(fill);   	//å›¾åƒåè½¬
 	//bitwise_or(outThreshold, invertFill, outThreshold);
 
-	//ĞÎÌ¬Ñ§¿ªÔËËã´¦Àí¡£·ÀÖ¹ÎïÁÏ·´¹â±»Ò»·ÖÎª¶ş¡£
-	morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);   //MORPH_CLOSE¡¢MORPH_OPEN
-	//morphologyEx(outThreshold, outThreshold, MORPH_OPEN, element2);  //MORPH_CLOSE¡¢MORPH_OPEN
+	//å½¢æ€å­¦å¼€è¿ç®—å¤„ç†ã€‚é˜²æ­¢ç‰©æ–™åå…‰è¢«ä¸€åˆ†ä¸ºäºŒã€‚
+	morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);   //MORPH_CLOSEã€MORPH_OPEN
+	//morphologyEx(outThreshold, outThreshold, MORPH_OPEN, element2);  //MORPH_CLOSEã€MORPH_OPEN
 
 	m_errorStatus = 14;
-	//½«Í¼ÏñËÄÖÜ±ßµÄ2¸öÏñËØ»Ò¶ÈÖµ¾ùÉèÎª255£¬Æğ±ÕºÏÊÓÒ°ÂÖÀª×÷ÓÃ
+	//å°†å›¾åƒå››å‘¨è¾¹çš„2ä¸ªåƒç´ ç°åº¦å€¼å‡è®¾ä¸º255ï¼Œèµ·é—­åˆè§†é‡è½®å»“ä½œç”¨
 	outThreshold.row(0) = uchar(0);
 	outThreshold.row(1) = uchar(0);
 	outThreshold.row(outThreshold.rows - 1) = uchar(0);
@@ -478,19 +478,19 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 	outThreshold.col(outThreshold.cols - 1) = uchar(0);
 	outThreshold.col(outThreshold.cols - 2) = uchar(0);
 
-	////¼ì²âÍ¼Ïñ±ßÔµÂÖÀª
+	////æ£€æµ‹å›¾åƒè¾¹ç¼˜è½®å»“
 	Canny(outThreshold, outThreshold, 150, 255, 5);
 
 	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
-	//ĞÎÌ¬Ñ§ÅòÕÍ´¦Àí£¬±ÕºÏ¶ÏÁÑÂÖÀª
+	//å½¢æ€å­¦è†¨èƒ€å¤„ç†ï¼Œé—­åˆæ–­è£‚è½®å»“
 	dilate(outThreshold, outThreshold, element);
 
 	m_contours.clear();
-	//findContoursµÄÊä³ö²ÎÊı£ºµÚÒ»¸öÊä³öÂÖÀªµÄÖ¸Õë
+	//findContoursçš„è¾“å‡ºå‚æ•°ï¼šç¬¬ä¸€ä¸ªè¾“å‡ºè½®å»“çš„æŒ‡é’ˆ
 	vector<Vec4i> hierarchy;
 
 	m_errorStatus = 15;
-	//ÂÖÀª¼ì²â£¬CV_RETR_EXTERNAL±íÊ¾Ö»ÌáÈ¡×îÍâ²ãÂÖÀª£¬CV_CHAIN_APPROX_NONE±íÊ¾½«ËùÓĞµãÓÉÁ´ÂëĞÎÊ½×ª»¯ÎªµãĞòÁĞĞÎÊ½ 
+	//è½®å»“æ£€æµ‹ï¼ŒCV_RETR_EXTERNALè¡¨ç¤ºåªæå–æœ€å¤–å±‚è½®å»“ï¼ŒCV_CHAIN_APPROX_NONEè¡¨ç¤ºå°†æ‰€æœ‰ç‚¹ç”±é“¾ç å½¢å¼è½¬åŒ–ä¸ºç‚¹åºåˆ—å½¢å¼ 
 
 	findContours(outThreshold, m_contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
@@ -500,13 +500,13 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 
 	while (itContours != m_contours.end())
 	{
-		//»ñÈ¡ÂÖÀªÃæ»ı
+		//è·å–è½®å»“é¢ç§¯
 		double conArea = contourArea(*itContours);
-		//r1 ÎªÄ¿±êÂÖÀªµÄË®Æ½Íâ½Ó¾ØĞÎ
+		//r1 ä¸ºç›®æ ‡è½®å»“çš„æ°´å¹³å¤–æ¥çŸ©å½¢
 		Rect ri = boundingRect(*itContours);
 		cv::rectangle(outThreshold, ri, Scalar(255), 2, 8, 0);
 
-		//Èç¹ûÄ¿±êÃæ»ıÌ«Ğ¡»òÌ«´ó£¬¾ùÓèÒÔÌŞ³ı
+		//å¦‚æœç›®æ ‡é¢ç§¯å¤ªå°æˆ–å¤ªå¤§ï¼Œå‡äºˆä»¥å‰”é™¤
 		if (((conArea > m_roi.roiWidth*m_roi.roiHeight) || (conArea < m_allowContourArea1)))
 		{
 			itContours = m_contours.erase(itContours);
@@ -514,7 +514,7 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 		}
 		else
 		{
-			//¿¿½üROIÉÏÏÂ±ß½ç£¬ÇÒ¸ß¶ÈĞ¡ÓÚ7pixµÄÎïÌåÓèÒÔÌŞ³ı£¨¾­²âÊÔ×î±¡ÁÏºñ¶ÈÎª7pix,¹Êri.heightÈ¡Ğ¡ÓÚ4£©
+			//é è¿‘ROIä¸Šä¸‹è¾¹ç•Œï¼Œä¸”é«˜åº¦å°äº7pixçš„ç‰©ä½“äºˆä»¥å‰”é™¤ï¼ˆç»æµ‹è¯•æœ€è–„æ–™åšåº¦ä¸º7pix,æ•…ri.heightå–å°äº4ï¼‰
 			if ((ri.height < 4) && ((ri.y < 5) || (ri.y + ri.height > m_roi.roiHeight - 5)))
 			{
 				itContours = m_contours.erase(itContours);
@@ -529,15 +529,15 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 		}
 	}
 
-	//»ñÈ¡ÂÖÀª¸öÊı£¬¼°¼ì²âµ½µÄÄ¿±ê¸öÊı
+	//è·å–è½®å»“ä¸ªæ•°ï¼ŒåŠæ£€æµ‹åˆ°çš„ç›®æ ‡ä¸ªæ•°
 	unsigned int num = unsigned int(m_contours.size());
 
-	//Èç¹ûÓĞÄ¿±ê´æÔÚ£¬Ôò¶ÔÂÖÀª½øĞĞÅÅĞò£¬·µ»Ø½á¹ûcompContours
+	//å¦‚æœæœ‰ç›®æ ‡å­˜åœ¨ï¼Œåˆ™å¯¹è½®å»“è¿›è¡Œæ’åºï¼Œè¿”å›ç»“æœcompContours
 	if (num > 0)
 		sort(m_contours.begin(), m_contours.end(), compContours);
 
 
-	//½«vector´óĞ¡¾ùÉèÖÃÎªnum
+	//å°†vectorå¤§å°å‡è®¾ç½®ä¸ºnum
 	m_objArea.resize(num);
 	m_objHeight.resize(num);
 	m_objWidth.resize(num);
@@ -548,18 +548,18 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 
 	for (unsigned int i = 0; i < m_contours.size(); i++)
 	{
-		//»ñÈ¡ÂÖÀªÃæ»ıµÄ¾ø¶ÔÖµ
+		//è·å–è½®å»“é¢ç§¯çš„ç»å¯¹å€¼
 		m_objArea[i] = fabs(contourArea(m_contours[i]));
-		//r0 ÎªÄ¿±êÂÖÀªµÄ×îĞ¡Íâ½Ó¾ØĞÎ
+		//r0 ä¸ºç›®æ ‡è½®å»“çš„æœ€å°å¤–æ¥çŸ©å½¢
 		RotatedRect r0 = minAreaRect(m_contours[i]);
-		//r1 ÎªÄ¿±êÂÖÀªµÄË®Æ½Íâ½Ó¾ØĞÎ
+		//r1 ä¸ºç›®æ ‡è½®å»“çš„æ°´å¹³å¤–æ¥çŸ©å½¢
 		Rect r1 = boundingRect(m_contours[i]);
 		//rectangle(_imageResult, r1, Scalar(0, 255, 0), 2);
 
-		//»ñÈ¡Ä¿±êÂÖÀªË®Æ½·½Ïò¿í¶È
+		//è·å–ç›®æ ‡è½®å»“æ°´å¹³æ–¹å‘å®½åº¦
 		m_tempWidth[i] = r1.width;
 
-		//È¡×îĞ¡Íâ½Ó¾ØĞÎµÄ³¤±ß×÷Îªm_objWidth£¬¶Ì±ß×÷Îªm_objHeight
+		//å–æœ€å°å¤–æ¥çŸ©å½¢çš„é•¿è¾¹ä½œä¸ºm_objWidthï¼ŒçŸ­è¾¹ä½œä¸ºm_objHeight
 		if (r0.size.width > r0.size.height)
 		{
 			m_objHeight[i] = r0.size.height;
@@ -570,24 +570,24 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 			m_objHeight[i] = r0.size.width;
 			m_objWidth[i] = r0.size.height;
 		}
-		////»ñÈ¡Ä¿±êÂÖÀªµÄÎ»ÖÃ×ø±ê
+		////è·å–ç›®æ ‡è½®å»“çš„ä½ç½®åæ ‡
 		m_center[i] = r0.center;
 		m_center[i].x = r1.x + m_tempWidth[i] + m_roi.roiLTX;
 
-		/*///²ÉÓÃÎïÌå×îÓÒ¶ËÂÖÀª×ø±ê×÷ÎªÎ»ÖÃÅĞ¶ÏÒÀ¾İ
+		/*///é‡‡ç”¨ç‰©ä½“æœ€å³ç«¯è½®å»“åæ ‡ä½œä¸ºä½ç½®åˆ¤æ–­ä¾æ®
 		Point _rightPoint(0, m_height);
 		vector<Point> _tempRightContorPts;
 		for (int j = 0; j < m_contours[i].size(); j++)
 		{
 			if (m_contours[i][j].x >= _rightPoint.x){
-				_rightPoint = m_contours[i][j];        //È¡×îÓÒÂÖÀªµã×÷Îª m_center
-				if (m_contours[i][j].y < _rightPoint.y)  _rightPoint = m_contours[i][j];        //È¡×îÓÒÉÏÂÖÀªµã×÷Îª m_center
+				_rightPoint = m_contours[i][j];        //å–æœ€å³è½®å»“ç‚¹ä½œä¸º m_center
+				if (m_contours[i][j].y < _rightPoint.y)  _rightPoint = m_contours[i][j];        //å–æœ€å³ä¸Šè½®å»“ç‚¹ä½œä¸º m_center
 			}
 		}
-		m_center[i] = Point(_rightPoint.x + m_roi.roiLTX, _rightPoint.y);    //½«ROI²Ã¼ô²¿·Ö²¹³¥»ØÀ´£¬»ñµÃÔÚÔ­Í¼ÉÏµÄx×ø±ê
+		m_center[i] = Point(_rightPoint.x + m_roi.roiLTX, _rightPoint.y);    //å°†ROIè£å‰ªéƒ¨åˆ†è¡¥å¿å›æ¥ï¼Œè·å¾—åœ¨åŸå›¾ä¸Šçš„xåæ ‡
 		*/
 
-		//circle(*image, m_center[i], 4, 255, 2);     //»­Ô²È¦ÏÔÊ¾È·ÈÏ
+		//circle(*image, m_center[i], 4, 255, 2);     //ç”»åœ†åœˆæ˜¾ç¤ºç¡®è®¤
 	}
 
 	if (num)
@@ -600,18 +600,18 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 
 void PartsCounter::estimateObj()
 {
-	//»ñÈ¡ÂÖÀª¸öÊı
+	//è·å–è½®å»“ä¸ªæ•°
 	int num = unsigned int(m_contours.size());
 	int maxTrainWidth = get_max(m_trainWidth);
 	int maxTrainHeight = get_max(m_trainHeight);
 
-	//³õÊ¼»¯ÅĞ¶ÏÎïÁÏÊÇ·ñºÏ¸ñµÄ±êÖ¾
+	//åˆå§‹åŒ–åˆ¤æ–­ç‰©æ–™æ˜¯å¦åˆæ ¼çš„æ ‡å¿—
 	m_halcon_flag.clear();
 	m_halcon_flag.resize(num);
 	
 	
 	if ((m_lastcontoursNum > num)&&(num>0))
-		m_modelIDs.erase(m_modelIDs.begin());   // ¼ÙÉèÃ¿´ÎÖ»ÏûÊ§Ò»¸ö
+		m_modelIDs.erase(m_modelIDs.begin());   // å‡è®¾æ¯æ¬¡åªæ¶ˆå¤±ä¸€ä¸ª
 
 	if ((num > m_lastcontoursNum) && (num>m_modelIDs.size()))
 	{
@@ -622,27 +622,27 @@ void PartsCounter::estimateObj()
 	
 	
 	float min_aDiffValue = 1.0;
-	//Ñ­»·±È½ÏÄ¿±êÂÖÀªÊÇ·ñÓëÑµÁ·µÄ½á¹ûÆ¥Åä£¬Èç¹ûÆ¥Åä³É¹¦£¬¼´ÊÓÎªºÏ¸ñÁÏ
+	//å¾ªç¯æ¯”è¾ƒç›®æ ‡è½®å»“æ˜¯å¦ä¸è®­ç»ƒçš„ç»“æœåŒ¹é…ï¼Œå¦‚æœåŒ¹é…æˆåŠŸï¼Œå³è§†ä¸ºåˆæ ¼æ–™
 	for (int i = 0; i < num; ++i)
 	{
 		if ((m_objWidth[i] > 1.3 * maxTrainWidth) || (m_objHeight[i] > maxTrainHeight + 10) || (m_objWidth[i] > 0.9 * m_roi.roiWidth))
 		{
-			// ÎïÁÏ¹ı´ó£¬ÉèÖÃÎªÁ¬ÌåÔÓÁÏ
+			// ç‰©æ–™è¿‡å¤§ï¼Œè®¾ç½®ä¸ºè¿ä½“æ‚æ–™
 			m_halcon_flag[i] = 3;
 		}
 		else if ((m_useHardTriggerMode==false)&&((((m_center[i].x - m_tempWidth[i]) < m_roi.roiLTX + m_detectLineC) && (m_tempWidth[i] + m_detectLineC < 0.9 * m_roi.roiWidth)) || (m_center[i].x >(m_roi.roiLTX + m_roi.roiWidth - 5))))
 		{
-			// ³öÊÓÒ°µÄÎïÁÏÇ°Ãæ»á³¬¹ım_detectLineC£¬µ«ÊÇÎïÁÏ³¤¶Èºá¿çm_detectLineCµ½ÓÒ±ßÊÓÒ°±ßÔµµÄ³ıÍâ
-			// ½øÊÓÒ°µÄÎïÁÏÎ²²¿Ò»¶¨ÔÚÊÓÒ°±ßÔµ
-			m_halcon_flag[i] = 2;  // ÉèÎª½ø³öÊÓÒ°×ó±ßÔµ
+			// å‡ºè§†é‡çš„ç‰©æ–™å‰é¢ä¼šè¶…è¿‡m_detectLineCï¼Œä½†æ˜¯ç‰©æ–™é•¿åº¦æ¨ªè·¨m_detectLineCåˆ°å³è¾¹è§†é‡è¾¹ç¼˜çš„é™¤å¤–
+			// è¿›è§†é‡çš„ç‰©æ–™å°¾éƒ¨ä¸€å®šåœ¨è§†é‡è¾¹ç¼˜
+			m_halcon_flag[i] = 2;  // è®¾ä¸ºè¿›å‡ºè§†é‡å·¦è¾¹ç¼˜
 		}
 		else
 		{
-			m_halcon_flag[i] = 1;  // Ô¤ÉèÎªÔÓÁÏ
-			//m_modelIDs[i] = 0;   // ÔÓÁÏÆ¥ÅäÎª0, ²»ĞèÒª³õÊ¼»¯£¬·´¶ø»á±£Áô¸ú×ÙĞ§¹û
+			m_halcon_flag[i] = 1;  // é¢„è®¾ä¸ºæ‚æ–™
+			//m_modelIDs[i] = 0;   // æ‚æ–™åŒ¹é…ä¸º0, ä¸éœ€è¦åˆå§‹åŒ–ï¼Œåè€Œä¼šä¿ç•™è·Ÿè¸ªæ•ˆæœ
 			for (int j = 0; j < m_trainContours.size(); ++j)
 			{
-				//·½·¨Ò»£ºÂÖÀªÏàËÆ¶È±È½Ï·¨
+				//æ–¹æ³•ä¸€ï¼šè½®å»“ç›¸ä¼¼åº¦æ¯”è¾ƒæ³•
 				if ((COMP_METHOD_MATHCONTOURS == m_matchMethod))
 				{
 					double matchScore = matchShapes(m_contours[i], m_trainContours[j], CV_CONTOURS_MATCH_I3, 0);
@@ -651,14 +651,14 @@ void PartsCounter::estimateObj()
 					{
 						float tempArea = m_trainArea[j] + ((m_objHeight[i] - m_trainHeight[j] - 1) / 2 * m_trainWidth[j])
 							+ ((m_objWidth[i] - m_trainWidth[j] - 1) / 2 * m_trainHeight[j]);
-						//Èç¹ûÄ¿±êÃæ»ı·¶Î§ÔÚ Ä£°åÃæ»ı+/-¹«²îÃæ»ı£¨ÏÖÎª0.15£©ÒÔÄÚ£¬ÔòÊÓÎªºÏ¸ñÁÏ
+						//å¦‚æœç›®æ ‡é¢ç§¯èŒƒå›´åœ¨ æ¨¡æ¿é¢ç§¯+/-å…¬å·®é¢ç§¯ï¼ˆç°ä¸º0.15ï¼‰ä»¥å†…ï¼Œåˆ™è§†ä¸ºåˆæ ¼æ–™
 						//if ((((tempArea - m_objArea[i]< m_allowContourArea1*2)) && ((tempArea + m_objArea[i]) > m_allowContourArea1 *2)))
 						float aDiffValue = fabs(tempArea - m_objArea[i]) / tempArea;
 						if (aDiffValue < m_AdiffValue)
 						{
-							//½«ºÏ¸ñµÄÂÖÀª¼ÓÈëm_objContour
-							m_halcon_flag[i] = 0;           //m_Flag=0   ºÏ¸ñÁÏ
-							//¶ÔÁÏm_modelID½øĞĞ¸³Öµ
+							//å°†åˆæ ¼çš„è½®å»“åŠ å…¥m_objContour
+							m_halcon_flag[i] = 0;           //m_Flag=0   åˆæ ¼æ–™
+							//å¯¹æ–™m_modelIDè¿›è¡Œèµ‹å€¼
 							m_modelIDs[i] = m_trainID[j];
 							break;
 						}
@@ -667,7 +667,7 @@ void PartsCounter::estimateObj()
 					}
 				}
 
-				//·½·¨¶ş£ºÃæ»ı¡¢¿í¡¢¸ß±È½Ï·¨£¬m_LcoefficientÓëm_Hcoefficient±íÊ¾×îĞ¡¡¢×î´óÏàËÆ°Ù·Ö±ÈÒªÇó
+				//æ–¹æ³•äºŒï¼šé¢ç§¯ã€å®½ã€é«˜æ¯”è¾ƒæ³•ï¼Œm_Lcoefficientä¸m_Hcoefficientè¡¨ç¤ºæœ€å°ã€æœ€å¤§ç›¸ä¼¼ç™¾åˆ†æ¯”è¦æ±‚
 				if ((COMP_METHOD_MATHAREA1 == m_matchMethod)
 					//			&& ((m_Lcoefficient * m_trainArea[j] < m_objArea[i]) && (m_Hcoefficient * m_trainArea[j] > m_objArea[i]))
 					&& ((m_Lcoefficient * m_trainHeight[j] < m_objHeight[i]) && (m_Hcoefficient * m_trainHeight[j] > m_objHeight[i]))
@@ -675,36 +675,36 @@ void PartsCounter::estimateObj()
 				{
 					float tempArea = m_trainArea[j] + ((m_objHeight[i] - m_trainHeight[j] - 1) / 2 * m_trainWidth[j])
 						+ ((m_objWidth[i] - m_trainWidth[j] - 1) / 2 * m_trainHeight[j]);
-					//Èç¹ûÄ¿±êÃæ»ı·¶Î§ÔÚ Ä£°åÃæ»ı+/-¹«²îÃæ»ı£¨ÏÖÎª0.15£©ÒÔÄÚ£¬ÔòÊÓÎªºÏ¸ñÁÏ
+					//å¦‚æœç›®æ ‡é¢ç§¯èŒƒå›´åœ¨ æ¨¡æ¿é¢ç§¯+/-å…¬å·®é¢ç§¯ï¼ˆç°ä¸º0.15ï¼‰ä»¥å†…ï¼Œåˆ™è§†ä¸ºåˆæ ¼æ–™
 					//if ((((tempArea - m_objArea[i]< m_allowContourArea1*3)) && ((tempArea + m_objArea[i]) > m_allowContourArea1*3)))
 					if (fabs(tempArea - m_objArea[i]) < m_AdiffValue * tempArea)
 					{
-						m_halcon_flag[i] = 0;           //m_Flag=0   ºÏ¸ñÁÏ
-						//¶ÔÁÏm_modelID½øĞĞ¸³Öµ
+						m_halcon_flag[i] = 0;           //m_Flag=0   åˆæ ¼æ–™
+						//å¯¹æ–™m_modelIDè¿›è¡Œèµ‹å€¼
 						m_modelIDs[i] = m_trainID[j];
 						break;
 					}
 				}
 
 
-				//·½·¨Èı£º¿í¡¢¸ß±È½Ï·¨£¬m_WdiffValue¡¢m_HdiffValue±íÊ¾¿í¡¢¸ßµÄÔÊĞíÏñËØÖµ²îÒì·¶Î§
+				//æ–¹æ³•ä¸‰ï¼šå®½ã€é«˜æ¯”è¾ƒæ³•ï¼Œm_WdiffValueã€m_HdiffValueè¡¨ç¤ºå®½ã€é«˜çš„å…è®¸åƒç´ å€¼å·®å¼‚èŒƒå›´
 				if (COMP_METHOD_MATHAREA2 == m_matchMethod)
 				{
 					if ((abs(m_trainHeight[j] - m_objHeight[i]) < m_HdiffValue) && (abs(m_trainWidth[j] - m_objWidth[i]) < m_WdiffValue))
 					{
-						//¼ÆËãÄ£°åÃæ»ı= ÑµÁ·Ãæ»ı+£¨£¨Ä¿±ê¸ß-Ä£°å¸ß£©*Ä£°å¿í£©+£¨£¨Ä¿±ê¿í-Ä£°å¿í£©*Ä£°å¸ß£©
-						//Éè¼Æ¸Ã¼ÆËã·½Ê½µÄÒâÒå£¿ Question-01    A£º½â¾ö²»Í¬Ïà»ú¸ß¶È¿ÉÄÜ´æÔÚ·Å´ó±¶ÊıÎó²îÎÊÌâ£¬Æğµ½²¹³¥×÷ÓÃ
+						//è®¡ç®—æ¨¡æ¿é¢ç§¯= è®­ç»ƒé¢ç§¯+ï¼ˆï¼ˆç›®æ ‡é«˜-æ¨¡æ¿é«˜ï¼‰*æ¨¡æ¿å®½ï¼‰+ï¼ˆï¼ˆç›®æ ‡å®½-æ¨¡æ¿å®½ï¼‰*æ¨¡æ¿é«˜ï¼‰
+						//è®¾è®¡è¯¥è®¡ç®—æ–¹å¼çš„æ„ä¹‰ï¼Ÿ Question-01    Aï¼šè§£å†³ä¸åŒç›¸æœºé«˜åº¦å¯èƒ½å­˜åœ¨æ”¾å¤§å€æ•°è¯¯å·®é—®é¢˜ï¼Œèµ·åˆ°è¡¥å¿ä½œç”¨
 						float tempArea = m_trainArea[j] + ((m_objHeight[i] - m_trainHeight[j] - 1) / 2 * m_trainWidth[j])
 							+ ((m_objWidth[i] - m_trainWidth[j] - 1) / 2 * m_trainHeight[j]);
-						//Èç¹ûÄ¿±êÃæ»ı·¶Î§ÔÚ Ä£°åÃæ»ı+/-¹«²îÃæ»ı£¨ÏÖÎª0.15£©ÒÔÄÚ£¬ÔòÊÓÎªºÏ¸ñÁÏ
+						//å¦‚æœç›®æ ‡é¢ç§¯èŒƒå›´åœ¨ æ¨¡æ¿é¢ç§¯+/-å…¬å·®é¢ç§¯ï¼ˆç°ä¸º0.15ï¼‰ä»¥å†…ï¼Œåˆ™è§†ä¸ºåˆæ ¼æ–™
 						//if ((((tempArea - m_objArea[i]< m_allowContourArea1*2)) && ((tempArea + m_objArea[i]) > m_allowContourArea1 *2)))
 						float aDiffValue = fabs(tempArea - m_objArea[i]) / tempArea;
 						if (aDiffValue < m_AdiffValue)
 						{
-							//½«ºÏ¸ñµÄÂÖÀª¼ÓÈëm_objContour
-							m_halcon_flag[i] = 0;           //m_Flag=0   ºÏ¸ñÁÏ
+							//å°†åˆæ ¼çš„è½®å»“åŠ å…¥m_objContour
+							m_halcon_flag[i] = 0;           //m_Flag=0   åˆæ ¼æ–™
 
-							//¶ÔÁÏm_modelID½øĞĞ¸³Öµ
+							//å¯¹æ–™m_modelIDè¿›è¡Œèµ‹å€¼
 							m_modelIDs[i] = m_trainID[j];
 							break;
 						}
@@ -714,54 +714,54 @@ void PartsCounter::estimateObj()
 				}
 			}
 			if ((m_halcon_flag[i] > 0) && (min_aDiffValue < 0.9))
-				std::cout << "aDiffValue should less than £º" << min_aDiffValue << std::endl;
+				std::cout << "aDiffValue should less than ï¼š" << min_aDiffValue << std::endl;
 		}
 	}
 
 	hPDetectionEstimateObj();
 }
 
-//´Ó¼¯ºÏXÖĞµÄ¶¨¶¥µãu³ö·¢£¬ÓÃÉî¶ÈÓĞÏŞµÄ²ßÂÔÑ°ÕÒÔö¹ãÂ·
-//ÕâÖÖÔö¹ãÂ·Ö»ÄÜÊÇµ±Ç°µÄÆ¥ÅäÊıÔö¼Ó1
+//ä»é›†åˆXä¸­çš„å®šé¡¶ç‚¹uå‡ºå‘ï¼Œç”¨æ·±åº¦æœ‰é™çš„ç­–ç•¥å¯»æ‰¾å¢å¹¿è·¯
+//è¿™ç§å¢å¹¿è·¯åªèƒ½æ˜¯å½“å‰çš„åŒ¹é…æ•°å¢åŠ 1
 int PartsCounter::path(int u) {
-	for (int v = ny - 1; v >= 0; --v) {      //¿¼ÂÇËùÓĞYi¶¥µãv, ÄæĞòÆ¥ÅäËÑË÷
-		if (g[u][v] == 1 && !mk[v]) {     //YÖĞ¶¥µãvÓëuÁÚ½Ó£¬ÇÒÃ»ÓĞ·ÃÎÊ¹ı
-			mk[v] = 1;                        //·ÃÎÊv
+	for (int v = ny - 1; v >= 0; --v) {      //è€ƒè™‘æ‰€æœ‰Yié¡¶ç‚¹v, é€†åºåŒ¹é…æœç´¢
+		if (g[u][v] == 1 && !mk[v]) {     //Yä¸­é¡¶ç‚¹vä¸ué‚»æ¥ï¼Œä¸”æ²¡æœ‰è®¿é—®è¿‡
+			mk[v] = 1;                        //è®¿é—®v
 
-			//Èç¹ûvÃ»ÓĞÆ¥Åä£¬ÔòÖ±½Ó½«vÆ¥Åä¸øu£¬Èç¹ûvÒÑ¾­Æ¥ÅäÁË£¬µ«ÊÇ´Ócy[v],Ò²¾ÍÊÇ´ÓvÖ®Ç°ÒÑ¾­Æ¥ÅäµÄx³ö·¢£¬ÕÒµ½Ò»ÌõÔö¹ãÂ·£¬µ«ÊÇÕâÀï¼Ç×¡ÕâÀïvÒÑ¾­¼ÇÂ¼·ÃÎÊ¹ıÁË
-			//Èç¹ûµÚÒ»¸öÌõ¼ş³ÉÁ¢£¬Ôò²»»áµİ¹éµ÷ÓÃ
+			//å¦‚æœvæ²¡æœ‰åŒ¹é…ï¼Œåˆ™ç›´æ¥å°†våŒ¹é…ç»™uï¼Œå¦‚æœvå·²ç»åŒ¹é…äº†ï¼Œä½†æ˜¯ä»cy[v],ä¹Ÿå°±æ˜¯ä»vä¹‹å‰å·²ç»åŒ¹é…çš„xå‡ºå‘ï¼Œæ‰¾åˆ°ä¸€æ¡å¢å¹¿è·¯ï¼Œä½†æ˜¯è¿™é‡Œè®°ä½è¿™é‡Œvå·²ç»è®°å½•è®¿é—®è¿‡äº†
+			//å¦‚æœç¬¬ä¸€ä¸ªæ¡ä»¶æˆç«‹ï¼Œåˆ™ä¸ä¼šé€’å½’è°ƒç”¨
 			//if (cy[v] == -1 || path(cy[v])){
 			if (cy[v] == -1) {
-				cx[u] = v;         //°ÑYÖĞvÆ¥Åä¸øXÖĞu
-				cy[v] = u;            //°ÑXÖĞuÆ¥Åä¸øYÖĞv
+				cx[u] = v;         //æŠŠYä¸­våŒ¹é…ç»™Xä¸­u
+				cy[v] = u;            //æŠŠXä¸­uåŒ¹é…ç»™Yä¸­v
 				return 1;
 			}
 		}
 	}
-	return 0;                        //Èç¹û²»´æÔÚ´Óu³ö·¢µÄÔö¹ãÂ·£¬Ôò·µ»Ø0
+	return 0;                        //å¦‚æœä¸å­˜åœ¨ä»uå‡ºå‘çš„å¢å¹¿è·¯ï¼Œåˆ™è¿”å›0
 }
 
 
 int PartsCounter::HungarianMatch()
 {
-	int res = 0;                      // Æ¥ÅäÊı
-	nx = m_allcontoursNum;             // XÊÇµ±Ç°Ö¡ÎïÁÏ¸öÊı
-	ny = m_lastallcontoursNum;         // YÊÇÇ°Ò»Ö¡ÎïÁÏ¸öÊı
-	memset(cx, -1, sizeof(cx));        //´Ó0Æ¥Åä¿ªÊ¼Ôö¹ã£¬½«cxºÍxy¸÷ÔªËØ¶¼³õÊ¼»¯Îª-1
+	int res = 0;                      // åŒ¹é…æ•°
+	nx = m_allcontoursNum;             // Xæ˜¯å½“å‰å¸§ç‰©æ–™ä¸ªæ•°
+	ny = m_lastallcontoursNum;         // Yæ˜¯å‰ä¸€å¸§ç‰©æ–™ä¸ªæ•°
+	memset(cx, -1, sizeof(cx));        //ä»0åŒ¹é…å¼€å§‹å¢å¹¿ï¼Œå°†cxå’Œxyå„å…ƒç´ éƒ½åˆå§‹åŒ–ä¸º-1
 	memset(cy, -1, sizeof(cy));
 	for (int i = nx - 1; i >= 0; --i) {
-		if (cx[i] == -1) {                                    //´ÓX¼¯ºÏÖĞÃ¿¸öÃ»ÓĞÆ¥ÅäµÄµã³ö·¢¿ªÊ¼Ñ°ÕÒÔö¹ãÂ·
+		if (cx[i] == -1) {                                    //ä»Xé›†åˆä¸­æ¯ä¸ªæ²¡æœ‰åŒ¹é…çš„ç‚¹å‡ºå‘å¼€å§‹å¯»æ‰¾å¢å¹¿è·¯
 			memset(mk, 0, sizeof(mk));
 			res += path(i);
 		}
 	}
 
 	for (int u = nx - 1; u >= 0; --u) {
-		// Èç¹û¶¼±È½ÏÍêÁËu»¹Î´Æ¥ÅäÉÏ£¬Ç¿ÖÆ
+		// å¦‚æœéƒ½æ¯”è¾ƒå®Œäº†uè¿˜æœªåŒ¹é…ä¸Šï¼Œå¼ºåˆ¶
 		for (int v = ny - 1; v >= 0; --v) {
 			if ((cy[v] == -1) && (cx[u] == -1) && (g[u][v] != -1)) {
-				cx[u] = v;         //°ÑYÖĞvÆ¥Åä¸øXÖĞu
-				cy[v] = u;            //°ÑXÖĞuÆ¥Åä¸øYÖĞv
+				cx[u] = v;         //æŠŠYä¸­våŒ¹é…ç»™Xä¸­u
+				cy[v] = u;            //æŠŠXä¸­uåŒ¹é…ç»™Yä¸­v
 			}
 		}
 	}
@@ -772,19 +772,19 @@ int PartsCounter::HungarianMatch()
 void PartsCounter::hPDetectionEstimateObj()
 {
 
-	//»ñÈ¡ÂÖÀª¸öÊı
+	//è·å–è½®å»“ä¸ªæ•°
 	int num = unsigned int(m_contours.size());
 	m_num = num;
 	//int maxTrainWidth = get_max(m_trainWidth);
 
-	//ÅĞ¶Ïµ±Ç°Ö¡ÖĞÎ»ÓÚÉÏÒ»Ö¡×î×ó¶ËÁÏÖ®Ç°µÄËùÓĞÁÏ¸öÊı
+	//åˆ¤æ–­å½“å‰å¸§ä¸­ä½äºä¸Šä¸€å¸§æœ€å·¦ç«¯æ–™ä¹‹å‰çš„æ‰€æœ‰æ–™ä¸ªæ•°
 	int a = 0;
 	for (int i = 0; i < num; ++i)
 	{
-		//·ÀÖ¹ÁÏÔÚÔ­µØ²»¶¯£¬µ«Ç°ÃæÓĞÔÓÖÊ½øÈë£¬¶øaÖ»¼ÆÁË1´Î
+		//é˜²æ­¢æ–™åœ¨åŸåœ°ä¸åŠ¨ï¼Œä½†å‰é¢æœ‰æ‚è´¨è¿›å…¥ï¼Œè€Œaåªè®¡äº†1æ¬¡
 		if (m_center[i].x < m_preMinX + 5)
 		{
-			a++;  //µ±Ç°Ö¡ÖĞÎ»ÓÚÉÏÒ»Ö¡×î×ó¶ËÁÏÖ®Ç°µÄËùÓĞÁÏ¸öÊı  aÖÁÉÙ´óÓÚ1
+			a++;  //å½“å‰å¸§ä¸­ä½äºä¸Šä¸€å¸§æœ€å·¦ç«¯æ–™ä¹‹å‰çš„æ‰€æœ‰æ–™ä¸ªæ•°  aè‡³å°‘å¤§äº1
 		}
 	}
 
@@ -806,7 +806,7 @@ void PartsCounter::hPDetectionEstimateObj()
 	{
 		if (m_preCenter[i].x - 5 > m_roi.roiLTX + m_roi.roiWidth - 10)
 		{
-			lastRightBoundryNum++;  // ½øÈëÊÓÒ°ÓÒ²àm_preFlag = 2µÄ¸öÊı
+			lastRightBoundryNum++;  // è¿›å…¥è§†é‡å³ä¾§m_preFlag = 2çš„ä¸ªæ•°
 		}
 
 		if ((m_preCenter[i].x - m_lastTempWidth[i] < m_roi.roiLTX + 5))
@@ -816,21 +816,21 @@ void PartsCounter::hPDetectionEstimateObj()
 	}
 
 
-	//ÅĞ¶ÏÓĞÁ½¸öºÏ¸ñÁÏºÏ²¢ÎªÒ»¸öÔÓÁÏ£¬²»¼ÆÊı
+	//åˆ¤æ–­æœ‰ä¸¤ä¸ªåˆæ ¼æ–™åˆå¹¶ä¸ºä¸€ä¸ªæ‚æ–™ï¼Œä¸è®¡æ•°
 	is_merged = -1;
 	merge_match = 0;
 	if (m_lastallcontoursNum - m_allcontoursNum > 0) {
 		for (int i = 0; i < m_allcontoursNum; i++)
 		{
-			//  Î´³öÊÓÒ°Ç°ºÏ²¢£¬ÒòÎª³öÊÓÒ°Ê±Ãæ»ı¼ÆËã²»×¼È·¡£ ºÏ²¢ºóÎªÁ¬ÌåÁÏµÄ³ıÍâ
+			//  æœªå‡ºè§†é‡å‰åˆå¹¶ï¼Œå› ä¸ºå‡ºè§†é‡æ—¶é¢ç§¯è®¡ç®—ä¸å‡†ç¡®ã€‚ åˆå¹¶åä¸ºè¿ä½“æ–™çš„é™¤å¤–
 			if ((is_merged == -1) && ((m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5) || (m_halcon_flag[i] == 3))) {
 				for (unsigned int j = 1; j < m_lastallcontoursNum; j++)
 				{
-					if (((fabs(m_objArea[i] - m_lastObjArea[j] - m_lastObjArea[j - 1]) < 100) || (m_halcon_flag[i] == 3))    //ºÏ²¢Ç°ºóÃæ»ıÖ®ºÍÏà½üÊÇÅĞ¶ÏÒÀ¾İ
-						&& (m_objArea[i] - m_lastObjArea[j] > 100)                     // ºÏ²¢ºó£¬ÁÏµÄÃæ»ı±ØĞëÓĞËùÔö¼Ó
+					if (((fabs(m_objArea[i] - m_lastObjArea[j] - m_lastObjArea[j - 1]) < 100) || (m_halcon_flag[i] == 3))    //åˆå¹¶å‰åé¢ç§¯ä¹‹å’Œç›¸è¿‘æ˜¯åˆ¤æ–­ä¾æ®
+						&& (m_objArea[i] - m_lastObjArea[j] > 100)                     // åˆå¹¶åï¼Œæ–™çš„é¢ç§¯å¿…é¡»æœ‰æ‰€å¢åŠ 
 						&& (m_preCenter[j].x - m_center[i].x > -5)
-						&& ((m_preCenter[j - 1].x - m_lastTempWidth[j - 1] > m_roi.roiLTX + 5) || (m_halcon_flag[i] == 3))             // ºÏ²¢Ç°£¬Ç°Ò»¸öÁÏ²»ÄÜÊÇÕıÔÚ³öÊÓÒ°
-						&& (m_preCenter[j].x - m_preCenter[j - 1].x < m_lastTempWidth[j] + 20))    // ºÏ²¢Ç°Á½¸öÁÏ¾àÀë²»ÄÜÌ«Ô¶
+						&& ((m_preCenter[j - 1].x - m_lastTempWidth[j - 1] > m_roi.roiLTX + 5) || (m_halcon_flag[i] == 3))             // åˆå¹¶å‰ï¼Œå‰ä¸€ä¸ªæ–™ä¸èƒ½æ˜¯æ­£åœ¨å‡ºè§†é‡
+						&& (m_preCenter[j].x - m_preCenter[j - 1].x < m_lastTempWidth[j] + 20))    // åˆå¹¶å‰ä¸¤ä¸ªæ–™è·ç¦»ä¸èƒ½å¤ªè¿œ
 					{
 						is_merged = i;
 						merge_match = j - 1;
@@ -841,9 +841,9 @@ void PartsCounter::hPDetectionEstimateObj()
 		}
 	}
 
-	//ÅĞ¶ÏÓĞÒ»¸öºÏ²¢ÁÏ·ÖÁÑÎª2¸ö
-	is_departed = -1;    // ÉÏÒ»Ö¡µÄÁ¬ÌåÁÏ
-	departed_match = 0;      // µ±Ç°Ö¡µÄÁ¬ÌåÁÏ²ğ·Öºó£¬Î´Æ¥ÅäÉÏµÄÎïÁÏ
+	//åˆ¤æ–­æœ‰ä¸€ä¸ªåˆå¹¶æ–™åˆ†è£‚ä¸º2ä¸ª
+	is_departed = -1;    // ä¸Šä¸€å¸§çš„è¿ä½“æ–™
+	departed_match = 0;      // å½“å‰å¸§çš„è¿ä½“æ–™æ‹†åˆ†åï¼ŒæœªåŒ¹é…ä¸Šçš„ç‰©æ–™
 	if (m_lastallcontoursNum - m_allcontoursNum < 0) {
 		for (int i = 0; i < m_lastallcontoursNum; i++)
 		{
@@ -852,13 +852,13 @@ void PartsCounter::hPDetectionEstimateObj()
 				{
 					if ((fabs(m_lastObjArea[i] - m_objArea[j] - m_objArea[j - 1]) < 100)
 						&& (m_preCenter[i].x - m_center[j].x > -5)
-						&& (m_center[j - 1].x - m_tempWidth[j - 1] > m_roi.roiLTX + 5)         // ·ÖÁÑºó£¬Ç°Ò»¸öÁÏ²»ÄÜÊÇÕıÔÚ³öÊÓÒ°
-						&& (m_center[j].x - m_center[j - 1].x < m_tempWidth[j] + 20))    // ·Ö¿ªºóÁ½¸öÁÏ¾àÀë²»ÄÜÌ«Ô¶
+						&& (m_center[j - 1].x - m_tempWidth[j - 1] > m_roi.roiLTX + 5)         // åˆ†è£‚åï¼Œå‰ä¸€ä¸ªæ–™ä¸èƒ½æ˜¯æ­£åœ¨å‡ºè§†é‡
+						&& (m_center[j].x - m_center[j - 1].x < m_tempWidth[j] + 20))    // åˆ†å¼€åä¸¤ä¸ªæ–™è·ç¦»ä¸èƒ½å¤ªè¿œ
 					{
 						is_departed = i;
 						departed_match = j - 1;
 						if (m_objArea[j] < 0.3 * m_lastObjArea[i])
-							departed_match = j;  // Èç¹ûºóÃæÁÏÃæ»ıĞ¡Ì«¶à£¬ÔòÈÏÎªºóÃæÊÇµ¹Ó°
+							departed_match = j;  // å¦‚æœåé¢æ–™é¢ç§¯å°å¤ªå¤šï¼Œåˆ™è®¤ä¸ºåé¢æ˜¯å€’å½±
 						break;
 					}
 				}
@@ -870,7 +870,7 @@ void PartsCounter::hPDetectionEstimateObj()
 	{
 		if (m_center[i].x > m_roi.roiLTX + m_roi.roiWidth - 5)
 		{
-			rightBoundryNum++;  // ½øÈëÊÓÒ°ÓÒ²àm_Flag = 2µÄ¸öÊı
+			rightBoundryNum++;  // è¿›å…¥è§†é‡å³ä¾§m_Flag = 2çš„ä¸ªæ•°
 		}
 
 		if ((m_center[i].x - m_tempWidth[i] < m_roi.roiLTX + 5))
@@ -880,32 +880,32 @@ void PartsCounter::hPDetectionEstimateObj()
 
 		for (int j = m_lastallcontoursNum - 1; j >= 0; j--)
 		{
-			if ((is_departed >= 0) && (i == departed_match)) // ÎïÁÏ·ÖÀë
+			if ((is_departed >= 0) && (i == departed_match)) // ç‰©æ–™åˆ†ç¦»
 			{
 				g[i][j] = -1;
 			}
-			else if ((is_merged >= 0) && (j == merge_match)) { // ÎïÁÏºÏ²¢
+			else if ((is_merged >= 0) && (j == merge_match)) { // ç‰©æ–™åˆå¹¶
 				g[i][j] = -1;
 			}
 			else if ((abs(m_preCenter[j].y - m_center[i].y) < m_yRange + 5) && (abs(m_preCenter[j].x - m_center[i].x) < m_width * 0.3)
 				&& (m_preCenter[j].x - m_center[i].x > -10)
 				&& (m_preCenter[j].x < m_roi.roiLTX + m_roi.roiWidth - 5)
-				&& ((fabs(m_lastObjArea[j] - m_objArea[i]) < max(m_lastObjArea[j], m_objArea[i]) * 0.5) && (m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5))   // Ãæ»ı²î±ğ²»ÄÜÌ«´ó£¬·ÀÖ¹0,1Î»ÖÃ»¥»»
+				&& ((fabs(m_lastObjArea[j] - m_objArea[i]) < max(m_lastObjArea[j], m_objArea[i]) * 0.5) && (m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5))   // é¢ç§¯å·®åˆ«ä¸èƒ½å¤ªå¤§ï¼Œé˜²æ­¢0,1ä½ç½®äº’æ¢
 				&& (m_center[i].x < m_roi.roiLTX + m_roi.roiWidth - 5)) {
 				g[i][j] = 1;
 			}
-			else if ((m_center[i].x - m_preCenter[m_lastallcontoursNum - 1].x > 10)    //ÔÚÉÏÒ»Ö¡×îºóÒ»¸öÁÏÖ®ºóĞÂ½øÊÓÒ°µÄ
-				|| (abs(m_preCenter[j].x - m_center[i].x) >= m_width*0.3)   // ¾àÀëÏà²î¹ıÔ¶µÄ
-				|| (m_center[i].x - m_preCenter[j].x > 10)   // ÁÏ²»»áÍùºóÍË
-				|| ((fabs(m_lastObjArea[j] - m_objArea[i]) > max(m_lastObjArea[j], m_objArea[i]) * 0.7) && (m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5))   // Ãæ»ı²î±ğ²»ÄÜÌ«´ó£¬·ÀÖ¹0,1Î»ÖÃ»¥»»
-				|| (m_center[i].x > m_roi.roiLTX + m_roi.roiWidth - 5))    // »¹Î´½øÈëÊÓÒ°µÄ
+			else if ((m_center[i].x - m_preCenter[m_lastallcontoursNum - 1].x > 10)    //åœ¨ä¸Šä¸€å¸§æœ€åä¸€ä¸ªæ–™ä¹‹åæ–°è¿›è§†é‡çš„
+				|| (abs(m_preCenter[j].x - m_center[i].x) >= m_width*0.3)   // è·ç¦»ç›¸å·®è¿‡è¿œçš„
+				|| (m_center[i].x - m_preCenter[j].x > 10)   // æ–™ä¸ä¼šå¾€åé€€
+				|| ((fabs(m_lastObjArea[j] - m_objArea[i]) > max(m_lastObjArea[j], m_objArea[i]) * 0.7) && (m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5))   // é¢ç§¯å·®åˆ«ä¸èƒ½å¤ªå¤§ï¼Œé˜²æ­¢0,1ä½ç½®äº’æ¢
+				|| (m_center[i].x > m_roi.roiLTX + m_roi.roiWidth - 5))    // è¿˜æœªè¿›å…¥è§†é‡çš„
 			{
-				g[i][j] = -1;    // ÒÔÉÏÒ»ÂÉ²»Æ¥Åä
+				g[i][j] = -1;    // ä»¥ä¸Šä¸€å¾‹ä¸åŒ¹é…
 			}
 			else {
 				g[i][j] = 0;
 			}
-			if ((min_y > abs(m_preCenter[j].y - m_center[i].y)) && (m_preCenter[j].x - m_center[i].x > -10)) {   // ²»µ«Òªy×ø±ê½Ó½ü£¬»¹ÒªÊÇÍùÇ°ÒÆ¶¯¡£
+			if ((min_y > abs(m_preCenter[j].y - m_center[i].y)) && (m_preCenter[j].x - m_center[i].x > -10)) {   // ä¸ä½†è¦yåæ ‡æ¥è¿‘ï¼Œè¿˜è¦æ˜¯å¾€å‰ç§»åŠ¨ã€‚
 				min_y = abs(m_preCenter[j].y - m_center[i].y);
 				min_y_dist = m_preCenter[j].x - m_center[i].x;
 			}
@@ -920,7 +920,7 @@ void PartsCounter::hPDetectionEstimateObj()
 	}
 
 	if (dist.size() <= 0) {
-		m_xRange = min_y_dist;        // Èç¹ûÃ»ÕÒµ½£¬¾ÍÈ¡×îĞ¡µÄy¾àÀëÏÂµÄx×÷Îªdist
+		m_xRange = min_y_dist;        // å¦‚æœæ²¡æ‰¾åˆ°ï¼Œå°±å–æœ€å°çš„yè·ç¦»ä¸‹çš„xä½œä¸ºdist
 	}
 	else {
 		sort(dist.begin(), dist.end());
@@ -928,13 +928,13 @@ void PartsCounter::hPDetectionEstimateObj()
 	}
 
 
-	//³õÊ¼»¯ÅĞ¶ÏÎïÁÏÊÇ·ñºÏ¸ñµÄ±êÖ¾
+	//åˆå§‹åŒ–åˆ¤æ–­ç‰©æ–™æ˜¯å¦åˆæ ¼çš„æ ‡å¿—
 	m_Flag.clear();
 	m_Flag.resize(num);
 	int lastMatchNo = 10000;
 	bool NG3_OK = false;
 	NG3_OK_flag = -1;
-	//Ñ­»·±È½ÏÄ¿±êÂÖÀªÊÇ·ñÓëÑµÁ·µÄ½á¹ûÆ¥Åä£¬Èç¹ûÆ¥Åä³É¹¦£¬¼´ÊÓÎªºÏ¸ñÁÏ
+	//å¾ªç¯æ¯”è¾ƒç›®æ ‡è½®å»“æ˜¯å¦ä¸è®­ç»ƒçš„ç»“æœåŒ¹é…ï¼Œå¦‚æœåŒ¹é…æˆåŠŸï¼Œå³è§†ä¸ºåˆæ ¼æ–™
 	for (int i = 0; i < num; ++i)
 	{
 		if (m_useHardTriggerMode)
@@ -950,67 +950,67 @@ void PartsCounter::hPDetectionEstimateObj()
 			}
 			continue;
 		}
-		//ÒªÇóÄ¿±êÂÖÀªµÄÓÒ¶Ëµã±ØĞë½øÈëÊÓÒ°ROI·¶Î§ÄÚ²ÅÓèÒÔÅĞ¶Ï
+		//è¦æ±‚ç›®æ ‡è½®å»“çš„å³ç«¯ç‚¹å¿…é¡»è¿›å…¥è§†é‡ROIèŒƒå›´å†…æ‰äºˆä»¥åˆ¤æ–­
 		if (m_center[i].x < m_roi.roiLTX + m_roi.roiWidth - 5)
 		{
-			//halconÌáÈ¡µÄ¾«Ï¸ÎïÁÏOK,NGĞÅÏ¢£¬ÓÃÓÚÅĞ¶ÏÎïÁÏÊÇ·ñ±ê¼ÇºÏ¸ñ£¬ÔÓÁÏ
-			//Èç¹ûm_halcon_flagÎª0Ö±½Ó´òºÏ¸ñ±ê¼Ç
-			if ((m_halcon_flag[i] == 0) && ((m_center[i].x - m_tempWidth[i]) >= m_roi.roiLTX))        //ÒªÇóÄ¿±êÂÖÀªµÄ×ó¶ËµãÎ´³öÍ¼Ïñ×ó±ß½ç5ÏñËØ
+			//halconæå–çš„ç²¾ç»†ç‰©æ–™OK,NGä¿¡æ¯ï¼Œç”¨äºåˆ¤æ–­ç‰©æ–™æ˜¯å¦æ ‡è®°åˆæ ¼ï¼Œæ‚æ–™
+			//å¦‚æœm_halcon_flagä¸º0ç›´æ¥æ‰“åˆæ ¼æ ‡è®°
+			if ((m_halcon_flag[i] == 0) && ((m_center[i].x - m_tempWidth[i]) >= m_roi.roiLTX))        //è¦æ±‚ç›®æ ‡è½®å»“çš„å·¦ç«¯ç‚¹æœªå‡ºå›¾åƒå·¦è¾¹ç•Œ5åƒç´ 
 			{
-				//Èç¹ûÉÏÒ»Ö¡ÎªºÏ²¢ÁÏÎïÁÏÆ¥ÅäµÄm_preFlag=3£¬ÇÒÃ»ÓĞ·ÖÀëÇé¿ö£¬½«±£³Ö¸ú×Ù½á¹û
+				//å¦‚æœä¸Šä¸€å¸§ä¸ºåˆå¹¶æ–™ç‰©æ–™åŒ¹é…çš„m_preFlag=3ï¼Œä¸”æ²¡æœ‰åˆ†ç¦»æƒ…å†µï¼Œå°†ä¿æŒè·Ÿè¸ªç»“æœ
 				NG3_OK = false;
 				if (cx[i] >= 0) {
-					if (3 == m_preFlag[cx[i]] && is_departed < 0) {    // ÉÏÒ»Ö¡m_preFlag =3£¬ÇÒÔÚ³öÊÓÒ°¹ı³Ì(»òÕß)¡£±£³Ö¼ÆÔÓÁÏ¡£
+					if (3 == m_preFlag[cx[i]] && is_departed < 0) {    // ä¸Šä¸€å¸§m_preFlag =3ï¼Œä¸”åœ¨å‡ºè§†é‡è¿‡ç¨‹(æˆ–è€…)ã€‚ä¿æŒè®¡æ‚æ–™ã€‚
 						NG3_OK = true;
 						std::cout << "NG3 -> OK" << std::endl;
 						//		//if (i == 0) NG3_OK_flag = i;
-						m_impurityContour.push_back(m_contours[i]);   // ¼ÌĞø±£³ÖÆäÎªÔÓÁÏ
+						m_impurityContour.push_back(m_contours[i]);   // ç»§ç»­ä¿æŒå…¶ä¸ºæ‚æ–™
 						m_Flag[i] = 3;
 						continue;
 					}
 				}
 				if (!NG3_OK) {
-					//½«ºÏ¸ñµÄÂÖÀª¼ÓÈëm_objContour
+					//å°†åˆæ ¼çš„è½®å»“åŠ å…¥m_objContour
 					m_objContour.push_back(m_contours[i]);
-					m_Flag[i] = 0;           //m_Flag=0   ºÏ¸ñÁÏ
+					m_Flag[i] = 0;           //m_Flag=0   åˆæ ¼æ–™
 					continue;
 				}
 			}
 
-			if ((m_halcon_flag[i] == 3) && (is_merged == i))        //ÈÚºÏºó±ä³É3£»
+			if ((m_halcon_flag[i] == 3) && (is_merged == i))        //èåˆåå˜æˆ3ï¼›
 			{
 				m_impurityContour.push_back(m_contours[i]);
 				m_Flag[i] = 3;
 				continue;
 			}
 
-			//±È½ÏÍêÑµÁ·Ä£°åºó£¬ÈÔÎ´continue³öÑ­»·£¬ÇÒÓÖ´æÔÚÄ£°åÂÖÀªÔÚÊÓÒ°ROI·¶Î§ÄÚÔò½øÈëÒÔÏÂÅĞ¶Ï
+			//æ¯”è¾ƒå®Œè®­ç»ƒæ¨¡æ¿åï¼Œä»æœªcontinueå‡ºå¾ªç¯ï¼Œä¸”åˆå­˜åœ¨æ¨¡æ¿è½®å»“åœ¨è§†é‡ROIèŒƒå›´å†…åˆ™è¿›å…¥ä»¥ä¸‹åˆ¤æ–­
 			m_errorStatus = 17;
-			//Èç¹ûÄ¿±êÂÖÀªÊı³¬¹ıÉÏÒ»Ö¡ÖĞÂÖÀªÊı£¨Ö÷Òª°üÀ¨¡°ÕıÔÚĞÂ½øÈëÊÓÒ°ÓÒ²à¹ı³ÌÖĞµÄÁÏ¡±ºÍ¡°Ò»·ÖÎª¶ş¶à³öÀ´µÄÁÏ¡±£©£¬³¬¹ı²¿·Ö¾ùÄ¬ÈÏÉèÖÃm_Flag =2
+			//å¦‚æœç›®æ ‡è½®å»“æ•°è¶…è¿‡ä¸Šä¸€å¸§ä¸­è½®å»“æ•°ï¼ˆä¸»è¦åŒ…æ‹¬â€œæ­£åœ¨æ–°è¿›å…¥è§†é‡å³ä¾§è¿‡ç¨‹ä¸­çš„æ–™â€å’Œâ€œä¸€åˆ†ä¸ºäºŒå¤šå‡ºæ¥çš„æ–™â€ï¼‰ï¼Œè¶…è¿‡éƒ¨åˆ†å‡é»˜è®¤è®¾ç½®m_Flag =2
 
 
-			//Èç¹û¸ÃÁÏÎ´µ½ÊÓÒ°×ó±ß½ç£¬¼´ÕıÔÚÅÜ³öÊÓÒ°¹ı³ÌÖĞ£¬Ôò½øÒ»²½×öÅĞ¶Ï
+			//å¦‚æœè¯¥æ–™æœªåˆ°è§†é‡å·¦è¾¹ç•Œï¼Œå³æ­£åœ¨è·‘å‡ºè§†é‡è¿‡ç¨‹ä¸­ï¼Œåˆ™è¿›ä¸€æ­¥åšåˆ¤æ–­
 			if ((m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + 5))
 			{
 				if (m_lastallcontoursNum == 0)
 				{
-					if ((m_halcon_flag[i] == 2))      // Èç¹ûËã·¨¼ì²âÎª±ß½çÁÏ£¬»¹ÊÇÈÏÎªÊÇÔÓÁÏ. ÉÏÒ»Ö¡Ã»ÓĞÁÏ£¬Í»È»³öÏÖµÄËãNGEnding
+					if ((m_halcon_flag[i] == 2))      // å¦‚æœç®—æ³•æ£€æµ‹ä¸ºè¾¹ç•Œæ–™ï¼Œè¿˜æ˜¯è®¤ä¸ºæ˜¯æ‚æ–™. ä¸Šä¸€å¸§æ²¡æœ‰æ–™ï¼Œçªç„¶å‡ºç°çš„ç®—NGEnding
 					{
 						m_impurityContour.push_back(m_contours[i]);
 						m_Flag[i] = 4;
 						continue;
 					}
-					// Èç¹ûÉÏÖ¡ÖĞÃ»ÓĞÎïÁÏ£¬ÔòÖ±½ÓÉèÖÃĞÂÎïÁÏÎªm_Flag = 2, ±ÜÃâÊÓÒ°ÖĞÍ»È»³öÏÖ¶«Î÷±»¼ÆÊı
+					// å¦‚æœä¸Šå¸§ä¸­æ²¡æœ‰ç‰©æ–™ï¼Œåˆ™ç›´æ¥è®¾ç½®æ–°ç‰©æ–™ä¸ºm_Flag = 2, é¿å…è§†é‡ä¸­çªç„¶å‡ºç°ä¸œè¥¿è¢«è®¡æ•°
 					//m_Flag[i] = 2;
 					//continue;
 				}
 			}
 
-			//ËÑË÷µ±Ç°Ö¡ÖĞ£¬ÓëÉÏÒ»Ö¡Æ¥ÅäÎïÁÏ£¬È·ÈÏm_Flag
+			//æœç´¢å½“å‰å¸§ä¸­ï¼Œä¸ä¸Šä¸€å¸§åŒ¹é…ç‰©æ–™ï¼Œç¡®è®¤m_Flag
 			m_Flag[i] = 2;   // default
 
 
-			if (cx[i] >= 0) //Æ¥Åä³É¹¦µÄ
+			if (cx[i] >= 0) //åŒ¹é…æˆåŠŸçš„
 			{
 				if (0 == m_preFlag[cx[i]]) {
 					m_objContour.push_back(m_contours[i]);
@@ -1020,7 +1020,7 @@ void PartsCounter::hPDetectionEstimateObj()
 				else if ((1 == m_preFlag[cx[i]]) || (3 == m_preFlag[cx[i]]))
 				{
 					m_impurityContour.push_back(m_contours[i]);
-					if ((m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + m_detectLineC))// Èç¹ûÃ»µ½´«ËÍ´øÎ²¶Ë£¬ÔòÒÔm_halcon_flagÎª×¼£¬·ñÔòÒÔm_preFlagÎª×¼
+					if ((m_center[i].x - m_tempWidth[i] > m_roi.roiLTX + m_detectLineC))// å¦‚æœæ²¡åˆ°ä¼ é€å¸¦å°¾ç«¯ï¼Œåˆ™ä»¥m_halcon_flagä¸ºå‡†ï¼Œå¦åˆ™ä»¥m_preFlagä¸ºå‡†
 						m_Flag[i] = m_halcon_flag[i];
 					else
 						m_Flag[i] = m_preFlag[cx[i]];
@@ -1028,10 +1028,10 @@ void PartsCounter::hPDetectionEstimateObj()
 				}
 			}
 			else {
-				// Èç¹ûÃ»ÓĞÆ¥Åä³É¹¦£¬°´Ç°Ò»Ö¡ÓÉºóµ½Ç°Ë³Ğò£¬µÚÒ»¸öÎ´Æ¥Åäµ½µ±Ç°Ö¡µÄÁÏ×÷ÎªÆäm_Flag
+				// å¦‚æœæ²¡æœ‰åŒ¹é…æˆåŠŸï¼ŒæŒ‰å‰ä¸€å¸§ç”±ååˆ°å‰é¡ºåºï¼Œç¬¬ä¸€ä¸ªæœªåŒ¹é…åˆ°å½“å‰å¸§çš„æ–™ä½œä¸ºå…¶m_Flag
 				for (int j = m_lastallcontoursNum - 1; j >= 0; j--)
 				{
-					if ((cy[j] < 0) && (j < lastMatchNo) && (m_preCenter[j].x - m_center[i].x - m_xRange > -15) && (m_xRange > 0) && (m_objArea[i] > 100)) {    // ÉÏ´ÎÆ¥Åä¹ıµÄ£¬Õâ´Î²»ÔÙÆ¥Åä
+					if ((cy[j] < 0) && (j < lastMatchNo) && (m_preCenter[j].x - m_center[i].x - m_xRange > -15) && (m_xRange > 0) && (m_objArea[i] > 100)) {    // ä¸Šæ¬¡åŒ¹é…è¿‡çš„ï¼Œè¿™æ¬¡ä¸å†åŒ¹é…
 						lastMatchNo = j;
 
 						if (0 == m_preFlag[j]) {
@@ -1047,7 +1047,7 @@ void PartsCounter::hPDetectionEstimateObj()
 								m_Flag[i] = m_preFlag[j];
 						}
 						break;
-					}else if ((is_departed >= 0) && (i == departed_match)) {   // Èç¹ûÊÇ·ÖÀëÁÏ£¬ Î´Æ¥ÅäÉÏµÄÓÖÎ´ÄÜÊ¶±ğµÄ´òÔÓÁÏ
+					}else if ((is_departed >= 0) && (i == departed_match)) {   // å¦‚æœæ˜¯åˆ†ç¦»æ–™ï¼Œ æœªåŒ¹é…ä¸Šçš„åˆæœªèƒ½è¯†åˆ«çš„æ‰“æ‚æ–™
 						m_impurityContour.push_back(m_contours[i]);
 						m_Flag[i] = 1;
 						break;
@@ -1055,14 +1055,14 @@ void PartsCounter::hPDetectionEstimateObj()
 				}
 			}
 
-			if ((m_halcon_flag[i] == 1) || (m_halcon_flag[i] == 3))      // Èç¹ûËã·¨¼ì²âÎªÔÓÁÏ£¬¾ÍÈÏÎªÊÇÔÓÁÏ. ÉÏÒ»Ö¡±¾À´¾ÍÊÇ3£¬ÏÖÔÚÒ²ÊÇ3
+			if ((m_halcon_flag[i] == 1) || (m_halcon_flag[i] == 3))      // å¦‚æœç®—æ³•æ£€æµ‹ä¸ºæ‚æ–™ï¼Œå°±è®¤ä¸ºæ˜¯æ‚æ–™. ä¸Šä¸€å¸§æœ¬æ¥å°±æ˜¯3ï¼Œç°åœ¨ä¹Ÿæ˜¯3
 			{
 				m_impurityContour.push_back(m_contours[i]);
 				m_Flag[i] = m_halcon_flag[i];
 				continue;
 			}
 
-			if ((m_halcon_flag[i] == 2))      // Èç¹ûËã·¨¼ì²âÎª±ß½çÁÏ£¬»¹ÊÇÈÏÎªÊÇÔÓÁÏ. ÉÏÒ»Ö¡ÓĞ±»¸ú×Ù¹ØÁª£¬Ôò²»»áÁ÷×ªµ½¸ÃÎ»ÖÃ£¬Î´±»¸ú×ÙÉÏÔò×÷ÔÓÁÏ´¦Àí
+			if ((m_halcon_flag[i] == 2))      // å¦‚æœç®—æ³•æ£€æµ‹ä¸ºè¾¹ç•Œæ–™ï¼Œè¿˜æ˜¯è®¤ä¸ºæ˜¯æ‚æ–™. ä¸Šä¸€å¸§æœ‰è¢«è·Ÿè¸ªå…³è”ï¼Œåˆ™ä¸ä¼šæµè½¬åˆ°è¯¥ä½ç½®ï¼Œæœªè¢«è·Ÿè¸ªä¸Šåˆ™ä½œæ‚æ–™å¤„ç†
 			{
 				m_impurityContour.push_back(m_contours[i]);
 				m_Flag[i] = 4;
@@ -1071,19 +1071,19 @@ void PartsCounter::hPDetectionEstimateObj()
 
 			continue;
 		}
-		//Î´ÍêÈ«½øÈëÊÓÒ°ÓÒ²àµÄ£¬¾ùm_Flag±êÖ¾ÉèÎª2
+		//æœªå®Œå…¨è¿›å…¥è§†é‡å³ä¾§çš„ï¼Œå‡m_Flagæ ‡å¿—è®¾ä¸º2
 		m_Flag[i] = 2;
 	}
 
 	m_obj_num = 0;
 	m_err_num = 0;
 
-	//¼ÆËãºÏ¸ñÁÏºÍÔÓÖÊÁÏ×ÜÊıÄ¿
-	m_obj_num = int(m_objContour.size());  // ÊÓÒ°ÄÚºÏ¸ñÁÏÊıÁ¿
-	m_err_num = int(m_impurityContour.size());  // ÊÓÒ°ÄÚÔÓÁÏÊıÁ¿
-	//m_err_num = m_num - m_obj_num;   // ÊÓÒ°ÄÚÔÓÁÏÊıÁ¿£¬½ø³öÊÓÒ°µÄÎïÁÏÔİ¶¨¹éÊôÓÚÎª²»ºÏ¸ñÁÏ£¨20250215·¢ÏÖÎ´½øÊÓÒ°µÄÁÏËã²»ºÏ¸ñµÄ»°£¬»áµ¼ÖÂobjDataÎŞÊı¾İ£©
+	//è®¡ç®—åˆæ ¼æ–™å’Œæ‚è´¨æ–™æ€»æ•°ç›®
+	m_obj_num = int(m_objContour.size());  // è§†é‡å†…åˆæ ¼æ–™æ•°é‡
+	m_err_num = int(m_impurityContour.size());  // è§†é‡å†…æ‚æ–™æ•°é‡
+	//m_err_num = m_num - m_obj_num;   // è§†é‡å†…æ‚æ–™æ•°é‡ï¼Œè¿›å‡ºè§†é‡çš„ç‰©æ–™æš‚å®šå½’å±äºä¸ºä¸åˆæ ¼æ–™ï¼ˆ20250215å‘ç°æœªè¿›è§†é‡çš„æ–™ç®—ä¸åˆæ ¼çš„è¯ï¼Œä¼šå¯¼è‡´objDataæ— æ•°æ®ï¼‰
 
-	//¼ÆËãºÏ¸ñÁÏºÍÔÓÖÊÁÏ×ÜÊıÄ¿
+	//è®¡ç®—åˆæ ¼æ–™å’Œæ‚è´¨æ–™æ€»æ•°ç›®
 	// for (int i = 0; i < num; ++i)
 	// {
 		// if (m_halcon_flag[i] == 0)
@@ -1101,40 +1101,40 @@ void PartsCounter::hPDetectionEstimateObj()
 
 	if (m_allcontoursNum)
 	{
-		int temp0 = m_center[0].x;        //×î´óX×ø±ê£¬ÏÈ³õÊ¼»¯ÎªµÚÒ»¸öÁÏX×ø±ê
-		int temp1 = m_center[0].x;        //×îĞ¡X×ø±ê£¬ÏÈ³õÊ¼»¯ÎªµÚÒ»¸öÁÏX×ø±ê
+		int temp0 = m_center[0].x;        //æœ€å¤§Xåæ ‡ï¼Œå…ˆåˆå§‹åŒ–ä¸ºç¬¬ä¸€ä¸ªæ–™Xåæ ‡
+		int temp1 = m_center[0].x;        //æœ€å°Xåæ ‡ï¼Œå…ˆåˆå§‹åŒ–ä¸ºç¬¬ä¸€ä¸ªæ–™Xåæ ‡
 		unsigned int k = 0;
 		for (int i = 0; i < num; i++)
 		{
-			//´Ó×ó¶ËÆğ£¬Ñ¡ÔñµÚÒ»¸öm_Flag²»µÈÓÚ2µÄÁÏ¸³ÖµÆäx×ø±ê¸øtemp0ºÍtemp1£¬È»ºóÖ±½Óbreak³öÑ­»·
+			//ä»å·¦ç«¯èµ·ï¼Œé€‰æ‹©ç¬¬ä¸€ä¸ªm_Flagä¸ç­‰äº2çš„æ–™èµ‹å€¼å…¶xåæ ‡ç»™temp0å’Œtemp1ï¼Œç„¶åç›´æ¥breakå‡ºå¾ªç¯
 			if (2 != m_Flag[i])
 			{
 				temp0 = m_center[i].x;
 				temp1 = m_center[i].x;
 				break;
 			}
-			k++;        //Í³¼Æ´Ó×óÍùÓÒÒ»Ö±µ½µÚÒ»¸öÕı³£ÁÏÎªÖ¹£¬m_Flag=2µÄÄ¿±ê¸öÊı
+			k++;        //ç»Ÿè®¡ä»å·¦å¾€å³ä¸€ç›´åˆ°ç¬¬ä¸€ä¸ªæ­£å¸¸æ–™ä¸ºæ­¢ï¼Œm_Flag=2çš„ç›®æ ‡ä¸ªæ•°
 		}
 
-		//´Ók+1¸öÄ¿±ê¿ªÊ¼ÆğÅĞ¶Ï£¬Ö±µ½ l < num-1
+		//ä»k+1ä¸ªç›®æ ‡å¼€å§‹èµ·åˆ¤æ–­ï¼Œç›´åˆ° l < num-1
 		for (int j = k, l = k; j < num - 1, l < num - 1; j++, l++)
 		{
-			//ÈôÓĞÓöµ½m_Flag=2µÄ£¬Ìø¹ıcontinue
+			//è‹¥æœ‰é‡åˆ°m_Flag=2çš„ï¼Œè·³è¿‡continue
 			if (2 == m_Flag[j + 1])   continue;
 
-			//Èç¹ûÄ¿±êÂÖÀªx×ø±ê´óÓÚtemp0£¬Ôò¸³Öµ¸øtemp0
+			//å¦‚æœç›®æ ‡è½®å»“xåæ ‡å¤§äºtemp0ï¼Œåˆ™èµ‹å€¼ç»™temp0
 			if (m_center[j + 1].x > temp0)
 			{
 				temp0 = m_center[j + 1].x;
 			}
-			//Èç¹ûÄ¿±êÂÖÀªx×ø±êĞ¡ÓÚtemp1£¬Ôò¸³Öµ¸øtemp1£¬²»¹ıÍ¨³£¾­ÅÅĞòºóµÚÒ»¸öÄ¿±êx×ø±êÒÑ¾­ÊÇ×îĞ¡Öµ
+			//å¦‚æœç›®æ ‡è½®å»“xåæ ‡å°äºtemp1ï¼Œåˆ™èµ‹å€¼ç»™temp1ï¼Œä¸è¿‡é€šå¸¸ç»æ’åºåç¬¬ä¸€ä¸ªç›®æ ‡xåæ ‡å·²ç»æ˜¯æœ€å°å€¼
 			if (m_center[l + 1].x < temp1)
 			{
 				temp1 = m_center[l + 1].x;
 			}
 		}
-		m_currentMaxX = temp0;                     //×î´óX×ø±ê
-		m_currentMinX = temp1;                     //×îĞ¡X×ø±ê
+		m_currentMaxX = temp0;                     //æœ€å¤§Xåæ ‡
+		m_currentMinX = temp1;                     //æœ€å°Xåæ ‡
 	}
 }
 
@@ -1143,32 +1143,32 @@ void PartsCounter::countObj()
 
 	if (m_lastcontoursNum > 0)
 	{
-		/////////////////////ÉÏÖ¡ÓĞÁÏ£¬µ±Ç°Ö¡ÓĞÁÏ////////////////////////////
+		/////////////////////ä¸Šå¸§æœ‰æ–™ï¼Œå½“å‰å¸§æœ‰æ–™////////////////////////////
 		if (m_contoursNum > 0)
 		{
-			/////////////////////ÉÏÖ¡ÂÖÀªÊı´óÓÚµ±Ç°Ö¡ÂÖÀªÊı£¬ÁÏ¼õÉÙ/////////////////
+			/////////////////////ä¸Šå¸§è½®å»“æ•°å¤§äºå½“å‰å¸§è½®å»“æ•°ï¼Œæ–™å‡å°‘/////////////////
 			if (m_lastcontoursNum > m_contoursNum)
 			{
-				//Èç¹ûÉÏÖ¡ÔÓÖÊÊıºÍºÏ¸ñÁÏÊı ¾ùÎ´Ôö¼Ó
+				//å¦‚æœä¸Šå¸§æ‚è´¨æ•°å’Œåˆæ ¼æ–™æ•° å‡æœªå¢åŠ 
 					 // 					m_targetNumber = static_cast<unsigned int>(m_lastObjContours.size()) - static_cast<unsigned int>(m_objContour.size());
 					// 					m_errorNumber = static_cast<unsigned int>(m_lastImpurityContours.size()) - static_cast<unsigned int>(m_impurityContour.size());  
 				for (int i = 0; i < m_lastallcontoursNum; i++)
 				{
 					if ((i < merge_match) || is_merged == -1)
 					{
-						//ÔòÉÏÒ»Ö¡ÖĞ£¬ÔÚµ±Ç°Ö¡×î×óÁÏÖ®Ç°µÄÁÏ£¬ÊÓÎªÒÑ³öÊÓÒ°²¢¼ÆÊı£¨Ôö¼ÓÏŞÖÆÌõ¼ş£ºÇÒ¸ÃÁÏ±ØĞë´Ó×óÊÓÒ°±ß½ç´¦ÏûÊ§²Å¼ÆÊı£©
+						//åˆ™ä¸Šä¸€å¸§ä¸­ï¼Œåœ¨å½“å‰å¸§æœ€å·¦æ–™ä¹‹å‰çš„æ–™ï¼Œè§†ä¸ºå·²å‡ºè§†é‡å¹¶è®¡æ•°ï¼ˆå¢åŠ é™åˆ¶æ¡ä»¶ï¼šä¸”è¯¥æ–™å¿…é¡»ä»å·¦è§†é‡è¾¹ç•Œå¤„æ¶ˆå¤±æ‰è®¡æ•°ï¼‰
 						if ((m_preCenter[i].x - m_lastTempWidth[i] < m_roi.roiLTX + 50) && (m_preCenter[i].x < m_roi.roiLTX + m_width * 0.3))
 						{
 							int _tmpXCompensate = m_xRange + 30;
 							for (int j = 0; j < m_center.size(); j++)
 							{
 								if (((m_preCenter[i].x - m_center[j].x) > -10) && cy[i] >= 0) {
-									_tmpXCompensate = m_xCompensate / 4;              //Èç¹ûÊÇÎïÁÏy×ø±ê½Ó½ü£¬ÇÒx×ø±êÏà½ü£¬ÔòÈÏÎª¿ÉÄÜÊÇÍ¬Ò»ÎïÁÏ
+									_tmpXCompensate = m_xCompensate / 4;              //å¦‚æœæ˜¯ç‰©æ–™yåæ ‡æ¥è¿‘ï¼Œä¸”xåæ ‡ç›¸è¿‘ï¼Œåˆ™è®¤ä¸ºå¯èƒ½æ˜¯åŒä¸€ç‰©æ–™
 									break;
 								}
-								else if ((abs(m_preCenter[i].x - m_center[j].x - m_xRange) < 15))         //Èç¹ûy×ø±ê²»Ïà½ü£¬½öx×ø±êÏà½ü£¬Ô­ÔòÉÏÈÏÎªÊÇ²»Í¬ÎïÁÏ¡£
+								else if ((abs(m_preCenter[i].x - m_center[j].x - m_xRange) < 15))         //å¦‚æœyåæ ‡ä¸ç›¸è¿‘ï¼Œä»…xåæ ‡ç›¸è¿‘ï¼ŒåŸåˆ™ä¸Šè®¤ä¸ºæ˜¯ä¸åŒç‰©æ–™ã€‚
 								{
-									if (m_targetNumber == m_lastcontoursNum - m_contoursNum)          //Èç¹û¼ÆÊıÒÑ´ïµ½ÎïÁÏÏûÊ§¸öÊı£¬Ôò¼ÆÊı²»ÔÙÔö¼Ó
+									if (m_targetNumber == m_lastcontoursNum - m_contoursNum)          //å¦‚æœè®¡æ•°å·²è¾¾åˆ°ç‰©æ–™æ¶ˆå¤±ä¸ªæ•°ï¼Œåˆ™è®¡æ•°ä¸å†å¢åŠ 
 									{
 										_tmpXCompensate = m_xCompensate / 4;
 										break;
@@ -1199,10 +1199,10 @@ void PartsCounter::countObj()
 				}
 
 			}
-			/////////////////////ÉÏÖ¡ÂÖÀªÊıĞ¡ÓÚµ±Ç°Ö¡ÂÖÀªÊı        ÁÏÊıÁ¿Ôö¼Ó»ò²»±ä///////////////// 
+			/////////////////////ä¸Šå¸§è½®å»“æ•°å°äºå½“å‰å¸§è½®å»“æ•°        æ–™æ•°é‡å¢åŠ æˆ–ä¸å˜///////////////// 
 			if (m_lastcontoursNum <= m_contoursNum)
 			{
-				//ÉÏÒ»Ö¡ÖĞÎ»ÓÚµ±Ç°Ö¡×î×óÁÏÖ®Ç°µÄÁÏ£¬ÈÔÈ»ÊÓÎªÒÑ³öÊÓÒ°£¬²¢¼ÆÊı
+				//ä¸Šä¸€å¸§ä¸­ä½äºå½“å‰å¸§æœ€å·¦æ–™ä¹‹å‰çš„æ–™ï¼Œä»ç„¶è§†ä¸ºå·²å‡ºè§†é‡ï¼Œå¹¶è®¡æ•°
 				for (int i = 0; i < m_lastallcontoursNum; i++)
 				{
 					if ((i < merge_match) || is_merged == -1)
@@ -1213,7 +1213,7 @@ void PartsCounter::countObj()
 							for (int j = 0; j < m_allcontoursNum; j++)
 							{
 								if (((m_preCenter[i].x - m_center[j].x) > -15) && cy[i] >= 0) {
-									_tmpXCompensate = m_xCompensate / 2;              //Èç¹ûÊÇÎïÁÏy×ø±ê½Ó½ü£¬»òx×ø±êÏà½ü£¬Ä¬ÈÏÊÇÍ¬Ò»ÎïÁÏ
+									_tmpXCompensate = m_xCompensate / 2;              //å¦‚æœæ˜¯ç‰©æ–™yåæ ‡æ¥è¿‘ï¼Œæˆ–xåæ ‡ç›¸è¿‘ï¼Œé»˜è®¤æ˜¯åŒä¸€ç‰©æ–™
 									break;
 								}
 							}
@@ -1240,7 +1240,7 @@ void PartsCounter::countObj()
 					}
 				} 
 			}
-			//³õÊ¼»¯ÉÏÒ»Ö¡Ïà¹Ø²ÎÊı£¬²¢¸³Öµ
+			//åˆå§‹åŒ–ä¸Šä¸€å¸§ç›¸å…³å‚æ•°ï¼Œå¹¶èµ‹å€¼
 			m_lastObjContours.clear();
 			m_lastImpurityContours.clear();
 			m_lastObjContours.assign(m_objContour.begin(), m_objContour.end());
@@ -1248,20 +1248,20 @@ void PartsCounter::countObj()
 			m_preMinX = m_currentMinX;
 			m_preMaxX = m_currentMaxX;
 		}
-		////////////////////ÉÏÖ¡ÓĞÁÏ£¬µ±Ç°Ö¡ÎŞÁÏ£¬È«²¿¼ÆÊı//////////////////////
+		////////////////////ä¸Šå¸§æœ‰æ–™ï¼Œå½“å‰å¸§æ— æ–™ï¼Œå…¨éƒ¨è®¡æ•°//////////////////////
 		else
 		{
 			for (int a = 0; a < m_lastallcontoursNum; a++)
 			{
-				//Ö»ÓĞÁÏ´¦ÓÚ³öROIÊÓÒ°×ó²àµÄ¹ı³ÌÖĞ£¬²ÅÈÏÎª¼ÆÊıÓĞĞ§¡£ÆäËûÇé¿öÒ»¸Å²»¼ÆÊı£¬·ÀÖ¹ÁÏ¸Õ½øÈëÊÓÒ°Çé¿ö²»ÎÈ¶¨ÒÔ¼°ÊÖÔÚÊÓÒ°ÏÂ½Ó´¥ÁÏÔì³ÉµÄÎó¼Æ¡£
+				//åªæœ‰æ–™å¤„äºå‡ºROIè§†é‡å·¦ä¾§çš„è¿‡ç¨‹ä¸­ï¼Œæ‰è®¤ä¸ºè®¡æ•°æœ‰æ•ˆã€‚å…¶ä»–æƒ…å†µä¸€æ¦‚ä¸è®¡æ•°ï¼Œé˜²æ­¢æ–™åˆšè¿›å…¥è§†é‡æƒ…å†µä¸ç¨³å®šä»¥åŠæ‰‹åœ¨è§†é‡ä¸‹æ¥è§¦æ–™é€ æˆçš„è¯¯è®¡ã€‚
 				if ((m_preCenter[a].x - m_lastTempWidth[a] < m_roi.roiLTX + m_detectLineC) && (m_preCenter[a].x < m_roi.roiLTX + m_width * 0.3))
 				{
-					//Èôµ±Ç°Ö¡»¹ÊÇ´æÔÚÁÏ£¨¼´m_Flag=2µÄÄÇÒ»ÀàÁÏ£©,Èç¹û¸ÃÁÏ²»ÊÇÎ»ÓÚÊÓÒ°×ó±ß½ç£¨¼´ÕıÔÚ³öÊÓÒ°¹ı³ÌÖĞ£©Ôò²»¼ÆÊı
+					//è‹¥å½“å‰å¸§è¿˜æ˜¯å­˜åœ¨æ–™ï¼ˆå³m_Flag=2çš„é‚£ä¸€ç±»æ–™ï¼‰,å¦‚æœè¯¥æ–™ä¸æ˜¯ä½äºè§†é‡å·¦è¾¹ç•Œï¼ˆå³æ­£åœ¨å‡ºè§†é‡è¿‡ç¨‹ä¸­ï¼‰åˆ™ä¸è®¡æ•°
 					if ((2 == m_preFlag[a]) && (m_preCenter[a].x - m_lastTempWidth[a] > m_roi.roiLTX + 5))
 					{
 						continue;
 					}
-					//Ê£ÏÂµÄÕı³£¼ÆÊı
+					//å‰©ä¸‹çš„æ­£å¸¸è®¡æ•°
 					if (0 == m_preFlag[a])
 						m_targetNumber++;
 					else if ((1 == m_preFlag[a]) || (3 == m_preFlag[a]))
@@ -1284,10 +1284,10 @@ void PartsCounter::countObj()
 			m_lastImpurityContours.clear();
 		}
 	}
-	///////////////////////ÉÏÖ¡ÎŞÁÏ£¬²»¼ÆÊı/////////////////
+	///////////////////////ä¸Šå¸§æ— æ–™ï¼Œä¸è®¡æ•°/////////////////
 	else
 	{
-		//Ö±½Ó¸³Öµ´«µİ²ÎÊı
+		//ç›´æ¥èµ‹å€¼ä¼ é€’å‚æ•°
 		m_lastObjContours.clear();
 		m_lastImpurityContours.clear();
 		m_lastObjContours.assign(m_objContour.begin(), m_objContour.end());
@@ -1325,7 +1325,7 @@ void PartsCounter::action(Mat* image, bool showImg)
 	m_errorStatus = 100;
 	estimateObj();
 
-	// »æÖÆÎïÁÏ¿ò
+	// ç»˜åˆ¶ç‰©æ–™æ¡†
 	drawObjData(image, showImg);
 
 	m_errorStatus = 200;
@@ -1367,10 +1367,10 @@ void PartsCounter::actionTransObject(double data[][3], int num)
 			m_currentMinX = data[i][0];
 		if (data[i][0] > m_currentMaxX)
 			m_currentMaxX = data[i][0];
-		if (data[i][2] != 0) //·ÇÕı³£ÁÏ
+		if (data[i][2] != 0) //éæ­£å¸¸æ–™
 			m_impurity++;
 		m_tempWidth[i] = 200;
-		if (data[i][2] == 0) //Õı³£ÁÏ
+		if (data[i][2] == 0) //æ­£å¸¸æ–™
 			m_Flag[i] = 0;
 		else
 			m_Flag[i] = 1;
@@ -1437,44 +1437,44 @@ void PartsCounter::actionHPDetectionObjectMat(cv::Mat* image, bool showImg)
 	m_halcon_flag.clear();
 	m_halcon_flag.resize(m_num);
 	m_objData.clear();
-	m_objData = data;         // ObjData Ö±½Ó¸³Öµ
+	m_objData = data;         // ObjData ç›´æ¥èµ‹å€¼
 	for (unsigned int i = 0; i < m_num; i++) {
 		m_center[i] = dummyPoint;
-		m_center[i].x = data[i].x;     // ÎïÁÏ×ø±ê
+		m_center[i].x = data[i].x;     // ç‰©æ–™åæ ‡
 		m_center[i].y = data[i].y;
-		m_tempWidth[i] = data[i].width;    // Ä¿±êÂÖÀªË®Æ½·½Ïò¿í¶È
-		m_objArea[i] = data[i].area;     // Ä¿±êÂÖÀª³¤Öá·½Ïò¿í¶È
-		m_modelIDs[i] = 0;    // Ä¬ÈÏÊÇÔÓÁÏ£¬Æ¥ÅäidÎª0
+		m_tempWidth[i] = data[i].width;    // ç›®æ ‡è½®å»“æ°´å¹³æ–¹å‘å®½åº¦
+		m_objArea[i] = data[i].area;     // ç›®æ ‡è½®å»“é•¿è½´æ–¹å‘å®½åº¦
+		m_modelIDs[i] = 0;    // é»˜è®¤æ˜¯æ‚æ–™ï¼ŒåŒ¹é…idä¸º0
 		
 		
 		if (m_halconDLModel == DL_ANOMALY_DETECTION)
 		{
-			m_halcon_flag[i] = data[i].isOK_halcon;    // Òì³£¼ì²â£¬0ÎªºÏ¸ñ£¬1Îª²»ºÏ¸ñ
+			m_halcon_flag[i] = data[i].isOK_halcon;    // å¼‚å¸¸æ£€æµ‹ï¼Œ0ä¸ºåˆæ ¼ï¼Œ1ä¸ºä¸åˆæ ¼
 			m_modelIDs[i] = data[i].isOK_halcon;
 		}
 		else{
-			if (data[i].isOK_halcon > 0) // ·ÖÀàºÍ¼ì²â£¬modelID£¾0¶¼ÈÏÎªÆ¥Åäµ½ÎïÁÏÁË£¬ÅĞ¶ÏÎªOK£¬Î´Æ¥Åäµ½ÅĞ¶ÏÎªNG,modelIDÎª0
-				m_halcon_flag[i] = 0;   //ºÏ¸ñ
+			if (data[i].isOK_halcon > 0) // åˆ†ç±»å’Œæ£€æµ‹ï¼ŒmodelIDï¼0éƒ½è®¤ä¸ºåŒ¹é…åˆ°ç‰©æ–™äº†ï¼Œåˆ¤æ–­ä¸ºOKï¼ŒæœªåŒ¹é…åˆ°åˆ¤æ–­ä¸ºNG,modelIDä¸º0
+				m_halcon_flag[i] = 0;   //åˆæ ¼
 			else
 				m_halcon_flag[i] = 1;   //NG
 			
 			if (m_halconDLModel == DL_MODE_CLOSED)
-				m_modelIDs[i] = m_trainID[data[i].model_id];        // »ñÈ¡Æ¥ÅäÎïÁÏID
+				m_modelIDs[i] = m_trainID[data[i].model_id];        // è·å–åŒ¹é…ç‰©æ–™ID
 			else
 				m_modelIDs[i] = data[i].isOK_halcon;
 			
 		}
 		
 		if (m_halcon_flag[i] == 0)
-			m_obj_num++;         // ÊÓÒ°ÄÚºÏ¸ñÁÏÊıÁ¿
+			m_obj_num++;         // è§†é‡å†…åˆæ ¼æ–™æ•°é‡
 	}
 
-	//¼ÆËãºÏ¸ñÁÏºÍÔÓÖÊÁÏ×ÜÊıÄ¿
-	m_err_num = m_num - m_obj_num;   // ÊÓÒ°ÄÚÔÓÁÏÊıÁ¿£¬½ø³öÊÓÒ°µÄÎïÁÏÔİ¶¨¹éÊôÓÚÎª²»ºÏ¸ñÁÏ
+	//è®¡ç®—åˆæ ¼æ–™å’Œæ‚è´¨æ–™æ€»æ•°ç›®
+	m_err_num = m_num - m_obj_num;   // è§†é‡å†…æ‚æ–™æ•°é‡ï¼Œè¿›å‡ºè§†é‡çš„ç‰©æ–™æš‚å®šå½’å±äºä¸ºä¸åˆæ ¼æ–™
 
 	if ((m_useHardTriggerMode == false) && (m_halconDLModel == DL_MODE_CLOSED))
 	{
-		//*  Ó²´¥·¢Ä£Ê½ ºÍ Éî¶ÈÑ§Ï°Ä£Ê½ÏÂ£¬²»ĞèÒª¸ú×Ù   *//
+		//*  ç¡¬è§¦å‘æ¨¡å¼ å’Œ æ·±åº¦å­¦ä¹ æ¨¡å¼ä¸‹ï¼Œä¸éœ€è¦è·Ÿè¸ª   *//
 		m_errorStatus = 100;
 		hPDetectionEstimateObj();
 

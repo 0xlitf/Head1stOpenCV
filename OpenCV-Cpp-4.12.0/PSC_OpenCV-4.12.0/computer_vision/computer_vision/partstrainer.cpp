@@ -40,12 +40,12 @@ PartsTrainer::~PartsTrainer()
 
 bool PartsTrainer::updateParam_train()
 {
-	//¶ÁÈ¡ÏµÍ³²ÎÊı
+	//è¯»å–ç³»ç»Ÿå‚æ•°
 	bool bOk = readSysParamFromXml(CONFIG_PATH);
 	//bool bOk = readSysParamFromXml("E:/VC++  Project/Counter_halcon/20230609/2");
 	ptr_HPDetectionPartsTrainer = std::make_shared<HPDetectionPartsTrainer>();
 	if (bOk) {
-		//¸üĞÂ²ÎÊı
+		//æ›´æ–°å‚æ•°
 		if (!ptr_HPDetectionPartsTrainer->updateParam(mySysParam.threshValue, mySysParam.wdiffValue))
 			return false;
 	}
@@ -155,7 +155,7 @@ double PartsTrainer::getCalibFactor(cv::Mat &image)
 
 bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 {
-	//¸Ã¶Î´úÂë×¢ÊÍ¼ûpartscounter.cpp
+	//è¯¥æ®µä»£ç æ³¨é‡Šè§partscounter.cpp
 	CV_Assert(trainImg != NULL);
 
 	isTrained = 0;
@@ -170,7 +170,7 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 	Mat RoiImage = _trainImg(Range(m_roiLTY, min(_trainImg.rows, m_roiLTY + m_roiHeight)), Range(m_roiLTX, min(_trainImg.cols, m_roiLTX + m_roiWidth)));
 
 	threshold(RoiImage, outThreshold, thresh, 255, THRESH_BINARY_INV);
-	//Ìî³äÖĞ¼ä¿Õ¶´
+	//å¡«å……ä¸­é—´ç©ºæ´
 	//Mat fill = outThreshold.clone();
 	//for (int y = 1; y < fill.rows - 1; y++)
 	//{
@@ -180,24 +180,34 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 	//		break;
 	//	}
 	//}
-	//Mat invertFill = inverseColor6(fill);   	//Í¼Ïñ·´×ª
+	//Mat invertFill = inverseColor6(fill);   	//å›¾åƒåè½¬
 	//bitwise_or(outThreshold, invertFill, outThreshold);
 	//Mat element1 = getStructuringElement(MORPH_ELLIPSE, Size(m_openElementSize, m_openElementSize));    //MORPH_ELLIPSE
-	//morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);  //MORPH_CLOSE¡¢MORPH_OPEN
+	//morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);  //MORPH_CLOSEã€MORPH_OPEN
 
 	Mat element1 = getStructuringElement(MORPH_RECT, Size(m_openElementSize, m_openElementSize));    //MORPH_ELLIPSE
 	//Mat element2 = getStructuringElement(MORPH_RECT, Size(1, m_openElementSize*0.5));
-	morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);  //MORPH_CLOSE¡¢MORPH_OPEN
-	//morphologyEx(outThreshold, outThreshold, MORPH_OPEN, element2);  //MORPH_CLOSE¡¢MORPH_OPEN
+	morphologyEx(outThreshold, outThreshold, MORPH_CLOSE, element1);  //MORPH_CLOSEã€MORPH_OPEN
+	//morphologyEx(outThreshold, outThreshold, MORPH_OPEN, element2);  //MORPH_CLOSEã€MORPH_OPEN
 
-	outThreshold.row(0) = uchar(0);
-	outThreshold.row(1) = uchar(0);
-	outThreshold.row(outThreshold.rows - 1) = uchar(0);
-	outThreshold.row(outThreshold.rows - 2) = uchar(0);
-	outThreshold.col(0) = uchar(0);
-	outThreshold.col(1) = uchar(0);
-	outThreshold.col(outThreshold.cols - 1) = uchar(0);
-	outThreshold.col(outThreshold.cols - 2) = uchar(0);
+    // outThreshold.row(0) = uchar(0);
+    // outThreshold.row(1) = uchar(0);
+    // outThreshold.row(outThreshold.rows - 1) = uchar(0);
+    // outThreshold.row(outThreshold.rows - 2) = uchar(0);
+    // outThreshold.col(0) = uchar(0);
+    // outThreshold.col(1) = uchar(0);
+    // outThreshold.col(outThreshold.cols - 1) = uchar(0);
+    // outThreshold.col(outThreshold.cols - 2) = uchar(0);
+
+    // è®¾ç½®è¾¹ç•Œä¸º0
+    outThreshold.row(0).setTo(cv::Scalar(0));
+    outThreshold.row(1).setTo(cv::Scalar(0));
+    outThreshold.row(outThreshold.rows - 1).setTo(cv::Scalar(0));
+    outThreshold.row(outThreshold.rows - 2).setTo(cv::Scalar(0));
+    outThreshold.col(0).setTo(cv::Scalar(0));
+    outThreshold.col(1).setTo(cv::Scalar(0));
+    outThreshold.col(outThreshold.cols - 1).setTo(cv::Scalar(0));
+    outThreshold.col(outThreshold.cols - 2).setTo(cv::Scalar(0));
 
 	Canny(outThreshold, outThreshold, 150, 255, 5);
 
@@ -227,17 +237,18 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 			++itHierarchy;
 		}
 	}
-	unsigned int num = unsigned int(m_tempContours.size());
+    // unsigned int num = unsigned int(m_tempContours.size());
+    unsigned int num = static_cast<unsigned int>(m_tempContours.size());
 
-	// ×ª»»µ½BGR¸ñÊ½ÏÂ£¬²ÅÄÜ»æÖÆ²ÊÉ«ÂÖÀª
+	// è½¬æ¢åˆ°BGRæ ¼å¼ä¸‹ï¼Œæ‰èƒ½ç»˜åˆ¶å½©è‰²è½®å»“
 	cvtColor(_trainImg, *trainResult, CV_GRAY2BGR);
-	//»æÖÆROI±ß¿ò
+	//ç»˜åˆ¶ROIè¾¹æ¡†
 	line(*trainResult, Point(m_roiLTX, m_roiLTY), Point((m_roiLTX + m_roiWidth), m_roiLTY), Scalar(0, 255, 0));
 	line(*trainResult, Point((m_roiLTX + m_roiWidth), m_roiLTY), Point((m_roiLTX + m_roiWidth), m_roiLTY + m_roiHeight), Scalar(0, 255, 0));
 	line(*trainResult, Point((m_roiLTX + m_roiWidth), m_roiLTY + m_roiHeight), Point(m_roiLTX, m_roiLTY + m_roiHeight), Scalar(0, 255, 0));
 	line(*trainResult, Point(m_roiLTX, m_roiLTY + m_roiHeight), Point(m_roiLTX, m_roiLTY), Scalar(0, 255, 0));
-	line(*trainResult, Point(m_roiLTX + m_roiWidth / 2, 0), Point(m_roiLTX + m_roiWidth / 2, mySysParam.imgHeight), Scalar(0, 0, 255));        // ROIÖĞÖáÏß-ÊúÏß
-	line(*trainResult, Point(0, m_roiLTY + (m_roiHeight / 2)), Point(mySysParam.imgWidth, m_roiLTY + (m_roiHeight / 2)), Scalar(0, 0, 255));   // ROIÖĞÖáÏß-ºáÏß
+	line(*trainResult, Point(m_roiLTX + m_roiWidth / 2, 0), Point(m_roiLTX + m_roiWidth / 2, mySysParam.imgHeight), Scalar(0, 0, 255));        // ROIä¸­è½´çº¿-ç«–çº¿
+	line(*trainResult, Point(0, m_roiLTY + (m_roiHeight / 2)), Point(mySysParam.imgWidth, m_roiLTY + (m_roiHeight / 2)), Scalar(0, 0, 255));   // ROIä¸­è½´çº¿-æ¨ªçº¿
 
 
 	if (m_isOutBoundry > 0)
@@ -248,7 +259,7 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 		return false;
 	}
 	else{
-		// ¶ÔÎïÁÏ½øĞĞÅÅĞò£¬È¡×î×ó±ßÎïÁÏ½øĞĞÅĞ¶Ï
+		// å¯¹ç‰©æ–™è¿›è¡Œæ’åºï¼Œå–æœ€å·¦è¾¹ç‰©æ–™è¿›è¡Œåˆ¤æ–­
 		if (m_tempContours.size() > 1)
 			sort(m_tempContours.begin(), m_tempContours.end(), compContours);
 
@@ -268,7 +279,7 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 			m_objWidth = int(r0.size.height);
 		}
 
-		//r1 ÎªÄ¿±êÂÖÀªµÄË®Æ½Íâ½Ó¾ØĞÎ
+		//r1 ä¸ºç›®æ ‡è½®å»“çš„æ°´å¹³å¤–æ¥çŸ©å½¢
 		Rect r1 = boundingRect(m_tempContours[0]);
 		int Left = r1.x + r1.width + m_roiLTX;
 
@@ -277,35 +288,35 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 			return false;
 		}
 		else if (r1.x < 15 * _trainImg.cols / 320){
-			// Èç¹û³öÊÓÒ°½á¹ûÎª3
+			// å¦‚æœå‡ºè§†é‡ç»“æœä¸º3
 			isTrained = 3;
 			if ((Left < m_roiLTX + 15 * _trainImg.cols / 320) && (m_useCountDebug == true))
-				trainCountAdd();   // µ÷ÊÔÊ±´úÌæ¹âÏË¼ÆÊı
+				trainCountAdd();   // è°ƒè¯•æ—¶ä»£æ›¿å…‰çº¤è®¡æ•°
 			return false;
 		}
 
 		if (m_isDynamic == false){
-			//Ö»ÓĞÒ»¸öÑµÁ·ÎïÁÏÊ±£¬ÑµÁ·ÕıÈ·
+			//åªæœ‰ä¸€ä¸ªè®­ç»ƒç‰©æ–™æ—¶ï¼Œè®­ç»ƒæ­£ç¡®
 			if (1 == num)
 			{
 				isTrained = 1;
-				m_modelID = ModelWidthAll.size() + 1;     //Ä¬ÈÏÓÃĞÂID
+				m_modelID = ModelWidthAll.size() + 1;     //é»˜è®¤ç”¨æ–°ID
 			}
-			//¼ì²âµ½³¬¹ıÒ»¸öÑµÁ·ÎïÁÏÊ±£¬ÑµÁ·´íÎó£¬¶àÁÏ
+			//æ£€æµ‹åˆ°è¶…è¿‡ä¸€ä¸ªè®­ç»ƒç‰©æ–™æ—¶ï¼Œè®­ç»ƒé”™è¯¯ï¼Œå¤šæ–™
 			else if (num > 1)
 			{
-				// ºìÉ«
+				// çº¢è‰²
 				Scalar color(0, 0, 255);
 				drawContours(*trainResult, m_tempContours, -1, color, 1, 8, hierarchy, INT_MAX, Point(m_roiLTX, m_roiLTY));
 			}
 		}
 		else{
-			// ¶à¸öÁÏÆÀ¹À×îÇ°£¨×ó£©ÃæµÄÁÏÊÇ·ñÑµÁ·¹ı
+			// å¤šä¸ªæ–™è¯„ä¼°æœ€å‰ï¼ˆå·¦ï¼‰é¢çš„æ–™æ˜¯å¦è®­ç»ƒè¿‡
 			estimateTrainObj();
 		}
 
 		if (isTrained == 1){
-			// ÂÌÉ«
+			// ç»¿è‰²
 			Scalar color(0, 255, 30);
 			drawContours(*trainResult, m_tempContours, -1, color, 2, 8, hierarchy, INT_MAX, Point(m_roiLTX, m_roiLTY));
 			trainResult->copyTo(resultData.image);
@@ -314,7 +325,7 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 			return true;
 		}
 		else{
-			// ÑóºìÉ«
+			// æ´‹çº¢è‰²
 			Scalar color(255, 0, 255); ///248, 170, 221
 			drawContours(*trainResult, m_tempContours, -1, color, 2, 8, hierarchy, INT_MAX, Point(m_roiLTX, m_roiLTY));
 		}
@@ -325,26 +336,26 @@ bool PartsTrainer::training(cv::Mat* trainImg, Mat* trainResult, int thresh)
 
 void PartsTrainer::estimateTrainObj()
 {
-	// m_trainedWidth ÒÑÑµÁ·Ä¿±ê
-	// m_tempContours   ÕıÔÚ¼ì²âÄ¿±ê
+	// m_trainedWidth å·²è®­ç»ƒç›®æ ‡
+	// m_tempContours   æ­£åœ¨æ£€æµ‹ç›®æ ‡
 	float min_aDiffValue = 1.0;
-	isTrained = 1;           //Î´ÑµÁ·ÁÏ	
-	m_modelID = ModelWidthAll.size() + 1;     //Ä¬ÈÏÓÃĞÂID
+	isTrained = 1;           //æœªè®­ç»ƒæ–™	
+	m_modelID = ModelWidthAll.size() + 1;     //é»˜è®¤ç”¨æ–°ID
 	for (int i = 0; i < ModelWidthAll.size(); ++i)
 	{
 		if ((abs(m_objHeight - ModelHeightAll[i]) < mySysParam.wdiffValue) && (abs(m_objWidth - ModelWidthAll[i]) < mySysParam.wdiffValue))
 		{
-			//¼ÆËãÄ£°åÃæ»ı= ÑµÁ·Ãæ»ı+£¨£¨Ä¿±ê¸ß-Ä£°å¸ß£©*Ä£°å¿í£©+£¨£¨Ä¿±ê¿í-Ä£°å¿í£©*Ä£°å¸ß£©
-			//Éè¼Æ¸Ã¼ÆËã·½Ê½µÄÒâÒå£¿ Question-01    A£º½â¾ö²»Í¬Ïà»ú¸ß¶È¿ÉÄÜ´æÔÚ·Å´ó±¶ÊıÎó²îÎÊÌâ£¬Æğµ½²¹³¥×÷ÓÃ
+			//è®¡ç®—æ¨¡æ¿é¢ç§¯= è®­ç»ƒé¢ç§¯+ï¼ˆï¼ˆç›®æ ‡é«˜-æ¨¡æ¿é«˜ï¼‰*æ¨¡æ¿å®½ï¼‰+ï¼ˆï¼ˆç›®æ ‡å®½-æ¨¡æ¿å®½ï¼‰*æ¨¡æ¿é«˜ï¼‰
+			//è®¾è®¡è¯¥è®¡ç®—æ–¹å¼çš„æ„ä¹‰ï¼Ÿ Question-01    Aï¼šè§£å†³ä¸åŒç›¸æœºé«˜åº¦å¯èƒ½å­˜åœ¨æ”¾å¤§å€æ•°è¯¯å·®é—®é¢˜ï¼Œèµ·åˆ°è¡¥å¿ä½œç”¨
 			float tempArea = m_objArea + ((ModelHeightAll[i] - m_objHeight - 1) / 2 * m_objWidth)
 				+ ((ModelWidthAll[i] - m_objWidth - 1) / 2 * m_objHeight);
-			//Èç¹ûÄ¿±êÃæ»ı·¶Î§ÔÚ Ä£°åÃæ»ı+/-¹«²îÃæ»ı£¨ÏÖÎª0.15£©ÒÔÄÚ£¬ÔòÊÓÎªºÏ¸ñÁÏ
+			//å¦‚æœç›®æ ‡é¢ç§¯èŒƒå›´åœ¨ æ¨¡æ¿é¢ç§¯+/-å…¬å·®é¢ç§¯ï¼ˆç°ä¸º0.15ï¼‰ä»¥å†…ï¼Œåˆ™è§†ä¸ºåˆæ ¼æ–™
 			//if ((((tempArea - m_objArea[i]< m_allowContourArea1*2)) && ((tempArea + m_objArea[i]) > m_allowContourArea1 *2)))
 			float aDiffValue = fabs(tempArea - ModelAreaAll[i]) / tempArea;
 			if (aDiffValue < mySysParam.adiffValue)
 			{
-				//½«ºÏ¸ñµÄÂÖÀª¼ÓÈëm_objContour
-				isTrained = 2;           //ÒÑÑµÁ·ÁÏ
+				//å°†åˆæ ¼çš„è½®å»“åŠ å…¥m_objContour
+				isTrained = 2;           //å·²è®­ç»ƒæ–™
 				m_modelID = i + 1;
 				break;
 			}
@@ -366,13 +377,13 @@ void PartsTrainer::saveData()
 		resultData.modelHeight = m_objHeight;
 		resultData.modelArea = m_objArea;
 		resultData.modelID = m_modelID;
-		resultData.train_count = 0;   // ÖØÖÃ¹âÏË¼ÆÊıÆ÷£¬µôÏÂ²Å¼ÆÊı£¬¸Õ´´½¨²»¼ÆÊı
+		resultData.train_count = 0;   // é‡ç½®å…‰çº¤è®¡æ•°å™¨ï¼Œæ‰ä¸‹æ‰è®¡æ•°ï¼Œåˆšåˆ›å»ºä¸è®¡æ•°
 
 		ModelWidthAll.push_back(m_objWidth);
 		ModelHeightAll.push_back(m_objHeight);
-		ModelAreaAll.push_back(int(m_objArea));         //±£´æÑµÁ·¶ÔÏóµÄÃæ»ı
+		ModelAreaAll.push_back(int(m_objArea));         //ä¿å­˜è®­ç»ƒå¯¹è±¡çš„é¢ç§¯
 		ModelIDs.push_back(m_modelID);
-		m_trainContours.push_back(m_tempContours[0]);            //±£´æÑµÁ·¶ÔÏóµÄÂÖÀª
+		m_trainContours.push_back(m_tempContours[0]);            //ä¿å­˜è®­ç»ƒå¯¹è±¡çš„è½®å»“
 
 		resultList.push_back(resultData);
 	}
@@ -435,7 +446,7 @@ void PartsTrainer::trainCountAdd()
 	}
 	else
 	{
-		// Èç¹ûÊÓ¾õµ÷ÊÔ »òÕß ÁÏ²»ÔÚ³öÊÓÒ°±ß½çÊ±¹âÏË¼ÆÊı ¶¼ÓĞĞ§
+		// å¦‚æœè§†è§‰è°ƒè¯• æˆ–è€… æ–™ä¸åœ¨å‡ºè§†é‡è¾¹ç•Œæ—¶å…‰çº¤è®¡æ•° éƒ½æœ‰æ•ˆ
 		if (m_isOutBoundry == 0)
 		{
 			for (int i = 0; i < resultList.size(); ++i)
@@ -466,7 +477,7 @@ bool PartsTrainer::writeTrainDataToXml()
 	for (int i = 0; i < resultList.size(); ++i)
 	{
 		std::cout << "trainingID: " << i << "         accumulate times:" << resultList[i].train_count << std::endl;
-		if ((m_isDynamic == false) || (resultList[i].train_count >= m_trainNum))      // ÑµÁ·´ÎÊı³¬¹ı3´ÎµÄ¾Í±£´æ½á¹û
+		if ((m_isDynamic == false) || (resultList[i].train_count >= m_trainNum))      // è®­ç»ƒæ¬¡æ•°è¶…è¿‡3æ¬¡çš„å°±ä¿å­˜ç»“æœ
 		{
 			trainResults.trainContours.push_back(m_trainContours[i]);
 			trainResults.trainArea.push_back(ModelAreaAll[i]);
@@ -494,7 +505,7 @@ void PartsTrainer::reset(std::string strProjectPath, std::string strRoiPath)
 	//vector<string> fileLists, regionFiles, modelFiles;
 	//getFiles(strProjectPath, fileLists);
 
-	////ÉèÖÃÎÄ¼ş¹ıÂË¸ñÊ½,½«¹ıÂËºóµÄÎÄ¼şÃû³Æ´æÈëµ½ÁĞ±íÖĞ
+	////è®¾ç½®æ–‡ä»¶è¿‡æ»¤æ ¼å¼,å°†è¿‡æ»¤åçš„æ–‡ä»¶åç§°å­˜å…¥åˆ°åˆ—è¡¨ä¸­
 	//regionFiles = fileFilter(fileLists, ".reg");
 	//modelFiles = fileFilter(fileLists, ".shm");
 
@@ -521,7 +532,7 @@ void PartsTrainer::reset(std::string strProjectPath, std::string strRoiPath)
 
 bool PartsTrainer::writeImage(cv::Mat* img)
 {
-	//±£´æÍ¼Æ¬
+	//ä¿å­˜å›¾ç‰‡
 	string strImagePath = m_strProjectPath + "/train_" + to_string(m_trainContours.size()) + ".jpg";
 	vector<unsigned char> inImage;
 	cv::imencode(".jpg", *img, inImage);

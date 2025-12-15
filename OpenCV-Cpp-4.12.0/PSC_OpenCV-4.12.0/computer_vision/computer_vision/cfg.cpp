@@ -1,7 +1,7 @@
-// XmlC++RW.cpp : ´ËÎÄ¼ş°üº¬ "main" º¯Êı¡£³ÌĞòÖ´ĞĞ½«ÔÚ´Ë´¦¿ªÊ¼²¢½áÊø¡£
+// XmlC++RW.cpp : æ­¤æ–‡ä»¶åŒ…å« "main" å‡½æ•°ã€‚ç¨‹åºæ‰§è¡Œå°†åœ¨æ­¤å¤„å¼€å§‹å¹¶ç»“æŸã€‚
 //
 
-#include "xml/tinyxml.h"//Ê¹ÓÃTinyXMLÖ»ĞèÒª½«6¸öÎÄ¼ş¿½±´µ½ÏîÄ¿ÖĞ¾Í¿ÉÒÔÖ±½ÓÊ¹ÓÃÁË£¬ÕâÁù¸öÎÄ¼şÊÇ£ºtinyxml.h¡¢tinystr.h¡¢tinystr.cpp¡¢tinyxml.cpp¡¢tinyxmlerror.cpp¡¢tinyxmlparser.cpp
+#include "xml/tinyxml.h"//ä½¿ç”¨TinyXMLåªéœ€è¦å°†6ä¸ªæ–‡ä»¶æ‹·è´åˆ°é¡¹ç›®ä¸­å°±å¯ä»¥ç›´æ¥ä½¿ç”¨äº†ï¼Œè¿™å…­ä¸ªæ–‡ä»¶æ˜¯ï¼štinyxml.hã€tinystr.hã€tinystr.cppã€tinyxml.cppã€tinyxmlerror.cppã€tinyxmlparser.cpp
 #include <iostream>
 #include <vector>
 #include <stdio.h>
@@ -10,9 +10,9 @@
 using namespace std;
 using namespace cv;
 
-SysParam mySysParam;    //ÏµÍ³²ÎÊı
-bool m_useCountDebug;            // 0 - ¹Ø±ÕÍ¼Ïñ¼ÆÊı  && ·Ç0 - ¿ªÆôÍ¼Ïñ¼ÆÊı
-int m_halconDLModel = DL_CLASSIFICATION;     // halconÉî¶ÈÑ§Ï°Ä£ĞÍÀàĞÍ£¬ 1-·ÖÀàÄ£ĞÍ  && 2-Ä¿±ê¼ì²âÄ£ĞÍ && 3-Òì³£¼ì²âÄ£ĞÍ
+SysParam mySysParam;    //ç³»ç»Ÿå‚æ•°
+bool m_useCountDebug;            // 0 - å…³é—­å›¾åƒè®¡æ•°  && é0 - å¼€å¯å›¾åƒè®¡æ•°
+int m_halconDLModel = DL_CLASSIFICATION;     // halconæ·±åº¦å­¦ä¹ æ¨¡å‹ç±»å‹ï¼Œ 1-åˆ†ç±»æ¨¡å‹  && 2-ç›®æ ‡æ£€æµ‹æ¨¡å‹ && 3-å¼‚å¸¸æ£€æµ‹æ¨¡å‹
 
 string  UrlUTF8(char* str);
 void GB2312ToUTF_8(string& pOut, char* pText, int pLen);
@@ -27,7 +27,7 @@ string UrlUTF8(char* str)
     int len = tt.length();
     for (int i = 0; i < len; i++)
     {
-        if (isalnum((BYTE)tt.at(i))) //ÅĞ¶Ï×Ö·ûÖĞÊÇ·ñÓĞÊı×é»òÕßÓ¢ÎÄ
+        if (isalnum((BYTE)tt.at(i))) //åˆ¤æ–­å­—ç¬¦ä¸­æ˜¯å¦æœ‰æ•°ç»„æˆ–è€…è‹±æ–‡
         {
             char tempbuff[2] = { 0 };
             sprintf_s(tempbuff, "%c", (BYTE)tt.at(i));
@@ -57,7 +57,7 @@ void GB2312ToUTF_8(string& pOut, char* pText, int pLen)
     int i = 0;
     while (i < pLen)
     {
-        //Èç¹ûÊÇÓ¢ÎÄÖ±½Ó¸´ÖÆ¾Í¿ÉÒÔ
+        //å¦‚æœæ˜¯è‹±æ–‡ç›´æ¥å¤åˆ¶å°±å¯ä»¥
         if (pText[i] >= 0)
         {
             char asciistr[2] = { 0 };
@@ -95,7 +95,7 @@ void UTF_8ToUnicode(WCHAR* pOut, char* pText)
 }
 void  UnicodeToUTF_8(char* pOut, WCHAR* pText)
 {
-    // ×¢Òâ WCHAR¸ßµÍ×ÖµÄË³Ğò,µÍ×Ö½ÚÔÚÇ°£¬¸ß×Ö½ÚÔÚºó
+    // æ³¨æ„ WCHARé«˜ä½å­—çš„é¡ºåº,ä½å­—èŠ‚åœ¨å‰ï¼Œé«˜å­—èŠ‚åœ¨å
     char* pchar = (char*)pText;
 
     pOut[0] = (0xE0 | ((pchar[1] & 0xF0) >> 4));
@@ -106,7 +106,7 @@ void  UnicodeToUTF_8(char* pOut, WCHAR* pText)
 }
 
 bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
-{//¶Ároi.xmlÎÄ¼ş
+{//è¯»roi.xmlæ–‡ä»¶
     string strFileName = strPath;
 	cout << "read roi from:" << strFileName << endl;
 
@@ -188,7 +188,7 @@ bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
 }
 
 bool readSysParamFromXml(const std::string strPath)
-{//¶ÁSysparam.xmlÎÄ¼ş
+{//è¯»Sysparam.xmlæ–‡ä»¶
     std::string strFileName = strPath + "/Sysparam.xml";
 
     TiXmlDocument doc;
@@ -310,7 +310,7 @@ bool readSysParamFromXml(const std::string strPath)
 }
 
 bool readTrainDataFromXml(const string strPath, _TrainData* trainData)
-{//¶ÁtrainData.xmlÎÄ¼ş
+{//è¯»trainData.xmlæ–‡ä»¶
     string strFileName = strPath + "/trainData.xml";
 
     TiXmlDocument doc;
@@ -368,9 +368,9 @@ bool readTrainDataFromXml(const string strPath, _TrainData* trainData)
 }
 
 bool saveTrainDataXML(const _TrainData& resultList, string save_path)
-{//Ğ´trainData.xmlÎÄ¼ş
+{//å†™trainData.xmlæ–‡ä»¶
     TiXmlDocument doc;
-    doc.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", ""));// Ìí¼ÓXMLÉùÃ÷
+    doc.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", ""));// æ·»åŠ XMLå£°æ˜
 
     TiXmlElement* root = new TiXmlElement("root");
     doc.LinkEndChild(root);
@@ -444,38 +444,38 @@ int main()
 {
     if (loadROIXML())
     {
-        cout << "roi.xml ¶ÁÈ¡³É¹¦---------------------------------------------------\n" << endl;
+        cout << "roi.xml è¯»å–æˆåŠŸ---------------------------------------------------\n" << endl;
     }
     else
     {
-        cout << "roi.xml ¶ÁÈ¡Ê§°Ü---------------------------------------------------\n" << endl;
+        cout << "roi.xml è¯»å–å¤±è´¥---------------------------------------------------\n" << endl;
     }
 
     if (loadSysparamXML())
     {
-        cout << "Sysparam.xml ¶ÁÈ¡³É¹¦---------------------------------------------------\n" << endl;
+        cout << "Sysparam.xml è¯»å–æˆåŠŸ---------------------------------------------------\n" << endl;
     }
     else
     {
-        cout << "Sysparam.xml ¶ÁÈ¡Ê§°Ü---------------------------------------------------\n" << endl;
+        cout << "Sysparam.xml è¯»å–å¤±è´¥---------------------------------------------------\n" << endl;
     }
 
     if (loadTrainDataXML())
     {
-        cout << "trainData.xml ¶ÁÈ¡³É¹¦---------------------------------------------------\n" << endl;
+        cout << "trainData.xml è¯»å–æˆåŠŸ---------------------------------------------------\n" << endl;
     }
     else
     {
-        cout << "trainData.xml ¶ÁÈ¡Ê§°Ü---------------------------------------------------\n" << endl;
+        cout << "trainData.xml è¯»å–å¤±è´¥---------------------------------------------------\n" << endl;
     }
 
     if (saveTrainDataXML())
     {
-        cout << "trainData.xml ±£´æ³É¹¦---------------------------------------------------\n" << endl;
+        cout << "trainData.xml ä¿å­˜æˆåŠŸ---------------------------------------------------\n" << endl;
     }
     else
     {
-        cout << "trainData.xml ±£´æÊ§°Ü---------------------------------------------------\n" << endl;
+        cout << "trainData.xml ä¿å­˜å¤±è´¥---------------------------------------------------\n" << endl;
     }
 }
 */
@@ -485,16 +485,16 @@ cv::Mat inverseColor6(cv::Mat srcImage)
     int row = srcImage.rows;
     int col = srcImage.cols;
     cv::Mat tempImage = srcImage.clone();
-    // ½¨Á¢LUT·´É«table
+    // å»ºç«‹LUTåè‰²table
     uchar LutTable[256];
     for (int i = 0; i < 256; ++i)
         LutTable[i] = 255 - i;
     cv::Mat lookUpTable(1, 256, CV_8U);
     uchar* pData = lookUpTable.data;
-    //½¨Á¢Ó³Éä±í
+    //å»ºç«‹æ˜ å°„è¡¨
     for (int i = 0; i < 256; ++i)
         pData[i] = LutTable[i];
-    //Ó¦ÓÃË÷Òı±í½øĞĞ²éÕÒ
+    //åº”ç”¨ç´¢å¼•è¡¨è¿›è¡ŒæŸ¥æ‰¾
     cv::LUT(srcImage, lookUpTable, tempImage);
     return tempImage;
 }
@@ -521,17 +521,17 @@ std::vector<std::string> split(const std::string& str, const std::string& patter
 
 void getFilesRecursively(string path, vector<string>& files)
 {
-    //ÎÄ¼ş¾ä±ú
+    //æ–‡ä»¶å¥æŸ„
     intptr_t  hFile = 0;
-    //ÎÄ¼şĞÅÏ¢
+    //æ–‡ä»¶ä¿¡æ¯
     struct _finddata_t fileinfo;
     string p;
     if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
     {
         do
         {
-            //Èç¹ûÊÇÄ¿Â¼,µü´úÖ®
-            //Èç¹û²»ÊÇ,¼ÓÈëÁĞ±í
+            //å¦‚æœæ˜¯ç›®å½•,è¿­ä»£ä¹‹
+            //å¦‚æœä¸æ˜¯,åŠ å…¥åˆ—è¡¨
             if ((fileinfo.attrib & _A_SUBDIR))
             {
                 if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
@@ -548,9 +548,9 @@ void getFilesRecursively(string path, vector<string>& files)
 
 void getFiles(std::string path, vector<std::string>& files)
 {
-    //ÎÄ¼ş¾ä±ú
+    //æ–‡ä»¶å¥æŸ„
     intptr_t  hFile = 0;
-    //ÎÄ¼şĞÅÏ¢
+    //æ–‡ä»¶ä¿¡æ¯
     struct _finddata_t fileinfo;
     string p;
     if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
@@ -567,8 +567,8 @@ vector<std::string> fileFilter(vector<std::string>& Files, const std::string& ke
     vector<string> filtered;
     string::size_type idx;
     for (auto& str : Files) {
-        idx = str.find(keyWord); //ÔÚaÖĞ²éÕÒb
-        if (idx != string::npos) //²»´æÔÚ
+        idx = str.find(keyWord); //åœ¨aä¸­æŸ¥æ‰¾b
+        if (idx != string::npos) //ä¸å­˜åœ¨
             filtered.push_back(str);
     }
     return filtered;
@@ -615,7 +615,7 @@ int32_t createDirectory(const char* directoryPath)
     return 0;
 }
 
-// Ê±¼ä×Ö·û´®(Èç£º2020-05-02 14:40:31.015)
+// æ—¶é—´å­—ç¬¦ä¸²(å¦‚ï¼š2020-05-02 14:40:31.015)
 std::string getTimeString(bool bLocal, bool bIncludeMS) {
 	auto tNow = std::chrono::system_clock::now();
 	//auto tmNow = std::chrono::system_clock::to_time_t(tNow);
@@ -641,7 +641,7 @@ std::string getTimeString(bool bLocal, bool bIncludeMS) {
 
 bool compContours(const vector<Point>& a, const vector<Point>& b)
 {
-	//±È½ÏaºÍb×îĞ¡Íâ½Ó¾ØĞÎµÄx×ø±ê£¬·µ»ØÆ«Ğ¡µÄÖµ
+	//æ¯”è¾ƒaå’Œbæœ€å°å¤–æ¥çŸ©å½¢çš„xåæ ‡ï¼Œè¿”å›åå°çš„å€¼
 	return boundingRect(a).x + boundingRect(a).width < boundingRect(b).x + boundingRect(b).width;
 }
 
@@ -656,13 +656,13 @@ int get_max(std::vector<int> a)
 	return max;
 }
 
-// ÔËĞĞ³ÌĞò: Ctrl + F5 »òµ÷ÊÔ >¡°¿ªÊ¼Ö´ĞĞ(²»µ÷ÊÔ)¡±²Ëµ¥
-// µ÷ÊÔ³ÌĞò: F5 »òµ÷ÊÔ >¡°¿ªÊ¼µ÷ÊÔ¡±²Ëµ¥
+// è¿è¡Œç¨‹åº: Ctrl + F5 æˆ–è°ƒè¯• >â€œå¼€å§‹æ‰§è¡Œ(ä¸è°ƒè¯•)â€èœå•
+// è°ƒè¯•ç¨‹åº: F5 æˆ–è°ƒè¯• >â€œå¼€å§‹è°ƒè¯•â€èœå•
 
-// ÈëÃÅÊ¹ÓÃ¼¼ÇÉ: 
-//   1. Ê¹ÓÃ½â¾ö·½°¸×ÊÔ´¹ÜÀíÆ÷´°¿ÚÌí¼Ó/¹ÜÀíÎÄ¼ş
-//   2. Ê¹ÓÃÍÅ¶Ó×ÊÔ´¹ÜÀíÆ÷´°¿ÚÁ¬½Óµ½Ô´´úÂë¹ÜÀí
-//   3. Ê¹ÓÃÊä³ö´°¿Ú²é¿´Éú³ÉÊä³öºÍÆäËûÏûÏ¢
-//   4. Ê¹ÓÃ´íÎóÁĞ±í´°¿Ú²é¿´´íÎó
-//   5. ×ªµ½¡°ÏîÄ¿¡±>¡°Ìí¼ÓĞÂÏî¡±ÒÔ´´½¨ĞÂµÄ´úÂëÎÄ¼ş£¬»ò×ªµ½¡°ÏîÄ¿¡±>¡°Ìí¼ÓÏÖÓĞÏî¡±ÒÔ½«ÏÖÓĞ´úÂëÎÄ¼şÌí¼Óµ½ÏîÄ¿
-//   6. ½«À´£¬ÈôÒªÔÙ´Î´ò¿ª´ËÏîÄ¿£¬Çë×ªµ½¡°ÎÄ¼ş¡±>¡°´ò¿ª¡±>¡°ÏîÄ¿¡±²¢Ñ¡Ôñ .sln ÎÄ¼ş
+// å…¥é—¨ä½¿ç”¨æŠ€å·§: 
+//   1. ä½¿ç”¨è§£å†³æ–¹æ¡ˆèµ„æºç®¡ç†å™¨çª—å£æ·»åŠ /ç®¡ç†æ–‡ä»¶
+//   2. ä½¿ç”¨å›¢é˜Ÿèµ„æºç®¡ç†å™¨çª—å£è¿æ¥åˆ°æºä»£ç ç®¡ç†
+//   3. ä½¿ç”¨è¾“å‡ºçª—å£æŸ¥çœ‹ç”Ÿæˆè¾“å‡ºå’Œå…¶ä»–æ¶ˆæ¯
+//   4. ä½¿ç”¨é”™è¯¯åˆ—è¡¨çª—å£æŸ¥çœ‹é”™è¯¯
+//   5. è½¬åˆ°â€œé¡¹ç›®â€>â€œæ·»åŠ æ–°é¡¹â€ä»¥åˆ›å»ºæ–°çš„ä»£ç æ–‡ä»¶ï¼Œæˆ–è½¬åˆ°â€œé¡¹ç›®â€>â€œæ·»åŠ ç°æœ‰é¡¹â€ä»¥å°†ç°æœ‰ä»£ç æ–‡ä»¶æ·»åŠ åˆ°é¡¹ç›®
+//   6. å°†æ¥ï¼Œè‹¥è¦å†æ¬¡æ‰“å¼€æ­¤é¡¹ç›®ï¼Œè¯·è½¬åˆ°â€œæ–‡ä»¶â€>â€œæ‰“å¼€â€>â€œé¡¹ç›®â€å¹¶é€‰æ‹© .sln æ–‡ä»¶

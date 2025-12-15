@@ -27,7 +27,7 @@ date:  2016.8.24(start)
 
 using namespace std;
 using namespace cv;
-#define HALCONCPlus    // ��������halcon����c++������ֱ�ӵ���halcon����
+#define HALCONCPlus    // 决定采用halcon导出c++，还是直接调用halcon算子
 
 
 struct RoiData
@@ -41,15 +41,15 @@ struct RoiData
 
 struct ObjData
 {
-	cv::Mat            objRoiImage;   //��������ROIͼ��
-	Rect               objRoi;        //����ˮƽ���Χ���ο�����
+	cv::Mat            objRoiImage;   //物料区域ROI图像
+	Rect               objRoi;        //物料水平外包围矩形框坐标
 
-	double             x = 0.0;			  //����β����col����
-	double             y = 0.0;			  //�������ĸ߶�row����
-	double             width = 0.0;         //����ˮƽ����
-	double             area = 0.0;          //�������
-	int                model_id = -1;      //ƥ���ģ��ID��Ӧ���ڶ��������
-	int                isOK_halcon = -1;   //����ʶ����  0-�ϸ�1-���ʣ�2-�����������жϣ�
+	double             x = 0.0;			  //物料尾部的col坐标
+	double             y = 0.0;			  //物料中心高度row坐标
+	double             width = 0.0;         //物料水平宽度
+	double             area = 0.0;          //物料面积
+	int                model_id = -1;      //匹配的模版ID，应用于多分类任务
+	int                isOK_halcon = -1;   //物料识别结果  0-合格，1-杂质，2-其他（不作判断）
 };
 
 struct _TrainData
@@ -104,19 +104,19 @@ bool compContours(const vector<Point>& a, const vector<Point>& b);
 int get_max(std::vector<int> a);
 void setObjAreaThresh(int areaThresh);
 
-extern bool m_useCountDebug;            // 0 - �ر�ͼ�����  && ��0 - ����ͼ�����
+extern bool m_useCountDebug;            // 0 - 关闭图像计数  && 非0 - 开启图像计数
 
 enum        
 { 
-	// halcon���ѧϰģ������
-	DL_CLASSIFICATION,          // ����ģ��  && 2-Ŀ����ģ�� && 3-�쳣���ģ��  && 4-Ŀ����ģ��-ˮƽ��
-	DL_OBJECT_DETECTION,        // Ŀ����ģ��
-	DL_ANOMALY_DETECTION,       // �쳣���ģ��
-	DL_OBJECT_DETECTION_HOR,    // Ŀ����ģ��-ˮƽ��
-	DL_MODE_CLOSED              // �ر�DLģʽ�����ô�ͳhalcon��ϸ���ģ��
+	// halcon深度学习模型类型
+	DL_CLASSIFICATION,          // 分类模型  && 2-目标检测模型 && 3-异常检测模型  && 4-目标检测模型-水平框
+	DL_OBJECT_DETECTION,        // 目标检测模型
+	DL_ANOMALY_DETECTION,       // 异常检测模型
+	DL_OBJECT_DETECTION_HOR,    // 目标检测模型-水平框
+	DL_MODE_CLOSED              // 关闭DL模式，采用传统halcon精细检测模型
 };
 
-extern int m_halconDLModel;    // halcon���ѧϰģ������
+extern int m_halconDLModel;    // halcon深度学习模型类型
 
-extern SysParam mySysParam;    //ϵͳ����
+extern SysParam mySysParam;    //系统参数
 #endif
