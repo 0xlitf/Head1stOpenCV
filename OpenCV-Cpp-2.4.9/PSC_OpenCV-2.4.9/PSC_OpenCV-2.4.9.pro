@@ -4,7 +4,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += computer_vision Counter_AutoTraining
 
-computer_vision.subdir = $$PWD/computer vision
+computer_vision.subdir = $$PWD/computer_vision
 Counter_AutoTraining.subdir = $$PWD/Counter_AutoTraining
 
 Counter_AutoTraining.depends += computer_vision
