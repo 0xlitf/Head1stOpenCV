@@ -7,6 +7,14 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    // 输出完整的版本字符串（例如：4.12.0）
+    std::cout << "OpenCV版本: " << CV_VERSION << std::endl;
+
+    // 如果需要分别获取主版本、次版本和修订号，可以使用以下宏
+    std::cout << "主版本: " << CV_MAJOR_VERSION << std::endl;
+    std::cout << "次版本: " << CV_MINOR_VERSION << std::endl;
+    std::cout << "修订号: " << CV_VERSION_REVISION << std::endl;
+
     // 设置应用程序信息
     a.setApplicationName("GeoMatchQt");
     a.setApplicationVersion("1.0.0");
