@@ -8,6 +8,8 @@ QT       += core xml
 
 QT       -= gui
 
+include(counter.pri)
+
 INCLUDEPATH += "$$(HALCONROOT)/include" \
     "$$(HALCONROOT)/include/cpp" \
     "C:\opencv\build\include" \
@@ -21,10 +23,6 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += main.cpp \
-    partscounter.cpp \
-    partstrainer.cpp
-
 LIBS += -L"$$(HALCONROOT)/lib/$$(HALCONARCH)" \
     -lhalcon \
     -lhalconcpp
@@ -35,7 +33,3 @@ LIBS += -L"C:\opencv\build\x64\vc12\lib" \
     -lopencv_core249 \
     -lopencv_highgui249 \
     -lopencv_imgproc249
-
-HEADERS += \
-    partscounter.h \
-    partstrainer.h

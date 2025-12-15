@@ -1,5 +1,5 @@
 
-LIB_SHARE_PATH = $$PWD/../../../library_share
+LIB_SHARE_PATH = $$PWD/
 LIB_SHARE_PATH = $$absolute_path($$LIB_SHARE_PATH)
 
 CONFIG(debug, debug|release) {
