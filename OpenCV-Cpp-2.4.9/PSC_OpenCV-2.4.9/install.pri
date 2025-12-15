@@ -13,12 +13,12 @@ message("BUILD_TYPE: $$BUILD_TYPE")
 
 win32 {
     CONFIG(debug, debug|release) {
-        BUILD_DIR = $$absolute_path($$PWD/../../bin/Debug)
-        TEMP_DIR = $$PWD/../../temp/Debug
+        BUILD_DIR = $$absolute_path($$PWD/bin/Debug)
+        TEMP_DIR = $$PWD/temp/Debug
     }
     else {
-        BUILD_DIR = $$absolute_path($$PWD/../../bin/Release)
-        TEMP_DIR = $$PWD/../../temp/Release
+        BUILD_DIR = $$absolute_path($$PWD/bin/Release)
+        TEMP_DIR = $$PWD/temp/Release
     }
 }
 

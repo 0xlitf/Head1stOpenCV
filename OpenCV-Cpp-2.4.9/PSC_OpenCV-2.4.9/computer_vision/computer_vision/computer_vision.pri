@@ -19,7 +19,6 @@ SOURCES += \
     $$PWD/halconDLL.cpp \
     $$PWD/hp_detection_partscounter.cpp \
     $$PWD/hp_detection_partstrainer.cpp \
-    $$PWD/main.cpp \
     $$PWD/partscounter.cpp \
     $$PWD/partstrainer.cpp \
     $$PWD/qt_halcon.cpp \

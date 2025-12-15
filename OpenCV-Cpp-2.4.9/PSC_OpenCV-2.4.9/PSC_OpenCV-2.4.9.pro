@@ -2,9 +2,10 @@ TEMPLATE = subdirs
 
 #CONFIG += ordered
 
-SUBDIRS += computer_vision Counter_AutoTraining
+SUBDIRS += computer_vision \
+    using_computer_vision
 
 computer_vision.subdir = $$PWD/computer_vision
-Counter_AutoTraining.subdir = $$PWD/Counter_AutoTraining
+using_computer_vision.subdir = $$PWD/using_computer_vision
 
-Counter_AutoTraining.depends += computer_vision
+using_computer_vision.depends += computer_vision

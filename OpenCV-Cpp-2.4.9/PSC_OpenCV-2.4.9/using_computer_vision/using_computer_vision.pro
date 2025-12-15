@@ -1,17 +1,12 @@
 
-QT       += core
+QT       += core gui widgets xml
 
-TARGET = computer_vision
-TEMPLATE = lib
-CONFIG += shared c++11
-CONFIG -= app_bundle
-CONFIG -= console
+TARGET = using_computer_vision
+TEMPLATE = app
+CONFIG   += c++11
 
-DEFINES += QT_MESSAGELOGCONTEXT
-
+include(using_computer_vision.pri)
 include($$PWD/../install.pri)
-include($$PWD/computer_vision/computer_vision.pri)
-include($$PWD/computer_vision/compile.pri)
 
 INCLUDEPATH += $$PWD/3rdParty/spdlog-1.2.1/include
 
@@ -23,9 +18,8 @@ INCLUDEPATH += $$LIB_HALCON_PATH/include/
 INCLUDEPATH += $$LIB_HALCON_PATH/include/halconcpp
 INCLUDEPATH += $$LIB_HALCON_PATH/include/hdevengine
 
-message("LIB_HALCON_PATH: $$LIB_HALCON_PATH")
-
 CONFIG(debug, debug|release) {
+    # LIBS += -L$$PROJECT_LIB_DIR -lcomputer_visiond
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249d \
                                              -lopencv_highgui249d \
                                              -lopencv_imgproc249d
@@ -35,6 +29,7 @@ CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_OPENCV_PATH/x64/vc12/bin/opencv_highgui249d.dll\" \"$${PROJECT_LIB_DIR}\"
     QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_OPENCV_PATH/x64/vc12/bin/opencv_imgproc249d.dll\" \"$${PROJECT_LIB_DIR}\"
 } else {
+    # LIBS += -L$$PROJECT_LIB_DIR -lcomputer_vision
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249 \
                                              -lopencv_highgui249 \
                                              -lopencv_imgproc249
