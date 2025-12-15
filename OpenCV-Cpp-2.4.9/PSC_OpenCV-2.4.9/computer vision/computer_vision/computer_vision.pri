@@ -1,0 +1,10 @@
+
+INCLUDEPATH += $$PWD/
+
+SOURCES += \
+
+HEADERS += \
+
+FORMS += \
+
+RESOURCES += \

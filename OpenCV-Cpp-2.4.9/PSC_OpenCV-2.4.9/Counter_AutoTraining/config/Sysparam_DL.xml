@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <Sysparam>
+        <imgWidth>1480</imgWidth>
+        <imgHeight>1092</imgHeight>
+        <threshValue>180</threshValue>
+        <xCompensate>-20</xCompensate>
+        <openElementSize>6</openElementSize>
+        <matchMethod>2</matchMethod>
+        <similarity>0.95</similarity>
+        <Lcoefficient>0.9</Lcoefficient>
+        <Hcoefficient>1.1</Hcoefficient>
+        <aDiffValue>0.1</aDiffValue>
+        <wDiffValue>3</wDiffValue>
+        <hDiffValue>3</hDiffValue>
+        <roiLineLimitC>0.98</roiLineLimitC>
+        <allowContourArea0>30000</allowContourArea0>
+        <allowContourArea1>50</allowContourArea1>
+        <minScore>0.7</minScore>
+        <minDefectInnerRadian>2</minDefectInnerRadian>
+        <minDefectArea>200</minDefectArea>
+        <NGEndingThresh>3</NGEndingThresh>
+        <defectThresh>70</defectThresh>
+    </Sysparam>
+</root>
