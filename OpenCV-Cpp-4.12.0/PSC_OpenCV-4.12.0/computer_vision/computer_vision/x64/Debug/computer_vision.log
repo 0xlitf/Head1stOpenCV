@@ -1,0 +1,58 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(364,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  cfg.cpp
+cfg.cpp(26): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+cfg.cpp(27): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+cfg.cpp(343): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+cfg.cpp(507): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\string.h(112) : 参见“strcpy”的声明
+cfg.cpp(509): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\string.h(204) : 参见“strtok”的声明
+cfg.cpp(513): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\string.h(204) : 参见“strtok”的声明
+cfg.cpp(594): warning C4267: “=”: 从“size_t”转换到“uint32_t”，可能丢失数据
+  computervisionhal.cpp
+  halconDLL.cpp
+  hp_detection_partscounter.cpp
+hp_detection_partscounter.cpp(589): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+hp_detection_partscounter.cpp(607): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+hp_detection_partscounter.cpp(626): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+hp_detection_partscounter.cpp(657): warning C4244: “=”: 从“Hlong”转换到“int”，可能丢失数据
+  hp_detection_partstrainer.cpp
+hp_detection_partstrainer.cpp(186): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+hp_detection_partstrainer.cpp(406): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+  main.cpp
+main.cpp(297): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+main.cpp(298): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+main.cpp(470): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+main.cpp(483): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  partscounter.cpp
+partscounter.cpp(656): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+partscounter.cpp(701): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+partscounter.cpp(827): warning C4018: “<”: 有符号/无符号不匹配
+partscounter.cpp(1350): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1351): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1367): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1369): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1378): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1379): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1424): warning C4267: “=”: 从“size_t”转换到“unsigned int”，可能丢失数据
+partscounter.cpp(1443): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1444): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partscounter.cpp(1445): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+  partstrainer.cpp
+partstrainer.cpp(83): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+partstrainer.cpp(255): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+partstrainer.cpp(292): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+partstrainer.cpp(332): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+partstrainer.cpp(340): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+  qt_halcon.cpp
+qt_halcon.cpp(247): warning C4244: “=”: 从“Hlong”转换到“int”，可能丢失数据
+qt_halcon.cpp(248): warning C4244: “=”: 从“Hlong”转换到“int”，可能丢失数据
+  tinystr.cpp
+  tinyxml.cpp
+  tinyxmlerror.cpp
+  tinyxmlparser.cpp
+  正在生成代码...
+  LINK : 没有找到 .\debug\\computer_vision.dll 或上一个增量链接没有生成它；正在执行完全链接
+     正在创建库 .\debug\\computer_vision.lib 和对象 .\debug\\computer_vision.exp
+  computer_vision.vcxproj -> C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\PSC_OpenCV-2.4.9\computer_vision\computer_vision\.\debug\computer_vision.dll

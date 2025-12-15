@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.0" halcon_version="10.0" cs="892111728">
+<procedure name="search_shape_model_gray">
+<interface>
+<io>
+<par name="ImageNew"/>
+<par name="RegionROI"/>
+<par name="ModelRegionsOrigins"/>
+</io>
+<oo>
+<par name="ObjRegions"/>
+</oo>
+<ic>
+<par name="WindowHandle"/>
+<par name="ModelIDs"/>
+<par name="ModelGrays"/>
+<par name="Threshold"/>
+<par name="WdiffValue"/>
+<par name="MinScore"/>
+<par name="MinDefectInnerRadian"/>
+</ic>
+<oc>
+<par name="NewRow"/>
+<par name="NewColumn"/>
+<par name="NewWidth"/>
+<par name="NewArea"/>
+<par name="Model"/>
+<par name="Result"/>
+</oc>
+</interface>
+<body>
+<c></c>
+<l>get_image_size(ImageNew, Width, Height)</l>
+<l>dev_set_part (0, 0, Height - 1, Width - 1)</l>
+<l>AreaMax := Width*Height</l>
+<c>* 长宽尺寸误差容许值</c>
+<l>tmp_WdiffValue := WdiffValue *Width/320   </l>
+<l>ADiffValue := 0.05</l>
+<c>* 物料匹配限制参数</c>
+<l>* MinScore := 0.8</l>
+<c>* 最小缺陷内径</c>
+<l>* MinDefectInnerRadianScaled := MinDefectInnerRadian *(Width* Height)/(600*800)</l>
+<l>MinDefectInnerRadianScaled := MinDefectInnerRadian</l>
+<c>* 最小缺陷面积</c>
+<l>MinDefectArea := 30*(Width* Height)/(600*800)</l>
+<c>* 最小重叠区域占比</c>
+<l>min_IOU := 0.7</l>
+<c>* 最大查找轮廓超时限制</c>
+<l>MaxShapeModelTimeOut := -1</l>
+<l>* MaxShapeModelTimeOut := 10</l>
+<c>* 跟踪线   50 *Width/320   </c>
+<l>m_detectLineC := 10</l>
+<c></c>
+<c>* 是否采用单双孔细节区分</c>
+<l>use_details1 := 0</l>
+<c>* 是否启用检测黑料圆圈内部缺胶</c>
+<l>use_inner_DarkCircleDefect := 0</l>
+<c>* 是否采用矩形检测缺角</c>
+<l>use_details_rectangle := 0</l>
+<c>* 内轮廓比较开关</c>
+<l>use_ignore_InnerDetect := 1</l>
+<c></c>
+<c>* 初始化</c>
+<l>NewRow := []</l>
+<l>NewColumn := []</l>
+<l>NewWidth := []</l>
+<l>Model := []</l>
+<c>* 0：OK, 1：NG</c>
+<l>Result := []</l>
+<c></c>
+<l>dev_set_colored(6)</l>
+<l>dev_set_draw('margin')</l>
+<l>dev_set_line_width(3)</l>
+<c></c>
+<c>   </c>
+<l>ModelAreaAll := []</l>
+<l>ModelWidthAll := []</l>
+<l>ModelHeightAll := []</l>
+<c>    </c>
+<c></c>
+<c>* 提取长宽尺寸</c>
+<l>MinModelArea := 99999</l>
+<l>MaxModelArea := 0</l>
+<l>MinModelWidth := 99999</l>
+<l>MaxModelWidth := 0</l>
+<l>MinModelHeight := 99999</l>
+<l>MaxModelHeight := 0</l>
+<l>count_obj(ModelRegionsOrigins, ModelNumber)</l>
+<l>for Index := 1 to ModelNumber by 1</l>
+<l>    select_obj (ModelRegionsOrigins, ModelSelected, Index)</l>
+<l>    area_center(ModelSelected, ModelArea, Row3, Column3)</l>
+<l>    ModelAreaAll := [ModelAreaAll, ModelArea]</l>
+<l>    if (ModelArea &lt; MinModelArea)</l>
+<l>        MinModelArea := ModelArea</l>
+<l>    endif</l>
+<l>    if (ModelArea &gt; MaxModelArea)</l>
+<l>        MaxModelArea := ModelArea</l>
+<l>    endif</l>
+<c>    </c>
+<l>    smallest_rectangle2(ModelSelected, Row1, Column1, Phi, ModelWidthHalf, ModelHeightHalf)</l>
+<l>    ModelWidth := ModelWidthHalf*2</l>
+<l>    ModelHeight := ModelHeightHalf*2</l>
+<l>    ModelWidthAll := [ModelWidthAll, ModelWidth]</l>
+<l>    ModelHeightAll := [ModelHeightAll, ModelHeight]</l>
+<c>    </c>
+<l>    if (ModelWidth &lt; MinModelWidth)</l>
+<l>        MinModelWidth := ModelWidth</l>
+<l>    endif</l>
+<l>    if (ModelWidth &gt; MaxModelWidth)</l>
+<l>        MaxModelWidth := ModelWidth</l>
+<l>    endif</l>
+<c>    </c>
+<l>    if (ModelHeight &lt; MinModelHeight)</l>
+<l>        MinModelHeight := ModelHeight</l>
+<l>    endif</l>
+<l>    if (ModelHeight &gt; MaxModelHeight)</l>
+<l>        MaxModelHeight := ModelHeight</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* 1. 提取前景区域</c>
+<l>area_center(RegionROI, Area, CenterRow, CenterColumn)</l>
+<l>smallest_rectangle1(RegionROI, ROILeftR, ROILeftC, ROIRightR, ROIRightC)</l>
+<l>MaxToySize := (ROIRightR - ROILeftR) * 0.98</l>
+<c></c>
+<l>boundary(RegionROI, RegionBorder, 'outer')</l>
+<l>* dilation_circle(RegionBorder, RegionBorder, 2)</l>
+<l>erosion_rectangle1(RegionBorder, RegionBorderVer, 1, 11)</l>
+<l>erosion_rectangle1(RegionBorder, RegionBorderHor, 11, 1)</l>
+<l>reduce_domain(ImageNew, RegionROI, ImageReduced)</l>
+<l>gen_empty_region(RegionFillUp)</l>
+<c>*增加边缘提取法(针对半透明物料）</c>
+<l>* edges_image(ImageReduced, ImaAmp, ImaDir, 'sobel_fast', 1.0, 'nms', 15, 40)</l>
+<l>* threshold(ImaAmp, Margin, 10, 255)</l>
+<l>* dilation_circle(Margin, RegionClosing, 2)</l>
+<l>* union2(RegionClosing, RegionBorderVer, RegionClosingVer)</l>
+<l>* union2(RegionClosing, RegionBorderHor, RegionClosingHor)</l>
+<l>* union2(RegionClosingVer, RegionBorderHor, RegionClosing)</l>
+<l>* fill_up(RegionClosing, RegionFillUp)</l>
+<c>*将阈值分割结果与轮廓填充结果合并</c>
+<l>threshold(ImageReduced, RegionThresh, 0, Threshold)   </l>
+<l>union2(RegionFillUp, RegionThresh, RegionFillUp)</l>
+<c>*去除边框</c>
+<l>difference(RegionFillUp, RegionBorder, RegionFillUp)  </l>
+<c>*剔除中间纯白区域</c>
+<l>threshold(ImageReduced, Region, 0, Threshold)</l>
+<l>intersection(RegionROI, Region, ObjRegions)</l>
+<l>intersection(ObjRegions, RegionFillUp, ObjRegions)</l>
+<l>connection(ObjRegions, ObjRegions)</l>
+<l>select_shape(ObjRegions, ObjRegions, ['area', 'height'], 'and', [MinDefectArea, 0], [AreaMax, MaxToySize])</l>
+<c>* 合并倒影</c>
+<l>union1(ObjRegions, ObjRegionsShadow)</l>
+<l>dilation_circle(ObjRegionsShadow, ObjRegionsShadow, 2)</l>
+<l>closing_rectangle1(ObjRegionsShadow, ObjRegionsShadow, 10, 1)</l>
+<l>opening_rectangle1(ObjRegionsShadow, ObjRegionsShadow, 1, 2)</l>
+<l>fill_up(ObjRegionsShadow, ObjRegionsShadow)</l>
+<l>connection(ObjRegionsShadow, ObjRegionsShadow)</l>
+<l>intersection(ObjRegionsShadow, ObjRegions, ObjRegions)</l>
+<c>* 检测出物料后，根据配置决定是否填充内轮廓，true-填充，忽略内轮廓</c>
+<l>if(use_ignore_InnerDetect)</l>
+<l>    fill_up(ObjRegions, ObjRegions)</l>
+<l>endif</l>
+<c></c>
+<c>*分割粘黏物料</c>
+<l>* distance_transform (ObjRegionsShadow, DistanceImage, 'octagonal', 'true', Width, Height)</l>
+<l>* convert_image_type (DistanceImage, DistanceImageByte, 'byte')</l>
+<l>* invert_image (DistanceImageByte, DistanceImageInv)</l>
+<l>* scale_image_max (DistanceImageInv, DistanceImageInvScaled)</l>
+<l>* watersheds_threshold (DistanceImageInvScaled, Basins, 100)</l>
+<l>* intersection(Basins, ObjRegionsShadow, ObjRegionsShadow2)</l>
+<l>* opening_rectangle1(ObjRegionsShadow, ObjRegionsShadow, 1, 2)</l>
+<l>* connection(ObjRegionsShadow2, ObjRegionsShadow)</l>
+<l>* intersection(ObjRegionsShadow, ObjRegions, ObjRegions)</l>
+<c></c>
+<l>count_obj(ObjRegions, ObjNum)</l>
+<l>gen_empty_obj(ObjRegionsFind)</l>
+<l>if(ObjNum&gt;0)</l>
+<l>    smallest_rectangle2(ObjRegions, ObjsRow, ObjsColumn, Phi1, Length1, Length2)</l>
+<l>    tuple_max(Length2, MaxLength2)</l>
+<l>    tuple_max2(MaxLength2, 10, MaxLength2)</l>
+<l>else</l>
+<l>    MaxLength2:=10</l>
+<l>endif</l>
+<c>*至少5个像素膨胀</c>
+<l>dilation_circle(ObjRegions, RegionDilation, MaxLength2/1)</l>
+<l>shape_trans(RegionDilation, RegionDilation, 'convex')</l>
+<l>union1(RegionDilation, RegionDilation)</l>
+<l>complement(RegionDilation, RegionComplement)</l>
+<l>* paint_region(RegionComplement, ImageReduced, ImageReduced2, 0, 'fill')</l>
+<l>reduce_domain(ImageReduced, RegionDilation, ImageReducedObj)</l>
+<l>Score := []</l>
+<l>if((|ModelIDs| &gt; 0)and(use_inner_DarkCircleDefect=0))</l>
+<c>   </c>
+<l>    ScaleMin := 0.9</l>
+<l>    ScaleMax := 1.1</l>
+<l>    Score := []</l>
+<l>    try</l>
+<l>        count_seconds (S1)</l>
+<l>*         set_system('border_shape_models','false')</l>
+<c></c>
+<c>        * 如果模版有缩放，则激活该句代码</c>
+<l>*         find_scaled_shape_models(ImageReducedObj, ModelIDs, -rad(180), rad(180), ScaleMin, ScaleMax, 0.5, 0, 0.2, 'least_squares', 3, 0.9, RowCheck, ColumnCheck, AngleCheck, Scale, Score, Model)</l>
+<l>*         find_scaled_shape_models(ImageReducedObj, ModelIDs, 0, rad(360), ScaleMin, ScaleMax, MinScore, 0, 0.2, 'least_squares', 9, 0.9, RowCheck, ColumnCheck, AngleCheck, Scale, Score, Model)</l>
+<l>        find_shape_models (ImageReducedObj, ModelIDs, 0, rad(360), 0.7, 0, 0.2, 'least_squares', 9, 0.9, RowCheck, ColumnCheck, AngleCheck, Score, Model)</l>
+<l>        count_seconds (S2)</l>
+<l>        time := (S2 - S1) * 1000.0</l>
+<c>        * The timeout error code is 9400.</c>
+<l>*         disp_message (WindowHandle, 'match time: ' + time$'.4' , 'window', 60, -1, 'lime green', 'true')</l>
+<l>    catch (Exception)</l>
+<l>        count_seconds (S2)</l>
+<l>        time := (S2 - S1) * 1000.0 </l>
+<l>        dev_get_exception_data (Exception, 'error_code', Error)</l>
+<l>        if (Error = 9400)</l>
+<l>            disp_message (WindowHandle, ['Timeout occurred after ' + time$'.4' + ' ms'], 'window', 100, -1, 'red', 'false')</l>
+<l>        else</l>
+<l>            throw (Exception)</l>
+<l>        endif</l>
+<l>    endtry</l>
+<c></c>
+<c>    </c>
+<l>    if (|Score| &gt; 0)</l>
+<l>        for i := 0 to |Score| - 1 by 1</l>
+<c>            * step 3: determine the affine transformation</c>
+<l>            select_obj(ModelRegionsOrigins, SingleModelRegionsOrigin, Model[i]+1)  </l>
+<l>*             vector_angle_to_rigid (Height/2, Width/2, 0, RowCheck[i], ColumnCheck[i], AngleCheck[i], MovementOfObject)</l>
+<l>            vector_angle_to_rigid (Height/2, Width/2, 0, RowCheck[i], ColumnCheck[i], AngleCheck[i], MovementOfObject)</l>
+<c>            * 如果模版有缩放，则激活该句代码</c>
+<l>*             hom_mat2d_scale (MovementOfObject, Scale[i], Scale[i], RowCheck[i], ColumnCheck[i], MovementOfObject)</l>
+<l>            affine_trans_region(SingleModelRegionsOrigin, RegionAffineTrans, MovementOfObject, 'false')</l>
+<l>            concat_obj(ObjRegionsFind, RegionAffineTrans, ObjRegionsFind)</l>
+<l>*             disp_message (WindowHandle, 'Score: ' + Score[i]$'.3' + '   Scale: ' + Scale[i]$'.3', 'window', RowCheck[i], ColumnCheck[i], 'red', 'false')</l>
+<l>        endfor  </l>
+<l>    elseif((ObjNum &gt; 0)) </l>
+<l>        disp_message (WindowHandle, 'match no object: ' + time$'.4' + ' ms', 'window', 60, -1, 'red', 'false')</l>
+<l>*         wait_seconds(0.5)</l>
+<l>    endif</l>
+<c>    </c>
+<l>endif</l>
+<c></c>
+<c></c>
+<c></c>
+<l>count_obj(ObjRegionsFind, FindNum)</l>
+<l>gen_empty_obj(OKRegion)</l>
+<l>gen_empty_obj(NGRegion)</l>
+<l>gen_empty_obj(IORegion)</l>
+<l>gen_empty_region(RegionDefect)</l>
+<l>DefectNumber := 0</l>
+<l>matched_no := []</l>
+<l>for i := 1 to ObjNum by 1</l>
+<l>    gen_empty_obj(ObjDiff)</l>
+<l>    select_obj(ObjRegions, ObjSelect, i)</l>
+<l>    smallest_rectangle2(ObjSelect, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>    gen_rectangle2(Rectangle, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<c>*    *disp_message(WindowHandle, ObjWidth*2*0.105+'mm * ' +ObjHeight*2*0.105+'mm', 'window', 60, -1,  'red', 'false')</c>
+<l>    smallest_rectangle1(ObjSelect, Rect1RowL, Rect1ColL, Rect1RowR, Rect1ColR)      </l>
+<l>    area_center(ObjSelect, ObjArea, Row, Column)   </l>
+<l>    if((Rect1ColL &lt; ROILeftC + m_detectLineC) or (Rect1ColR &gt; ROIRightC - 5)) </l>
+<l>        concat_obj(IORegion, ObjSelect, IORegion)</l>
+<l>        continue</l>
+<l>    endif</l>
+<l>    is_not_diff := 1</l>
+<c>    </c>
+<c></c>
+<l>    if(use_inner_DarkCircleDefect=1)</l>
+<l>        median_image(ImageReducedObj, ImageMedian, 'circle', 30, 'mirrored')</l>
+<l>        dyn_threshold(ImageReducedObj, ImageMedian, RegionDynThresh, 20, 'light')</l>
+<l>        connection(RegionDynThresh, ConnectedRegions)</l>
+<l>        fill_up(ConnectedRegions, FillUps)</l>
+<l>        difference(FillUps, ConnectedRegions, BlackInsides)</l>
+<l>*         union1(BlackInsides, BlackInsides)</l>
+<l>        connection(BlackInsides, BlackHoles)</l>
+<l>        fill_up(BlackHoles, BlackHoles)</l>
+<l>        select_shape(BlackHoles, BlackHolesSelect, ['area','circularity'], 'and', [MinDefectArea*3, 0.7], [AreaMax,1])</l>
+<c>        * 利用已获得一个圆的亮度，对另一个圆做分割</c>
+<l>        union1(BlackHolesSelect, BlackHolesUnion)</l>
+<l>        intensity(BlackHolesUnion, ImageReducedObj, BlackThresh, Deviation1)</l>
+<l>        reduce_domain(ImageNew, BlackHolesUnion, ImageReducedInsides)</l>
+<l>        threshold(ImageReducedInsides, BlackInsides2, 0, BlackThresh+Deviation1*2)</l>
+<l>        connection(BlackInsides2, BlackHoles2)</l>
+<l>        fill_up(BlackHoles2, BlackHoles2)</l>
+<l>        select_shape(BlackHoles2, BlackHoles2, ['area','circularity'], 'and', [MinDefectArea*3, 0.8], [AreaMax,1])</l>
+<l>        circularity(BlackHoles2, Circularity)</l>
+<l>        shape_trans(BlackHoles2, RegionTransCircle, 'outer_circle')</l>
+<l>        dilation_circle(RegionTransCircle, RegionDilation1, 15)</l>
+<l>        difference(RegionDilation1, RegionTransCircle, RegionCircle)</l>
+<l>        union1(RegionCircle, RegionCircle)</l>
+<l>        reduce_domain(ImageReducedObj, RegionCircle, ImageCircle)</l>
+<l>        threshold(ImageCircle, CircleDefectRegion, Threshold, 255)</l>
+<l>        connection(CircleDefectRegion, CircleDefectRegion)</l>
+<l>        select_shape(CircleDefectRegion, ObjDiff, ['area','inner_radius'], 'and', [MinDefectArea, MinDefectInnerRadianScaled], [AreaMax, Height])</l>
+<l>        union1(ObjDiff, RegionDefect)</l>
+<l>        count_obj(RegionDefect, DefectNumber)</l>
+<l>        if(DefectNumber &gt; 0)</l>
+<l>            concat_obj(NGRegion, ObjSelect, NGRegion)</l>
+<l>        else</l>
+<l>            concat_obj(OKRegion, ObjSelect, OKRegion)</l>
+<l>        endif</l>
+<l>*         dev_set_color('red')</l>
+<l>*         dev_display(RegionDefect)</l>
+<l>        continue        </l>
+<l>    endif</l>
+<l>    if(FindNum&gt;0)</l>
+<l>        for j:= 1 to FindNum by 1</l>
+<c>            * 匹配过的不再对比</c>
+<l>            tuple_find(matched_no, j, Indices)</l>
+<l>            if(Indices &lt; 0)</l>
+<l>                select_obj(ObjRegionsFind, ObjModel, j)</l>
+<l>                intersection(ObjModel, ObjSelect, RegionIntersection)</l>
+<l>                area_center(RegionIntersection, Area, Row4, Column4)</l>
+<l>                if(sum(Area)&gt;0)</l>
+<c></c>
+<l>                    if(use_details1)</l>
+<l>                        closing_circle(ObjModel, ObjModelClosing, 5)</l>
+<l>                        difference(ObjModelClosing, ObjModel, ObjModelDiff)</l>
+<l>                        closing_rectangle1(ObjModelDiff, ObjModelDiff, 5, 1)</l>
+<l>                        connection(ObjModelDiff, ObjModelDiff)</l>
+<l>                        select_shape(ObjModelDiff, ObjModelDiff, ['area','width'], 'and', [50, ObjWidth*0.5], [AreaMax, ObjWidth*1.3])</l>
+<l>                        union1(ObjModelDiff, ObjModelDiff)</l>
+<l>                        count_obj(ObjModelDiff, ObjType1)</l>
+<l>                        if(ObjType1&gt;0)</l>
+<l>                            smallest_rectangle2(ObjModelDiff, Row6, Column6, Phi2, DiffLength11, DiffLength21)</l>
+<l>                            tuple_median(DiffLength11, DiffLength1)</l>
+<l>*                           disp_rectangle2(3600, Row6, Column6, Phi2, DiffLength11, DiffLength21)</l>
+<l>                        endif </l>
+<c>                        </c>
+<l>                        closing_circle(ObjSelect, ObjSelectClosing, 5)</l>
+<l>                        erosion_circle(ObjSelectClosing, ObjSelectClosing, 5)</l>
+<l>                        reduce_domain(ImageReducedObj, ObjSelectClosing, ImageReduced1)</l>
+<l>                        threshold(ImageReduced1, ObjSelectDiff, Threshold, 255)</l>
+<l>                        connection(ObjSelectDiff, SelectedRegions)</l>
+<l>                        select_shape_std(SelectedRegions, SelectedRegions, 'max_area', 70)</l>
+<l>                        smallest_rectangle2(SelectedRegions, Row6, Column6, Phi2, Length11, Length21)</l>
+<l>*                         disp_rectangle2(3600, Row6, Column6, Phi2, Length11, Length21)</l>
+<c>                        *转到水平方向做闭运算</c>
+<l>                        vector_angle_to_rigid (Row6, Column6, Phi2, Row6, Column6, 0, MovementOfObjectDiff)</l>
+<l>                        affine_trans_region(ObjSelectDiff, ObjSelectDiff, MovementOfObjectDiff, 'false')</l>
+<l>                        closing_rectangle1(ObjSelectDiff, ObjDiffAffine, 8, 1)</l>
+<l>                        connection(ObjDiffAffine, ObjDiffAffine)</l>
+<l>                        select_shape(ObjDiffAffine, ObjDiffAffineSelect, ['area','width'], 'and', [40, ObjWidth*0.2], [AreaMax, ObjWidth*1.3])</l>
+<l>                        union1(ObjDiffAffineSelect, ObjDiffAffineSelect)</l>
+<l>                        count_obj(ObjDiffAffineSelect, ObjType2)</l>
+<l>                        if(ObjType2&gt;0)</l>
+<l>                            smallest_rectangle2(ObjDiffAffineSelect, Row6, Column6, Phi2, ObjDiffLength11, ObjDiffLength21)</l>
+<l>                            tuple_median(ObjDiffLength11, DiffLength2)</l>
+<c>                            </c>
+<c>**                          if(abs(max2(0,int((ObjType1-1)/2))-max2(0,int((ObjType2-1)/2)))&gt;0)     </c>
+<c>                            * 如果两者的宽度差，大于最小宽度的一半，说明两者宽度不同</c>
+<l>                            if(abs(DiffLength1-DiffLength2) &gt; min2(DiffLength1,DiffLength2)*0.5)</l>
+<l>                                concat_obj(NGRegion, ObjSelect, NGRegion)</l>
+<l>                            else</l>
+<l>                                concat_obj(OKRegion, ObjSelect, OKRegion)</l>
+<l>                            endif</l>
+<l>                        else</l>
+<l>                            concat_obj(NGRegion, ObjSelect, NGRegion)</l>
+<l>                        endif</l>
+<l>                        continue</l>
+<l>                    endif</l>
+<l>                    difference(ObjModel, ObjSelect, RegionDefect)</l>
+<l>                    difference(ObjSelect, ObjModel, RegionDefectInverse)</l>
+<l>                    union2(RegionDefect, RegionDefectInverse, RegionDefect)</l>
+<l>                    if(use_details_rectangle)</l>
+<c>                        * 如果是矩形，提高边角检测精度</c>
+<l>                        rectangularity(RegionIntersection, Rectangularity)</l>
+<l>                        if(Rectangularity &gt; 0.92)</l>
+<l>                            shape_trans(RegionIntersection, RegionTrans, 'rectangle2')</l>
+<l>                            difference(RegionTrans, RegionIntersection, RectDiff)</l>
+<l>                            union2(RegionDefect, RectDiff, RegionDefect)</l>
+<l>                        endif</l>
+<l>                    endif</l>
+<l>                    opening_circle(RegionDefect, RegionDefect, 1)</l>
+<l>                    connection(RegionDefect, RegionDefect)</l>
+<l>                    gen_empty_region(RegionDefectInner)</l>
+<c>                    * 检测内部缺陷</c>
+<l>                    closing_circle(ObjSelect, RegionClosed, 20) </l>
+<l>                    intersection(RegionDefect, RegionClosed, RegionDefectInner)</l>
+<l>                    select_shape(RegionDefectInner, RegionDefectInner, ['area','inner_radius','convexity'], 'and', [MinDefectArea*3, MinDefectInnerRadianScaled, 0.1], [AreaMax, Height, 1])</l>
+<l>                    select_shape(RegionDefect, RegionDefect2, ['area','inner_radius','convexity'], 'and', [MinDefectArea, MinDefectInnerRadianScaled, 0.1], [AreaMax, Height, 1])</l>
+<l>                    union2(RegionDefect2, RegionDefectInner, RegionDefect)</l>
+<l>                    count_obj(RegionDefect, DefectNumber)</l>
+<c></c>
+<l>                    if(DefectNumber &gt; 0)</l>
+<c>                        * 缺胶</c>
+<l>                        union2(OKRegion, NGRegion, RegionVisited)</l>
+<l>                        union2(RegionVisited, IORegion, RegionVisited)</l>
+<l>                        difference(ObjSelect, RegionVisited, ObjDiff)</l>
+<l>                        area_center(ObjDiff, AreaObjDiff, Row5, Column5)</l>
+<l>                        if(AreaObjDiff &gt; MinDefectArea)</l>
+<l>                            concat_obj(NGRegion, ObjDiff, NGRegion)</l>
+<l>                        endif</l>
+<l>                    else</l>
+<l>                        intensity(ObjSelect, ImageReducedObj, Mean, Deviation)</l>
+<l>                        if(|ModelGrays|&gt;0)</l>
+<l>                            ColorMatch := 0</l>
+<l>                            for Index1 := 0 to |ModelGrays|-1 by 1</l>
+<l>                                temp := ModelGrays[Index1]</l>
+<l>                                if(abs(Mean - temp)&lt;110)</l>
+<l>                                    ColorMatch := 1</l>
+<l>                                    break</l>
+<l>                                endif</l>
+<l>                            endfor</l>
+<l>                            if(ColorMatch = 0)</l>
+<c>                                ** 任何一个亮度都没匹配上，就按杂料处理</c>
+<l>                                concat_obj(NGRegion, ObjSelect, NGRegion)</l>
+<l>                                continue</l>
+<l>                            endif</l>
+<l>                        endif                        </l>
+<l>                        area_center(RegionIntersection, AreaIntersect, Row1, Column1)</l>
+<l>                        area_center(ObjModel, AreaModel, ObjRow, ObjColumn) </l>
+<l>                        tuple_max2(AreaModel*(1-min_IOU), 150, ratio)</l>
+<l>                        dilation_rectangle1(ObjModel, ObjModelDilated, 15, 15)</l>
+<l>                        difference(ObjSelect, ObjModelDilated, ObjDiff)</l>
+<c>                        * 需要删除已经访问过的区域</c>
+<l>                        union2(OKRegion, NGRegion, RegionVisited)</l>
+<l>                        union2(RegionVisited, IORegion, RegionVisited)</l>
+<l>                        difference(ObjDiff, RegionVisited, ObjDiff)</l>
+<l>                        area_center(ObjDiff, AreaDiff, Row2, Column2)</l>
+<c></c>
+<l>                        if((abs(AreaIntersect-AreaModel) &lt; ratio) or (AreaDiff &lt; 200))</l>
+<c>                            * 重合度大于0.9认为是合格料。</c>
+<l>                            matched_no := [matched_no, j]</l>
+<l>                            if(abs(ObjArea-AreaModel) &lt; MinModelArea*0.7)</l>
+<c>                                * 面积差异控制</c>
+<l>                                tempModelWidth := ModelWidthAll[Model[j-1]]</l>
+<l>                                tempModelHeight := ModelHeightAll[Model[j-1]]</l>
+<l>*                                tempModelWidth := ModelWidthAll[Model[j-1]]*Scale[j-1]</l>
+<l>*                                tempModelHeight := ModelHeightAll[Model[j-1]]*Scale[j-1]</l>
+<l>                                if((abs(ObjArea-AreaModel) &lt; AreaModel*0.35) and (abs(ObjWidth*2 - tempModelWidth) &lt; tmp_WdiffValue*3.3) and (abs(ObjHeight*2 - tempModelHeight) &lt; tmp_WdiffValue*3)) </l>
+<l>                                    concat_obj(OKRegion, ObjSelect, OKRegion)</l>
+<l>                                else</l>
+<l>                                    concat_obj(NGRegion, ObjSelect, NGRegion)</l>
+<l>                                endif</l>
+<c>                                </c>
+<l>                                if(AreaDiff &lt; 200)</l>
+<l>                                    is_not_diff := 0</l>
+<l>                                    break</l>
+<l>                                endif</l>
+<l>                            else</l>
+<c>                                * 存在翻滚的情况</c>
+<l>                                concat_obj(OKRegion, ObjModel, OKRegion)</l>
+<l>                            endif</l>
+<l>                        endif   </l>
+<c>                        </c>
+<c>                        </c>
+<l>                    endif</l>
+<l>                endif</l>
+<l>            endif</l>
+<l>        endfor</l>
+<l>    endif</l>
+<l>    if(is_not_diff)</l>
+<l>        union2(OKRegion, NGRegion, RegionVisited)</l>
+<l>        union2(RegionVisited, IORegion, RegionVisited)</l>
+<l>        intersection(ObjSelect, RegionVisited, RegionIntersect)</l>
+<l>        dilation_circle(RegionVisited, RegionVisitedDilate, 2)</l>
+<l>        difference(ObjSelect, RegionVisitedDilate, ObjDiff)</l>
+<l>        count_obj(RegionIntersect, Number)</l>
+<l>        if(Number&gt;0)</l>
+<l>            closing_rectangle1(ObjDiff, ObjDiff, 10, 1)</l>
+<l>            opening_circle(ObjDiff, ObjDiff, 2)</l>
+<l>        endif</l>
+<l>        connection(ObjDiff, ObjDiff)</l>
+<l>        intersection(ObjRegionsShadow, ObjDiff, ObjDiff)</l>
+<l>    endif</l>
+<l>    select_shape(ObjDiff, ObjDiff, ['area','inner_radius'], 'and', [MinDefectArea, MinDefectInnerRadianScaled/2], [AreaMax, Height])</l>
+<l>    count_obj(ObjDiff, DiffNumber)</l>
+<l>    if(DiffNumber &gt; 0)</l>
+<l>        smallest_rectangle1(ObjDiff, Rect1RowL, Rect1ColL, Rect1RowR, Rect1ColR)     </l>
+<l>        if((Rect1ColL &lt; ROILeftC + m_detectLineC) or (Rect1ColR &gt; ROIRightC - 5)) </l>
+<l>            concat_obj(IORegion, ObjDiff, IORegion)</l>
+<l>        else</l>
+<l>            tmp_ResultFlag := 1</l>
+<c>            *是否启用尺寸比对，如果尺寸比对通过也视为合格料</c>
+<l>*             smallest_rectangle2(ObjDiff, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>*             for j := 1 to ModelNumber by 1</l>
+<c>                * 如果物料的长宽其中任意一项超过模版标准尺寸±10%直接视为杂料</c>
+<l>*                 if ((abs(ObjWidth*2 - ModelWidthAll[j-1]) &lt; tmp_WdiffValue) and (abs(ObjHeight*2 - ModelHeightAll[j-1]) &lt; tmp_WdiffValue)) </l>
+<l>*                     area_center(ObjDiff, AreaDiff, Row2, Column2)</l>
+<l>*                     tempArea := ModelAreaAll[j-1] + ((ObjHeight*2 - ModelHeightAll[j-1] - 1) / 2 * ModelWidthAll[j-1])	+ ((ObjWidth*2 - ModelWidthAll[j-1] - 1) / 2 * ModelHeightAll[j-1])</l>
+<l>*                     if(abs(AreaDiff - tempArea) &lt; tempArea * ADiffValue)</l>
+<l>*                         tmp_ResultFlag := 0  </l>
+<l>*                         concat_obj(OKRegion, ObjDiff, OKRegion)</l>
+<c>                        * 匹配上则调出循环</c>
+<l>*                         break</l>
+<l>*                     endif</l>
+<l>*                 endif</l>
+<l>*             endfor  </l>
+<c>            </c>
+<l>            if(tmp_ResultFlag &gt; 0)</l>
+<l>                concat_obj(NGRegion, ObjDiff, NGRegion)</l>
+<l>            endif </l>
+<l>       endif</l>
+<l>    endif</l>
+<c>    </c>
+<l>endfor</l>
+<c></c>
+<l>count_obj(OKRegion, OK_num)</l>
+<l>count_obj(NGRegion, NG_num)</l>
+<l>count_obj(IORegion, IO_num)</l>
+<l>NewRowTemp := []</l>
+<l>NewColumnTemp := []</l>
+<l>NewWidthTemp := []</l>
+<l>NewAreaTemp := []</l>
+<c>* 0：OK, 1：NG</c>
+<l>ResultTemp := []</l>
+<c></c>
+<l>gen_empty_region(OverSizeRegion)</l>
+<l>dev_clear_window()</l>
+<l>disp_image(ImageNew, WindowHandle)</l>
+<c></c>
+<c>* 统计合格的料</c>
+<l>for i:=1 to OK_num by 1</l>
+<l>    select_obj(OKRegion, ObjSelect, i)</l>
+<l>    smallest_rectangle2(ObjSelect, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>*     disp_rectangle2(WindowHandle, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>    smallest_rectangle1(ObjSelect, Rect1RowL, Rect1ColL, Rect1RowR, Rect1ColR)</l>
+<l>    area_center(ObjSelect, AreaObj, ObjRow, ObjColumn) </l>
+<c>    * 使用物料最右端坐标作为输出</c>
+<l>    tmp_Flag := 0</l>
+<l>    ObjRow := Rect1RowL + (Rect1RowR- Rect1RowL)/2</l>
+<l>    objRect1Width := Rect1ColR - Rect1ColL</l>
+<l>    disp_circle(WindowHandle, ObjRow, Rect1ColR, 6)</l>
+<l>    if((Rect1ColL &lt; ROILeftC + m_detectLineC) or (Rect1ColR &gt; ROIRightC - 5)) </l>
+<l>        tmp_Flag := 2</l>
+<l>    endif</l>
+<l>    NewRowTemp := [NewRowTemp, ObjRow]</l>
+<l>    NewColumnTemp := [NewColumnTemp, Rect1ColR]</l>
+<l>    NewWidthTemp := [NewWidthTemp, objRect1Width]</l>
+<l>    NewAreaTemp := [NewAreaTemp, AreaObj]</l>
+<l>    ResultTemp := [ResultTemp, tmp_Flag]</l>
+<l>endfor</l>
+<c></c>
+<c>* 统计杂料</c>
+<l>for i:=1 to NG_num by 1</l>
+<l>    select_obj(NGRegion, ObjSelect, i)</l>
+<l>    smallest_rectangle2(ObjSelect, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>    smallest_rectangle1(ObjSelect, Rect1RowL, Rect1ColL, Rect1RowR, Rect1ColR)</l>
+<l>    area_center(ObjSelect, AreaObj, ObjRow, ObjColumn) </l>
+<c>    * 使用物料最右端坐标作为输出</c>
+<l>    tmp_Flag := 1</l>
+<l>    ObjRow := Rect1RowL + (Rect1RowR- Rect1RowL)/2</l>
+<l>    objRect1Width := Rect1ColR - Rect1ColL</l>
+<l>    disp_circle(WindowHandle, ObjRow, Rect1ColR, 6)</l>
+<c>    </c>
+<l>    if((ObjWidth*2 &gt; MaxModelWidth + 12) or (ObjHeight*2 &gt; MaxModelHeight + 12))</l>
+<l>        concat_obj(OverSizeRegion, ObjSelect, OverSizeRegion)</l>
+<l>        tmp_Flag := 3</l>
+<l>    endif</l>
+<c>    </c>
+<l>    NewRowTemp := [NewRowTemp, ObjRow]</l>
+<l>    NewColumnTemp := [NewColumnTemp, Rect1ColR]</l>
+<l>    NewWidthTemp := [NewWidthTemp, objRect1Width]</l>
+<l>    NewAreaTemp := [NewAreaTemp, AreaObj]</l>
+<l>    ResultTemp := [ResultTemp, tmp_Flag]</l>
+<l>endfor</l>
+<c></c>
+<c>* 统计进出视野的料</c>
+<l>for i:=1 to IO_num by 1</l>
+<l>    select_obj(IORegion, ObjSelect, i)</l>
+<l>    smallest_rectangle2(ObjSelect, ObjRow, ObjColumn, Phi, ObjWidth, ObjHeight)</l>
+<l>    smallest_rectangle1(ObjSelect, Rect1RowL, Rect1ColL, Rect1RowR, Rect1ColR)</l>
+<l>    area_center(ObjSelect, AreaObj, ObjRow, ObjColumn) </l>
+<c>    * 使用物料最右端坐标作为输出</c>
+<l>    tmp_Flag := 2</l>
+<l>    ObjRow := Rect1RowL + (Rect1RowR- Rect1RowL)/2</l>
+<l>    objRect1Width := Rect1ColR - Rect1ColL</l>
+<l>*     disp_circle(WindowHandle, ObjRow, Rect1ColR, 6)</l>
+<c>    </c>
+<l>    if((Rect1ColL &gt;= ROILeftC + 12) and (MaxModelWidth&gt;0) and (MaxModelHeight&gt;0) and ((ObjWidth*2 &gt; MaxModelWidth + 12) or (ObjHeight*2 &gt; MaxModelHeight + 12)))</l>
+<l>        concat_obj(OverSizeRegion, ObjSelect, OverSizeRegion)</l>
+<l>        tmp_Flag := 3</l>
+<l>    endif</l>
+<c>    </c>
+<l>    NewRowTemp := [NewRowTemp, ObjRow]</l>
+<l>    NewColumnTemp := [NewColumnTemp, Rect1ColR]</l>
+<l>    NewWidthTemp := [NewWidthTemp, objRect1Width]</l>
+<l>    NewAreaTemp := [NewAreaTemp, AreaObj]</l>
+<l>    ResultTemp := [ResultTemp, tmp_Flag]</l>
+<l>endfor</l>
+<c></c>
+<l>NewRow := NewRowTemp</l>
+<l>NewColumn := NewColumnTemp</l>
+<l>NewWidth := NewWidthTemp</l>
+<l>NewArea := NewAreaTemp</l>
+<c>* 0：OK,   1：NG   2:进出视野    3：超大物料</c>
+<l>Result := ResultTemp</l>
+<c></c>
+<l>gen_empty_obj(ObjRegions)</l>
+<l>concat_obj(OKRegion, ObjRegions, ObjRegions)</l>
+<l>concat_obj(NGRegion, ObjRegions, ObjRegions)</l>
+<l>concat_obj(IORegion, ObjRegions, ObjRegions)</l>
+<c></c>
+<l>shape_trans(IORegion, IORegion, 'rectangle1')</l>
+<l>shape_trans(OKRegion, OKRegion, 'rectangle1')</l>
+<l>shape_trans(NGRegion, NGRegion, 'rectangle1')</l>
+<l>shape_trans(OverSizeRegion, OverSizeRegion, 'rectangle1')</l>
+<l>dev_set_color('orange')</l>
+<l>disp_region(IORegion, WindowHandle)</l>
+<l>dev_set_color('green')</l>
+<l>disp_region(OKRegion, WindowHandle)</l>
+<l>dev_set_color('red')</l>
+<l>disp_region(NGRegion, WindowHandle)</l>
+<l>if(DefectNumber &gt; 0)</l>
+<l>    dev_set_color('green')</l>
+<l>    dev_display(RegionAffineTrans)</l>
+<l>    dev_set_color('red')</l>
+<l>    dev_display(RegionDefect)</l>
+<l>endif</l>
+<c></c>
+<l>for I:=0 to |Score|-1 by 1</l>
+<l>    disp_message (WindowHandle, 'Score: ' + Score[I]$'.3', 'window', RowCheck[I], ColumnCheck[I], 'red', 'false')</l>
+<l>endfor</l>
+<c></c>
+<l>dev_set_color('violet red')</l>
+<l>disp_region(OverSizeRegion, WindowHandle)</l>
+<l>dev_set_color('cyan')</l>
+<l>disp_region(RegionBorder, WindowHandle)</l>
+<l>return ()</l>
+<c></c>
+</body>
+<docu id="search_shape_model_gray">
+<parameters>
+<parameter id="ImageNew">
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+<item>vector_field</item>
+</type_list>
+</parameter>
+<parameter id="MinDefectInnerRadian">
+<default_value>4</default_value>
+<description lang="zh_CN">最小缺陷内径</description>
+<mixed_type>optional</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="MinScore">
+<default_value>0.65</default_value>
+<description lang="zh_CN">物料最小匹配分数</description>
+<mixed_type>optional</mixed_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Model">
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelGrays">
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelIDs">
+<mixed_type>optional</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelRegionsOrigins">
+<multivalue>optional</multivalue>
+<sem_type>region</sem_type>
+</parameter>
+<parameter id="NewArea">
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="NewColumn">
+<mixed_type>optional</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="NewRow">
+<mixed_type>optional</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="NewWidth">
+<mixed_type>optional</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ObjRegions">
+<multivalue>optional</multivalue>
+<sem_type>region</sem_type>
+</parameter>
+<parameter id="RegionROI">
+<description lang="zh_CN">ROI区域</description>
+<multivalue>false</multivalue>
+<sem_type>region</sem_type>
+</parameter>
+<parameter id="Result">
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Threshold">
+<default_value>200</default_value>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="WdiffValue">
+<default_value>8</default_value>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>3</item>
+</values>
+</parameter>
+<parameter id="WindowHandle">
+<default_value>3600</default_value>
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
