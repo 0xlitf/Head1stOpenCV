@@ -1,14 +1,13 @@
 
-QT       += core gui axcontainer xml network concurrent serialport
+QT       += core
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-greaterThan(QT_MAJOR_VERSION, 6): QT += core5compat
-
-CONFIG += c++11
+TARGET = algorithm
+TEMPLATE = lib
+CONFIG += shared c++11
 
 DEFINES += QT_MESSAGELOGCONTEXT
 
-include(../install.pri)
+include(../../install.pri)
 include(computer_vision.pri)
 include(compile.pri)
 
@@ -48,8 +47,6 @@ LIBS += -L$$LIB_HALCON_PATH/lib/x64-win64 -lhalcon \
 QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_HALCON_PATH/lib/x64-win64/halcon.dll\" \"$${PROJECT_LIB_DIR}\"
 QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_HALCON_PATH/lib/x64-win64/halconcpp.dll\" \"$${PROJECT_LIB_DIR}\"
 QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_HALCON_PATH/lib/x64-win64/hdevenginecpp.dll\" \"$${PROJECT_LIB_DIR}\"
-
-RC_ICONS = $$PWD/../resources/image/handtech.ico
 
 RESOURCES += \
 
