@@ -1,6 +1,8 @@
 ﻿#ifndef QT_HALCON_H
 #define QT_HALCON_H
 
+#pragma execution_character_set("utf-8")
+
 #include "cfg.h"
 #include "HalconCpp.h"
 #include "HDevEngineCpp.h"
