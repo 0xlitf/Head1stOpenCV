@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* </c>
+<c>* This example demonstrates the inference workflow</c>
+<c>* for Global Context Anomaly Detection (GC-AD).</c>
+<c>* </c>
+<c>* The network consists of 2 subnetworks, the local and</c>
+<c>* the global network. While the local network is specialized in</c>
+<c>* detecting structural anomalies, the global network is</c>
+<c>* designed to find logical anomalies. See the Chapter Reference</c>
+<c>* for more details on this topic.</c>
+<c>* </c>
+<c>* The workflow typically consists of the following steps:</c>
+<c>* 1. Dataset preprocessing.</c>
+<c>* 2. Inference on pcb board images.</c>
+<c>* 3. (optional) Inspect results using local and global networks.</c>
+<c>* </c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<l>set_system ('seed_rand', 73)</l>
+<c>* </c>
+<c>* </c>
+<c>* ***   0.) SET INPUT/OUTPUT PATHS   ***</c>
+<c>* </c>
+<c>* ImageDir is the base directory containing the folders with the</c>
+<c>* used images.</c>
+<c>* There must be a 'good' or 'ok' subfolder in ImageDir.</c>
+<c>* Images in subfolders named differently will be treated as</c>
+<c>* containing anomalies. They can be used for qualitative</c>
+<c>* evaluation later.</c>
+<l>* get_image_dir (HalconImages)</l>
+<l>* ImageDir := HalconImages + '/pcb_anomaly'</l>
+<l>* ImageSubDirs := ['good', 'anomaly']</l>
+<l>ImageDir := 'E:/DL/Halcon_DL/20250514_分类/test'</l>
+<l>ImageSubDirs := ['ok', 'ng']</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Folder where the preprocessed samples will be stored.</c>
+<l>OutputDir := './anomaly_toy_bricks_data'</l>
+<c>* </c>
+<c>* </c>
+<c>* ***   1.) PREPARE   ***      读取深度学习模型</c>
+<c>* </c>
+<c></c>
+<c>* </c>
+<c>* Load the Global Context Anomaly Detection model and</c>
+<c>* set key parameters.</c>
+<l>* read_dl_model ('detect_pcb_gc_anomalies.hdl', DLModelHandle)</l>
+<l>* read_dl_model ('E:/DL/Halcon_DL/20250228_左右对称区分/door-direction-31/训练-250302-215246/best_model.hdl', DLModelHandle)</l>
+<l>* read_dl_model ('S:/MVTec/HALCON-24.05-Progress/examples/hdevelop/Deep-Learning/Classification/model_best.hdl', DLModelHandle)</l>
+<l>read_dl_model ('E:/DL/Halcon_DL/20250514_分类/fenglei20250512.hdl', DLModelHandle)</l>
+<c>*   </c>
+<c>* Set preprocessing parameters and preprocess.</c>
+<l>create_dl_preprocess_param_from_model (DLModelHandle, 'none', 'full_domain', [], [], [], DLPreprocessParam)</l>
+<l>PreprocessSettings := dict{overwrite_files: 'true'}</l>
+<c></c>
+<c></c>
+<c></c>
+<c>****************************   设备准备   ****************************</c>
+<c>* </c>
+<c>* Use either a GPU or a CPU for inference later.</c>
+<l>* query_available_dl_devices (['runtime', 'runtime', 'id'], ['gpu', 'cpu', 0], DLDeviceHandles)</l>
+<l>* if (DLDeviceHandles == [])</l>
+<l>*     throw ('No suitable CPU or GPU was found.')</l>
+<l>* endif</l>
+<l>* DLDeviceHandle := DLDeviceHandles[0]</l>
+<c>* </c>
+<c>* Set the chosen device. In case of memory difficulties,</c>
+<c>* use a more powerful GPU or a more powerful CPU instead.</c>
+<l>* set_dl_model_param (DLModelHandle, 'device', DLDeviceHandle)</l>
+<c>* </c>
+<c>* Use AI2 Interface for inference if available.</c>
+<l>* get_dl_device_param (DLDeviceHandle, 'type', DeviceType)</l>
+<l>* query_available_dl_devices ('ai_accelerator_interface', 'tensorrt', DLDeviceHandlesTensorRT)</l>
+<l>* if (DLDeviceHandlesTensorRT == [] or DeviceType == 'cpu')</l>
+<c>    * Landing here means two cases:</c>
+<c>    * - DLDeviceHandle was set initially to use CPU;</c>
+<c>    * - or TensorRT is not available.</c>
+<c>    * Proceed using just GPU/CPU device, by checking settings above.</c>
+<l>* else</l>
+<l>*     try</l>
+<c>        * Using float32 precision, adapt if other precisions are needed.</c>
+<l>*         get_dl_device_param (DLDeviceHandlesTensorRT, 'optimize_for_inference_params', OptiParams)</l>
+<l>*         optimize_dl_model_for_inference (DLModelHandle, DLDeviceHandlesTensorRT, 'float32', [], OptiParams, DLModelHandleConverted, ConvReport)</l>
+<l>*         DLModelHandle := DLModelHandleConverted</l>
+<l>*     catch (Exception)</l>
+<c>        * In case of the exception, just be sure to use gpu/cpu device.</c>
+<l>*         stop ()</l>
+<l>*     endtry</l>
+<l>* endif</l>
+<c></c>
+<c></c>
+<c>****************************   执行推理    *******************************</c>
+<c>* </c>
+<c>* ***   2.) INFER   ***</c>
+<c>* </c>
+<c>* To demonstrate the inference steps, we apply the trained model</c>
+<c>* to some randomly chosen images that have not been used during</c>
+<c>* training.</c>
+<c></c>
+<c>* </c>
+<c>* Get thresholds for inference. These have been stored along</c>
+<c>* with the model in the meta data above.</c>
+<l>* get_dl_model_param (DLModelHandle, 'meta_data', MetaData)</l>
+<l>* InferenceClassificationThreshold := number(MetaData.anomaly_classification_threshold)</l>
+<l>* InferenceSegmentationThreshold := number(MetaData.anomaly_segmentation_threshold)</l>
+<c>* </c>
+<c>* </c>
+<c>* ***   3.) INSPECT THE ANOMALY IMAGES OF THE LOCAL AND GLOBAL NETWORK   ***</c>
+<c>* </c>
+<c>* In the following, we visualize the difference between</c>
+<c>* logical and structural anomalies.</c>
+<c>* </c>
+<c>* As a result one should see that the local network is more</c>
+<c>* likely to detect structural anomalies, while the global network</c>
+<c>* is better at finding logical anomalies. Some of the defects</c>
+<c>* are detected by both subnetworks.</c>
+<c>* </c>
+<c>* Press F5 (continue).</c>
+<l>* stop ()</l>
+<c>* </c>
+<l>DLDatasetInfo := dict{}</l>
+<c>* Create a dictionary with dataset parameters used for display.</c>
+<l>get_dl_model_param (DLModelHandle, 'class_ids', DLDatasetInfo.class_ids)</l>
+<l>get_dl_model_param (DLModelHandle, 'class_names', DLDatasetInfo.class_names)</l>
+<c></c>
+<l>MaxNumInferenceImages := 120</l>
+<l>get_random_test_anomaly_image_paths ('E:/DL/Halcon_DL/20250514_分类/test', MaxNumInferenceImages, AnomalyInferenceImagePaths)</l>
+<l>tuple_sort(AnomalyInferenceImagePaths, AnomalyInferenceImagePaths)</l>
+<c></c>
+<l>dev_open_window(0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>Threshold := 200</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Infer images with the local and global network.</c>
+<l>WindowDict := dict{}</l>
+<l>for IndexInference := 0 to |AnomalyInferenceImagePaths| - 1 by 1</l>
+<c>    * </c>
+<l>    read_image (Image, AnomalyInferenceImagePaths[IndexInference])</l>
+<l>    get_image_size(Image, Width, Height)</l>
+<l>    dev_set_part(0, 0, Height, Width)</l>
+<l>    dev_display(Image)</l>
+<c></c>
+<l>        gen_dl_samples_from_images (Image, DLSample)</l>
+<l>        preprocess_dl_samples (DLSample, DLPreprocessParam)</l>
+<c>        * 'anomaly_image_global','anomaly_image_local'</c>
+<l>        apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
+<c></c>
+<c>        * Get the dictionary keys.</c>
+<l>        get_dict_param (DLSample, 'keys', [], SampleKeys)</l>
+<l>        if (DLResult != [])</l>
+<l>            get_dict_param (DLResult, 'keys', [], ResultKeys)</l>
+<l>        endif</l>
+<l>*         if (find(ResultKeys,'bbox_confidence') != -1)</l>
+<l>*             get_dict_tuple (DLResult, 'bbox_confidence', BboxConfidences)</l>
+<l>*             TextConf := ' (' + BboxConfidences$'.2f' + ')'</l>
+<l>*         else</l>
+<l>*             throw ('Result data could not be found in DLResult.')</l>
+<l>*         endif</l>
+<c></c>
+<c>*         dev_display_result_detection (DLResult, ResultKeys, Params.line_width, ClassIDs, TextConf, Colors, Params.bbox_label_color, WindowImageRatio, 'top', Params.bbox_text_color, Params.display_labels, DisplayDirectionTemp, CurrentWindowHandle, BboxClassIndex)</c>
+<c>        </c>
+<l>*  dev_display_dl_data (DLSample, DLResult, DLDatasetInfo, 'bbox_result', [], WindowDict)</l>
+<c>        </c>
+<l>    dev_disp_text ('Press F5\nto continue', 'window', 'bottom', 'right', 'black', [], [])</l>
+<c> </c>
+<c>        * </c>
+<c>        * Apply thresholds to classify regions and the entire image.</c>
+<l>*         threshold_dl_anomaly_results (InferenceSegmentationThreshold, InferenceClassificationThreshold, DLResult)</l>
+<c>        * </c>
+<c>        * Display the inference result.</c>
+<l>*         dev_display_dl_data (DLSample, DLResult, DLDatasetInfo, ['anomaly_result', 'anomaly_image'], [], WindowDict)</l>
+<l>*         dev_display_dl_data (DLSample, DLResult, DLDatasetInfo, ['image','anomaly_image_local'], [], WindowDict)</l>
+<l>*         Result:= DLResult.bbox_class_id</l>
+<l>*         score := DLResult.bbox_confidence</l>
+<l>*         class := DLResult.bbox_class_name</l>
+<l>*         rows := DLResult.bbox_row</l>
+<l>*         cols := DLResult.bbox_col</l>
+<l>*         widths := DLResult.bbox_length1</l>
+<l>*         areas := rows*cols</l>
+<c>        </c>
+<l>        dev_display_dl_data (DLSample, DLResult, DLDatasetInfo, 'classification_result', [], WindowDict)</l>
+<l>        Result:= DLResult.classification_class_ids</l>
+<l>        score := DLResult.classification_confidences</l>
+<l>        class := DLResult.classification_class_names</l>
+<c>        </c>
+<c></c>
+<c>        </c>
+<l>*         tuple_gen_const(|Result|, DLResult.bbox_class_id, OutputResult)</l>
+<l>*     endif</l>
+<l>    dev_disp_text (class, 'window', 'center', 'center', 'black', [], [])</l>
+<l>*     dev_disp_text (DLDatasetInfo.['class_names'][Result], 'window', 'bottom', 'center', 'black', [], [])</l>
+<l>    stop ()</l>
+<c>    </c>
+<l>endfor</l>
+<l>dev_close_window_dict (WindowDict)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* </c>
+<c>* *** 4.) REMOVE FILES ***</c>
+<c>* </c>
+<l>* clean_up_output (OutputDir)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="clean_up_output">
+<interface>
+<ic>
+<par name="OutputDir" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* This local example procedure cleans up the output of the example.</c>
+<c>* </c>
+<c>* Display a warning.</c>
+<l>dev_open_window (0, 0, 600, 300, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>WarningCleanup := ['Congratulations, you have finished the example.', '', 'Unless you would like to use the output data / model,', 'press F5 to clean up.']</l>
+<l>dev_disp_text (WarningCleanup, 'window', 'center', 'center', ['black', 'black', 'coral', 'coral', 'coral'], [], [])</l>
+<c>* </c>
+<l>stop ()</l>
+<l>dev_close_window ()</l>
+<c>* </c>
+<c>* Delete the output of the example.</c>
+<l>remove_dir_recursively (OutputDir)</l>
+<l>FilesToBeRemoved := ['final_dl_anomaly_global_context.hdl', 'intermediate_dl_anomaly_global_context.hdl', 'intermediate_dl_anomaly_global_context_info.hdict']</l>
+<l>for FileIndex := 0 to |FilesToBeRemoved| - 1 by 1</l>
+<l>    file_exists (FilesToBeRemoved[FileIndex], FileExists)</l>
+<l>    if (FileExists)</l>
+<l>        delete_file (FilesToBeRemoved[FileIndex])</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>* </c>
+<l>return ()</l>
+</body>
+<docu id="clean_up_output">
+<parameters>
+<parameter id="OutputDir"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="get_random_test_image_paths">
+<interface>
+<ic>
+<par name="DLDataset" base_type="ctrl" dimension="0"/>
+<par name="MaxNumTestImages" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="ImagePaths" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure returns paths to randomly chosen test images.</c>
+<c>* </c>
+<c>* Get all test sample indices.</c>
+<l>DLSamples := DLDataset.samples</l>
+<l>find_dl_samples (DLSamples, 'split', 'test', 'match', TestSampleIndices)</l>
+<l>NumTestImages := min2(|TestSampleIndices|,MaxNumTestImages)</l>
+<c>* </c>
+<l>tuple_shuffle (TestSampleIndices, TestSampleIndicesShuffled)</l>
+<c>* </c>
+<l>ImagePaths := gen_tuple_const(NumTestImages,-1)</l>
+<l>for Index := 0 to NumTestImages - 1 by 1</l>
+<l>    SampleIndex := TestSampleIndicesShuffled[Index]</l>
+<l>    DLSample := DLSamples[SampleIndex]</l>
+<l>    ImagePath := DLDataset.image_dir + '/' + DLSample.image_file_name</l>
+<l>    ImagePaths[Index] := ImagePath</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="get_random_test_image_paths">
+<abstract lang="en_US">This procedure returns paths to randomly chosen test images.</abstract>
+<parameters>
+<parameter id="DLDataset">
+<default_type>integer</default_type>
+<description lang="en_US">A DLDataset that has been split.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>dict</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ImagePaths">
+<description lang="en_US">Paths to the randomly chosen test images.</description>
+<multivalue>true</multivalue>
+<sem_type>string</sem_type>
+</parameter>
+<parameter id="MaxNumTestImages">
+<default_type>integer</default_type>
+<description lang="en_US">The maximum number of test images to return.</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="get_random_test_anomaly_image_paths">
+<interface>
+<ic>
+<par name="ImageDir" base_type="ctrl" dimension="0"/>
+<par name="MaxNumTestImages" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="ImagePaths" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure returns paths to randomly selected test images.</c>
+<c>* </c>
+<l>list_image_files (ImageDir, 'default', [], ImageFiles)</l>
+<l>tuple_shuffle (ImageFiles, ImageFiles)</l>
+<l>MaxNumTestImages := min2(MaxNumTestImages, |ImageFiles|)</l>
+<l>ImagePaths := ImageFiles[0:MaxNumTestImages - 1]</l>
+<l>return ()</l>
+</body>
+<docu id="get_random_test_anomaly_image_paths">
+<abstract lang="en_US">This procedure returns paths to randomly selected test images.</abstract>
+<parameters>
+<parameter id="ImageDir">
+<default_type>integer</default_type>
+<description lang="en_US">Directory of the images.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>dict</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ImagePaths">
+<description lang="en_US">Paths to the randomly selected test images.</description>
+<multivalue>true</multivalue>
+<sem_type>string</sem_type>
+</parameter>
+<parameter id="MaxNumTestImages">
+<default_type>integer</default_type>
+<description lang="en_US">The maximum number of test images to return.</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="get_image_dir">
+<interface>
+<oc>
+<par name="ImageDir" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>get_system ('image_dir', ImageDir)</l>
+<l>get_system ('operating_system', OperatingSystem)</l>
+<l>IsWindows := OperatingSystem{0:2} == 'Win'</l>
+<l>if (IsWindows)</l>
+<l>    Separator := ';'</l>
+<l>else</l>
+<l>    Separator := ':'</l>
+<l>endif</l>
+<l>tuple_split (ImageDir, Separator, ImageDir)</l>
+<l>ImageDir := ImageDir[0]</l>
+<l>ImageDir := regexp_replace(ImageDir,['\\\\+', 'replace_all'],'/')</l>
+<l>return ()</l>
+</body>
+<docu id="get_image_dir">
+<parameters>
+<parameter id="ImageDir"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.0" halcon_version="11.0.0.1" cs="725756189">
+<procedure name="generate_shape_model">
+<interface>
+<io>
+<par name="ImageModel"/>
+<par name="RegionROI"/>
+</io>
+<oo>
+<par name="ModelRegionsOrigin"/>
+</oo>
+<ic>
+<par name="WindowHandle"/>
+<par name="ModelWidthAll"/>
+<par name="ModelHeightAll"/>
+<par name="Threshold"/>
+</ic>
+<oc>
+<par name="ModelID"/>
+<par name="ModelWidth"/>
+<par name="ModelHeight"/>
+<par name="ModelArea"/>
+<par name="isTrained"/>
+</oc>
+</interface>
+<xb>L9ioNhFHNGzVmvqwcyji7Tm4pa1irrgg0l73ge6cCKtbZcVpBM+Hqp8qtqG3kg9AYpqAwwTf1VzNqVFJoS3ouW4xshlJhlWvsH9eBp7EsTsM/EfIpI44rpm2D+bMluWrIcrKkI0z0bt050s2KJtWw9WvgQ8/mXSx/o4KiOu+8EKq48k3k6K80udVUwMiOxW5idSdRwtwBeieffcolPus0nSHRt3D2NKNP8JSat/SpqEalKW9F9XgwQrVpXDX2HG1ZcYxrITcTuouGFhT/+vEd5sQEhpUMaoBB/ChYDNSxsEDjo4IUq1m9484d38z94wAQ9+ik9o0Owk5fGM6mTuvAMkyKh+6CCdonwzc6ZcZUMl+x7SZXs5DW5zKqfDaCfEjP/m4YjLoV1jIqToui1U8WzG+GhzSiwXW/mUMv77E/ExcWKVcAyH/mqPclI58feP8yJOluZzVJb32iMcJnpK028zitopra3rHPxeWN80Wql2A3nRHKiJMvcbohTZLvMvyPNQj5LGx26O7EJU6ozca9Q4AYjQTMzKiC+V+85I8vL1PiNkIqf0Cr3rQ7jcd1ri6EKgLKtqAUtRA8TM7Oy+ZOR9Op6tvQMvzHHvqT5eNrTotEnZNyzx4Wc008RoTvctJsVNZW0KG8CyVUySFJqxFbjQSJBGZabTzeSBhkPadxmiInUxEnk40jMTkWNtU6774tURUeaZQq4TiKnFDBuHsBnYBxAhTIQfM3OoItHBpcdJCcCeJq5swTZV69mlmhMJmxzwtGAHZy01fuk7nAA9XzfAADrKhdB4xn+6kRZF0JvtHDZMXGsBWt5pEDaYZ9vhODs/iFH+LSu19ah3VZNQCIHIk4WmNhCuIoXSJLkKUu3wZuigWzmoRpALYsHnnkDFvBsdUaRA3CpPWBwb3bsZb7pbYxNv5mEFZ4XlDbRfA0UgBgCEgiQGxrSi1lB88oKHvsnT/oRWQMkJbilfc+YnQMJX4S5dUiOIIgLxxYzdQiYEBczgZi/V6aRcsuHozMw+8aSxQNeoA5tNiDVniDSQamugj/mf0nDwPfdumJjva2v8xbJHtCnPY4Ed2uz8Ue28lVb84GowKjBayCs705oCnUIDvoGHnTeqCIsg+wQ2b/6R1Ff9ze+wkzcvASGOeLEwb+X/w/a9FaSGohx8f5rCRUxMH4Evy33RIq0o4zJhrH06hS5kj1q5BLvqFs513JzIT4KadeE7E4LygoTek3uE3JYuyr+cNdKCTAEs2l7vJY0ywr4AHIhkrTCAC4Qm41pueFr7HG2zB/sHmBDT7KHK2DgzzMiQ0wdusTcfxjyEMfH5ktdxF3Jbn+Rcd7pA0zPx7zuOdg1sI8XqWfkR39kZr5G+SBWZgjHuXouQQBpDXlve4sw90+JJy4k0/Xy/9/+jp2V1LgoBr4ip7HvHsQVmzxmu6FGw/lXDTISn4Z9y4mE2mBdOdR0GH+fGdTQsuVL48YnVMimkW4Nz+pPwYsIGlPCMoiwjq55uBISu/sNjDKD+Gt5P5UgYRk1Q40iAJB6syzTPv6wDKh32T3lHxfcbTYC5cR0Ym89XKSx3JbSKbXonZn7U14XNGuanaKCIXvXQgiu3RMwjWbOYV0gFpJTErTDRQlMqP8roL7mMLv/AzUbpVuV6qYvLXMALinFgi3QOxHHemarjZSYRGeWYoHTe6maLkUxRzZRnWmO2W6fVFR2iLKIl1fSOMUapEa+1+OJwXxtQLuNhnloIkOd7ic1/bK4Dq5UIQNvDfk/RQqxHYGBNv/vi4juYBEeN8f3m7/GclXICIT5QcD/d3SC9nDxrXClIUE/DU1OJOdaikYd2k9aNashL/enyO8uuByCDovGhRF8I0GEcFgMuSkqcoiXnJJdd++Pl/w5w6e47PaFWEtR59A0zKJCNeIDWkXYoXkhpsbZTqcR9LwvpUKbCT8wQIL5+hfOEeQ4Oi6ROK8K6rCM8OA+P3uQeEZgmdxiHbEQAApWTR9XBTsQ1uGHnvTqu7f8sNKDGWM9FEmGs6gnoguaSM2DZBlrdXW1I1yXMOWUqpBSD9qX/Qo2rG2c4Kk97Q7hiogb0zRc149Rt2huOsErnJm5TfvnUXIgZan8GvodUYWAmhcXGx6/QnB0bcaSTq7YYErobxFngFGfcSHVBH+C8PeatdQZNORGJRBMbJ1ROBTdnXOnLHY7vtpoUFDa++UTpbt0zmsrpg/U+xveI8kuDeRPNpicK52qy3mlsTwQF+sC+DnLcmd7qa9zqHbLM4RWNAE5tLuAAik4X07eXEDX57Bz6ZIBxHJz7f5ywCGZJ1Mx1pWZsuwK1UWiyrsG0w98z4raSeGl9nwBu/vxj4HND+LmkYiNVr9oUnQL8M5P6U6wT7Iu9kEsy/buAPItGdlxxtsRtbbqCMwSHqLZaiXX0Gca7vU3X0BiTC7ql+PNjXxWajQ1YGqVJxjaxZ/wTPWs3iQD30KDN5DglNE2QeLM7eqW3umN6VtGNWkYDvg6dwwa733/axu5+8gVae1ppY/ym3zGBI1URKviGcoLCxxdHVok4k/Bx8kcKdlXLxU70RI2e8qi4ctJu5eQbvsw2Mavb4pEJpm4J74iFtcDpqHPWDEbRlxkDRCSpLeZZDN98p8bUAMBqlXI/6g5m06ZRBDG2Rg//WFnPK7K4RQqEqa/ZyRDUksnO3aug38eay2HmG/0lJMfA6Xg82M1zIBuuNFUYOmlcXf/3U2sIzv+f8C8BrPhjv+wiPHGOxoYHcgnrmD0x6juECF46bPeibBLQn0U/dfwLH9wG/SzQCD8GmgiFE8N/U48bzY4x2v3M5k475iIdJ3wYKLK1UaP/WiskENBbrSc5FEbEyqz9ytl8RUV0jWtWsID/Hut3GP6l74OKEvh5vtOyAlpebPizK0zJS+KaERNygP+w2gP3cesB92tNd2JsHts0Y+3PRU+mhdSeNSdeuqw4PqtTw4B/6W/Ds54ZVl6FN6FTJ5s7gFH4MXIiIoHLeVBRtSD1H4DD7Tds4GRA8yWLSvbZiREV0yuemUWKzeNDgKjz2lay7rd56YHjRJk3ry7KwksI6TmUhBERYxbGs8MCbRU1BoCgu/8c+aiae8ObEkMIs3rZ0gdPubVlvcQEHgCUhdgtK5fj2OWt/a7yiOIwdle/AZSIGRpy9YRzmZmR3bbToNon2YP3bjQk3re+tKow4z6zn23IjtyNFs926RROEU840zcf59SVDl/Dhwg77SkcIbKkt/IxhnAe912KPJXMQXRU9is2kBUrNfKY0TGlO0M9QFVUaWXsWv8y7+5GRuagFvFF+DfJzx/y+yC6u5v/6OwWmwl+LCSeWUAZIeLKYYhEPCFxlreUQGTLEMBT0LeEzRtHjuIL3U7L/cFk1HTd34lKcAxasbKVQ6G/nf7zvuMyfbpVlqnCzJb0JImpE9JRiEoUaUFPiGRL4XkOrTLXfLN724tufGuLR+liQReGaQ1yDyJJeokKMI6sQev3yLuoqffioxp372yYz5zhiP1ueOpzO1PG8B3grTuyjDNmp/cvH7r6oEZe1Ew</xb>
+<docu id="generate_shape_model">
+<parameters>
+<parameter id="ImageModel">
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+<item>vector_field</item>
+</type_list>
+</parameter>
+<parameter id="ModelArea">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelHeight">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>real</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelHeightAll">
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelID">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelRegionsOrigin">
+<multivalue>optional</multivalue>
+<sem_type>image</sem_type>
+</parameter>
+<parameter id="ModelWidth">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelWidthAll">
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="RegionROI">
+<multivalue>optional</multivalue>
+<sem_type>xld</sem_type>
+</parameter>
+<parameter id="Threshold">
+<default_value>200</default_value>
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="WindowHandle">
+<default_value>3600</default_value>
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>WindowHandle</item>
+</values>
+</parameter>
+<parameter id="isTrained">
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<value_max>1</value_max>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
