@@ -98,6 +98,8 @@ void MainWindow::onLoadTemplate() {
         cvMatToQPixmap(m_templateImg)
             .scaled(m_templateLabel->size(), Qt::KeepAspectRatio));
 
+    cv::threshold(m_templateImg, m_templateImg, 240, 255, cv::THRESH_BINARY);
+
     // 预处理并提取特征
     m_templateContour = findLargestContour(m_templateImg, true);
     if (!m_templateContour.empty()) {
@@ -190,7 +192,7 @@ std::vector<cv::Point> MainWindow::findLargestContour(const cv::Mat &src,
     // 背光图片：物体黑(0)，背景白(255)。
     // 使用 THRESH_BINARY_INV 将物体变成白色(255)，背景变成黑色(0)
     // 这样 findContours 才能正确找到物体
-    cv::threshold(src, thr, 50, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(src, thr, 240, 255, cv::THRESH_BINARY_INV);
 
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(thr, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
@@ -225,7 +227,7 @@ void MainWindow::onRunMatching() {
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
     cv::cvtColor(m_sceneImg, grayScene, cv::COLOR_BGR2GRAY);
-    cv::threshold(grayScene, thrScene, 50, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayScene, thrScene, 240, 255, cv::THRESH_BINARY_INV);
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contours;
