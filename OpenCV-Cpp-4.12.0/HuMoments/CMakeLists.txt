@@ -115,6 +115,8 @@ set(PROJECT_SOURCES
     ${${PROJECT_NAME_UPPER}_UI}
     ${${PROJECT_NAME_UPPER}_QRC}
     ${${PROJECT_NAME_UPPER}_TS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../share/layoutbuilder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../share/layoutbuilder.cpp
 )
 
 
@@ -163,7 +165,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${OpenCV_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../share/
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
