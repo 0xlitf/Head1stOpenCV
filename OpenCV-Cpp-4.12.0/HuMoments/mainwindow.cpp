@@ -4,13 +4,13 @@
 #include "layoutbuilder.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+    this->setMinimumSize(1200, 850);
     this->createComponents();
 }
 
 void MainWindow::createComponents() {
-    // --- 1. 构建 UI 界面 ---
     QWidget *centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
+    this->setCentralWidget(centralWidget);
 
     // 顶部按钮区
     m_loadTemplateButton = new QPushButton("1. 加载模板图像", this);
@@ -39,8 +39,6 @@ void MainWindow::createComponents() {
     m_sceneLabel->setMinimumSize(500, 300);
 
 
-
-    // 让场景图占据更多空间
     imgLayout->addWidget(Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
     imgLayout->addWidget(m_sceneLabel, 2);
 
@@ -54,7 +52,6 @@ void MainWindow::createComponents() {
     resize(1000, 700);
     setWindowTitle("OpenCV C++ 形状匹配与定位示例");
 
-    // --- 2. 信号槽连接 ---
     connect(m_loadTemplateButton, &QPushButton::clicked, this,
             &MainWindow::onLoadTemplate);
     connect(m_loadSceneButton, &QPushButton::clicked, this, &MainWindow::onLoadScene);
