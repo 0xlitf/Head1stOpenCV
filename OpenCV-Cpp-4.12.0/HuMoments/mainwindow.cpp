@@ -50,7 +50,7 @@ void MainWindow::createComponents() {
     Layouting::Column{btnLayout, imgLayout, m_logTextEdit}.attachTo(centralWidget);
 
     resize(1000, 700);
-    setWindowTitle("OpenCV C++ 形状匹配与定位示例");
+    setWindowTitle("OpenCV形状匹配与定位");
 
     connect(m_loadTemplateButton, &QPushButton::clicked, this,
             &MainWindow::onLoadTemplate);
@@ -146,10 +146,21 @@ void MainWindow::onLoadTemplate() {
         m_logTextEdit->append("Hu 矩特征 (Log Scale):");
         QString huStr;
         for (int i = 0; i < 7; i++) {
+            double value = hu[i];
+            double result;
             // 使用 Log 变换方便查看数量级
-            huStr += QString::number(-1 * copysign(1.0, hu[i]) * log10(abs(hu[i])),
-                                     'f', 2) +
-                     " ";
+            // 取Hu矩的绝对值
+            // 以10为底的对数
+            // 保存原始hu[i]的符号
+            if (fabs(value) < 1e-20) {  // 接近0的处理
+                result = 0.0;
+            } else {
+                result = -1 * copysign(1.0, value) * log10(fabs(value));
+            }
+            // huStr += QString::number(-1 * copysign(1.0, hu[i]) * log10(abs(hu[i])),
+            //                          'f', 2) +
+            //          " ";
+            huStr += QString::number(result, 'f', 2) + " ";
         }
         m_logTextEdit->append(huStr);
     }
