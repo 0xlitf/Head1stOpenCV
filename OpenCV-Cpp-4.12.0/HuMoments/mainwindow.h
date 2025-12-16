@@ -26,6 +26,7 @@ private slots:
 private:
     // UI 组件
     QLabel *m_templateLabel;
+    QLabel *m_contourLabel;
     QLabel *m_sceneLabel;
     QTextEdit *m_logTextEdit;
     QPushButton *m_loadTemplateButton;

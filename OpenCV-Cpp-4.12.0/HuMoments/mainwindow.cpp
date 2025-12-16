@@ -27,13 +27,21 @@ void MainWindow::createComponents() {
         "border: 1px solid gray; background: #eee;");
     m_templateLabel->setMinimumSize(300, 300);
 
+    m_contourLabel = new QLabel("轮廓预览", this);
+    m_contourLabel->setAlignment(Qt::AlignCenter);
+    m_contourLabel->setStyleSheet(
+        "border: 1px solid gray; background: #eee;");
+    m_contourLabel->setMinimumSize(300, 300);
+
     m_sceneLabel = new QLabel("检测场景预览", this);
     m_sceneLabel->setAlignment(Qt::AlignCenter);
     m_sceneLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_sceneLabel->setMinimumSize(500, 300);
 
+
+
     // 让场景图占据更多空间
-    imgLayout->addWidget(m_templateLabel, 1);
+    imgLayout->addWidget(Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
     imgLayout->addWidget(m_sceneLabel, 2);
 
     // 底部日志区
@@ -95,6 +103,34 @@ void MainWindow::onLoadTemplate() {
 
     // 预处理并提取特征
     m_templateContour = findLargestContour(m_templateImg, true);
+    if (!m_templateContour.empty()) {
+        // 1. 创建黑色画布
+        cv::Mat canvas = cv::Mat::zeros(m_templateImg.size(), CV_8UC3);
+
+        // 2. 绘制实心或空心轮廓
+        std::vector<std::vector<cv::Point>> contoursToDraw = { m_templateContour };
+        cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // 绿色线条
+
+        // --- 裁剪逻辑开始 ---
+
+        // 3. 计算轮廓的包围盒 (Bounding Rect)
+        cv::Rect boundRect = cv::boundingRect(m_templateContour);
+
+        // 4. 增加一点 padding (边距)，防止轮廓紧贴着边缘不好看
+        int padding = 10;
+        boundRect.x = std::max(0, boundRect.x - padding);
+        boundRect.y = std::max(0, boundRect.y - padding);
+        boundRect.width = std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
+        boundRect.height = std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
+
+        // 5. 裁剪图像 (ROI - Region of Interest)
+        cv::Mat croppedCanvas = canvas(boundRect);
+
+        // --- 裁剪逻辑结束 ---
+
+        // 6. 显示裁剪后的图像
+        m_contourLabel->setPixmap(cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+    }
 
     if (!m_templateContour.empty()) {
         // 计算 Hu 矩
