@@ -1,6 +1,7 @@
 ﻿#include "mainwindow.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QElapsedTimer>
 #include "layoutbuilder.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -52,10 +53,24 @@ void MainWindow::createComponents() {
     resize(1000, 700);
     setWindowTitle("OpenCV形状匹配与定位");
 
-    connect(m_loadTemplateButton, &QPushButton::clicked, this,
-            &MainWindow::onLoadTemplate);
-    connect(m_loadSceneButton, &QPushButton::clicked, this, &MainWindow::onLoadScene);
-    connect(m_matchButton, &QPushButton::clicked, this, &MainWindow::onRunMatching);
+    connect(m_loadTemplateButton, &QPushButton::clicked, this, [=](){
+        QElapsedTimer timer;
+        timer.start();
+        this->onLoadTemplate();
+        qDebug() << "onLoadTemplate elapsed:" << timer.elapsed();
+    });
+    connect(m_loadSceneButton, &QPushButton::clicked, this, [=](){
+        QElapsedTimer timer;
+        timer.start();
+        this->onLoadScene();
+        qDebug() << "onLoadScene elapsed:" << timer.elapsed();
+    });
+    connect(m_matchButton, &QPushButton::clicked, this, [=](){
+        QElapsedTimer timer;
+        timer.start();
+        this->onRunMatching();
+        qDebug() << "onRunMatching elapsed:" << timer.elapsed();
+    });
 }
 
 MainWindow::~MainWindow() {}
@@ -258,15 +273,19 @@ void MainWindow::onRunMatching() {
         double area = cv::contourArea(contours[i]);
 
         // A. 简单的面积过滤，排除极小的噪点
-        if (area < 500)
+        if (area < 300) {
+            qDebug() << "counters index:" << i << ", area:" << area << " < 500";
             continue;
+        }
+
+        qDebug() << "counters index:" << i << ", area:" << area;
 
         // B. 形状匹配 (OpenCV matchShapes)
         // 返回值越小越相似。0 表示完全一样。
         double score = cv::matchShapes(m_templateContour, contours[i],
                                        cv::CONTOURS_MATCH_I1, 0.0);
 
-        qDebug() << "counters index:" << i << ", score:" << score;
+        qDebug() << "counters index:" << i  << ", area:" << area << ", score:" << score;
 
         // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
         if (score < 0.2) {
