@@ -102,7 +102,13 @@ void MainWindow::onLoadTemplate() {
     m_templateContour = findLargestContour(m_templateImg, true);
     if (!m_templateContour.empty()) {
         // 1. 创建黑色画布
-        cv::Mat canvas = cv::Mat::zeros(m_templateImg.size(), CV_8UC3);
+        // cv::Mat canvas = cv::Mat::zeros(m_templateImg.size(), CV_8UC3);
+        cv::Mat canvas;
+        if (m_templateImg.channels() == 1) {
+            cv::cvtColor(m_templateImg, canvas, cv::COLOR_GRAY2BGR);
+        } else {
+            canvas = m_templateImg.clone();  // 深拷贝
+        }
 
         // 2. 绘制实心或空心轮廓
         std::vector<std::vector<cv::Point>> contoursToDraw = { m_templateContour };
@@ -111,22 +117,23 @@ void MainWindow::onLoadTemplate() {
         // --- 裁剪逻辑开始 ---
 
         // 3. 计算轮廓的包围盒 (Bounding Rect)
-        cv::Rect boundRect = cv::boundingRect(m_templateContour);
+        // cv::Rect boundRect = cv::boundingRect(m_templateContour);
 
         // 4. 增加一点 padding (边距)，防止轮廓紧贴着边缘不好看
-        int padding = 10;
-        boundRect.x = std::max(0, boundRect.x - padding);
-        boundRect.y = std::max(0, boundRect.y - padding);
-        boundRect.width = std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
-        boundRect.height = std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
+        // int padding = 10;
+        // boundRect.x = std::max(0, boundRect.x - padding);
+        // boundRect.y = std::max(0, boundRect.y - padding);
+        // boundRect.width = std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
+        // boundRect.height = std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
 
         // 5. 裁剪图像 (ROI - Region of Interest)
-        cv::Mat croppedCanvas = canvas(boundRect);
+        // cv::Mat croppedCanvas = canvas(boundRect);
 
         // --- 裁剪逻辑结束 ---
 
         // 6. 显示裁剪后的图像
-        m_contourLabel->setPixmap(cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+        // m_contourLabel->setPixmap(cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+        m_contourLabel->setPixmap(cvMatToQPixmap(canvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
     }
 
     if (!m_templateContour.empty()) {
@@ -213,9 +220,25 @@ void MainWindow::onRunMatching() {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(thrScene, contours, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
+    qDebug() << "findContours contours.size: " << contours.size();
 
     // 3. 复制一份场景图用于绘制结果
     cv::Mat resultImg = m_sceneImg.clone();
+    if (!contours.empty()) {
+        // 青色在BGR中是 (255, 255, 0)
+        cv::Scalar cyanColor(255, 255, 0);  // B=255, G=255, R=0
+
+        // 绘制所有轮廓
+        cv::drawContours(resultImg, contours,
+                         -1,           // 绘制所有轮廓
+                         cyanColor,    // 青色
+                         2,            // 线宽
+                         cv::LINE_AA); // 抗锯齿
+
+        qDebug() << "已绘制" << contours.size() << "个轮廓";
+    } else {
+        qDebug() << "未找到任何轮廓";
+    }
 
     int matchCount = 0;
     for (size_t i = 0; i < contours.size(); i++) {
@@ -229,6 +252,8 @@ void MainWindow::onRunMatching() {
         // 返回值越小越相似。0 表示完全一样。
         double score = cv::matchShapes(m_templateContour, contours[i],
                                        cv::CONTOURS_MATCH_I1, 0.0);
+
+        qDebug() << "counters index:" << i << ", score:" << score;
 
         // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
         if (score < 0.2) {
@@ -248,9 +273,9 @@ void MainWindow::onRunMatching() {
             // E. 绘制中心点和角度文字
             cv::circle(resultImg, rotRect.center, 5, cv::Scalar(0, 0, 255), -1);
 
-            std::string text = "Ang: " + std::to_string((int)rotRect.angle);
-            cv::putText(resultImg, text, rotRect.center + cv::Point2f(20, 20),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+            // std::string text = "Ang: " + std::to_string((int)rotRect.angle);
+            // cv::putText(resultImg, text, rotRect.center, // rotRect.center + cv::Point2f(40, 40)
+            //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
             m_logTextEdit->append(QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
                                .arg(score)
