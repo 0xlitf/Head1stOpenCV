@@ -13,44 +13,44 @@ void MainWindow::createComponents() {
     setCentralWidget(centralWidget);
 
     // 顶部按钮区
-    btnLoadTemplate = new QPushButton("1. 加载模板图像", this);
-    btnLoadScene = new QPushButton("2. 加载检测图像", this);
-    btnMatch = new QPushButton("3. 开始识别与定位", this);
+    m_loadTemplateButton = new QPushButton("1. 加载模板图像", this);
+    m_loadSceneButton = new QPushButton("2. 加载检测图像", this);
+    m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
-    auto btnLayout = Layouting::Row{btnLoadTemplate, btnLoadScene, btnMatch};
+    auto btnLayout = Layouting::Row{m_loadTemplateButton, m_loadSceneButton, m_matchButton};
 
     // 中间图像显示区
     QHBoxLayout *imgLayout = new QHBoxLayout();
-    lblTemplateDisplay = new QLabel("模板预览", this);
-    lblTemplateDisplay->setAlignment(Qt::AlignCenter);
-    lblTemplateDisplay->setStyleSheet(
+    m_templateLabel = new QLabel("模板预览", this);
+    m_templateLabel->setAlignment(Qt::AlignCenter);
+    m_templateLabel->setStyleSheet(
         "border: 1px solid gray; background: #eee;");
-    lblTemplateDisplay->setMinimumSize(300, 300);
+    m_templateLabel->setMinimumSize(300, 300);
 
-    lblSceneDisplay = new QLabel("检测场景预览", this);
-    lblSceneDisplay->setAlignment(Qt::AlignCenter);
-    lblSceneDisplay->setStyleSheet("border: 1px solid gray; background: #eee;");
-    lblSceneDisplay->setMinimumSize(500, 300);
+    m_sceneLabel = new QLabel("检测场景预览", this);
+    m_sceneLabel->setAlignment(Qt::AlignCenter);
+    m_sceneLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
+    m_sceneLabel->setMinimumSize(500, 300);
 
     // 让场景图占据更多空间
-    imgLayout->addWidget(lblTemplateDisplay, 1);
-    imgLayout->addWidget(lblSceneDisplay, 2);
+    imgLayout->addWidget(m_templateLabel, 1);
+    imgLayout->addWidget(m_sceneLabel, 2);
 
     // 底部日志区
-    txtLog = new QTextEdit(this);
-    txtLog->setMaximumHeight(150);
-    txtLog->setReadOnly(true);
+    m_logTextEdit = new QTextEdit(this);
+    m_logTextEdit->setMaximumHeight(150);
+    m_logTextEdit->setReadOnly(true);
 
-    Layouting::Column{btnLayout, imgLayout, txtLog}.attachTo(centralWidget);
+    Layouting::Column{btnLayout, imgLayout, m_logTextEdit}.attachTo(centralWidget);
 
     resize(1000, 700);
     setWindowTitle("OpenCV C++ 形状匹配与定位示例");
 
     // --- 2. 信号槽连接 ---
-    connect(btnLoadTemplate, &QPushButton::clicked, this,
+    connect(m_loadTemplateButton, &QPushButton::clicked, this,
             &MainWindow::onLoadTemplate);
-    connect(btnLoadScene, &QPushButton::clicked, this, &MainWindow::onLoadScene);
-    connect(btnMatch, &QPushButton::clicked, this, &MainWindow::onRunMatching);
+    connect(m_loadSceneButton, &QPushButton::clicked, this, &MainWindow::onLoadScene);
+    connect(m_matchButton, &QPushButton::clicked, this, &MainWindow::onRunMatching);
 }
 
 MainWindow::~MainWindow() {}
@@ -89,9 +89,9 @@ void MainWindow::onLoadTemplate() {
         return;
 
     // 显示原图
-    lblTemplateDisplay->setPixmap(
+    m_templateLabel->setPixmap(
         cvMatToQPixmap(m_templateImg)
-            .scaled(lblTemplateDisplay->size(), Qt::KeepAspectRatio));
+            .scaled(m_templateLabel->size(), Qt::KeepAspectRatio));
 
     // 预处理并提取特征
     m_templateContour = findLargestContour(m_templateImg, true);
@@ -102,8 +102,8 @@ void MainWindow::onLoadTemplate() {
         double hu[7];
         cv::HuMoments(moms, hu);
 
-        txtLog->append("<b>[模板加载成功]</b>");
-        txtLog->append("Hu 矩特征 (Log Scale):");
+        m_logTextEdit->append("<b>[模板加载成功]</b>");
+        m_logTextEdit->append("Hu 矩特征 (Log Scale):");
         QString huStr;
         for (int i = 0; i < 7; i++) {
             // 使用 Log 变换方便查看数量级
@@ -111,7 +111,7 @@ void MainWindow::onLoadTemplate() {
                                      'f', 2) +
                      " ";
         }
-        txtLog->append(huStr);
+        m_logTextEdit->append(huStr);
     }
 }
 
@@ -126,10 +126,10 @@ void MainWindow::onLoadScene() {
     if (m_sceneImg.empty())
         return;
 
-    lblSceneDisplay->setPixmap(
+    m_sceneLabel->setPixmap(
         cvMatToQPixmap(m_sceneImg)
-            .scaled(lblSceneDisplay->size(), Qt::KeepAspectRatio));
-    txtLog->append("<b>[场景加载成功]</b> 等待识别...");
+            .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
+    m_logTextEdit->append("<b>[场景加载成功]</b> 等待识别...");
 }
 
 // 核心：寻找最大轮廓
@@ -169,7 +169,7 @@ void MainWindow::onRunMatching() {
         return;
     }
 
-    txtLog->append("--- 开始匹配 ---");
+    m_logTextEdit->append("--- 开始匹配 ---");
 
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
@@ -219,7 +219,7 @@ void MainWindow::onRunMatching() {
             cv::putText(resultImg, text, rotRect.center + cv::Point2f(20, 20),
                         cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
 
-            txtLog->append(QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
+            m_logTextEdit->append(QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
                                .arg(score)
                                .arg(rotRect.angle)
                                .arg(rotRect.center.x)
@@ -232,10 +232,10 @@ void MainWindow::onRunMatching() {
     }
 
     if (matchCount == 0) {
-        txtLog->append("未在场景中找到匹配物体。");
+        m_logTextEdit->append("未在场景中找到匹配物体。");
     }
 
     // 更新界面显示
-    lblSceneDisplay->setPixmap(cvMatToQPixmap(resultImg).scaled(
-        lblSceneDisplay->size(), Qt::KeepAspectRatio));
+    m_sceneLabel->setPixmap(cvMatToQPixmap(resultImg).scaled(
+        m_sceneLabel->size(), Qt::KeepAspectRatio));
 }
