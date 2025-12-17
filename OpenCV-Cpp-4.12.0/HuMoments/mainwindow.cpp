@@ -274,11 +274,9 @@ void MainWindow::onRunMatching() {
 
         // A. 简单的面积过滤，排除极小的噪点
         if (area < 300) {
-            qDebug() << "counters index:" << i << ", area:" << area << " < 500";
+            // qDebug() << "counters index:" << i << ", area:" << area << " < 500";
             continue;
         }
-
-        qDebug() << "counters index:" << i << ", area:" << area;
 
         // B. 形状匹配 (OpenCV matchShapes)
         // 返回值越小越相似。0 表示完全一样。

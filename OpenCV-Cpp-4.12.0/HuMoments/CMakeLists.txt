@@ -127,6 +127,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
             MANUAL_FINALIZATION
             ${PROJECT_SOURCES}
             ${app_icon_resource_windows}
+            ../share/messageinstaller.cpp ../share/messageinstaller.h
         )
     else()
         qt_add_executable(${PROJECT_NAME}
