@@ -41,11 +41,13 @@ RESOURCES += \
 HEADERS += \
     ../share/layoutbuilder.h \
     ../share/messageinstaller.h \
+    humomentsmatcher.h \
     mainwindow.h
 
 SOURCES += \
     ../share/layoutbuilder.cpp \
     ../share/messageinstaller.cpp \
+    humomentsmatcher.cpp \
     main.cpp \
     mainwindow.cpp
 

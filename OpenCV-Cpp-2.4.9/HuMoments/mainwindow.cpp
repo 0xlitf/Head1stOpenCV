@@ -75,110 +75,53 @@ void MainWindow::createComponents() {
 
 MainWindow::~MainWindow() {}
 
-// 辅助：Mat 转 QPixmap
-QPixmap MainWindow::cvMatToQPixmap(const cv::Mat &inMat) {
-    if (inMat.empty())
-        return QPixmap();
-
-    // 转换颜色空间 BGR -> RGB
-    cv::Mat temp;
-    if (inMat.channels() == 3) {
-        cv::cvtColor(inMat, temp, cv::COLOR_BGR2RGB);
-    } else if (inMat.channels() == 1) {
-        cv::cvtColor(inMat, temp, cv::COLOR_GRAY2RGB);
-    } else {
-        return QPixmap();
-    }
-
-    QImage img((const uchar *)temp.data, temp.cols, temp.rows, temp.step,
-               QImage::Format_RGB888);
-    // bits() 只是浅拷贝，必须 deep copy 才能让 QPixmap 在 cv::Mat 释放后继续存在
-    img.bits();
-    return QPixmap::fromImage(img.copy());
-}
-
 void MainWindow::onLoadTemplate() {
     QString fileName = QFileDialog::getOpenFileName(this, "选择模板图片", "",
                                                     "Images (*.png *.jpg *.bmp)");
     if (fileName.isEmpty())
         return;
 
-    // 读取灰度图
-    m_templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
-    if (m_templateImg.empty())
+    cv::Mat templateImg = m_matcher.addTemplate(fileName);
+
+    if (templateImg.empty())
         return;
 
     // 显示原图
     m_templateLabel->setPixmap(
-        cvMatToQPixmap(m_templateImg)
+        m_matcher.cvMatToQPixmap(templateImg)
             .scaled(m_templateLabel->size(), Qt::KeepAspectRatio));
 
-    cv::threshold(m_templateImg, m_templateImg, 240, 255, cv::THRESH_BINARY);
+    cv::threshold(templateImg, templateImg, 240, 255, cv::THRESH_BINARY);
 
     // 预处理并提取特征
-    m_templateContour = findLargestContour(m_templateImg, true);
+    m_templateContour = m_matcher.findLargestContour(templateImg, true);
     if (!m_templateContour.empty()) {
         // 1. 创建黑色画布
-        // cv::Mat canvas = cv::Mat::zeros(m_templateImg.size(), CV_8UC3);
+        // cv::Mat canvas = cv::Mat::zeros(templateImg.size(), CV_8UC3);
         cv::Mat canvas;
-        if (m_templateImg.channels() == 1) {
-            cv::cvtColor(m_templateImg, canvas, cv::COLOR_GRAY2BGR);
+        if (templateImg.channels() == 1) {
+            cv::cvtColor(templateImg, canvas, cv::COLOR_GRAY2BGR);
         } else {
-            canvas = m_templateImg.clone();  // 深拷贝
+            canvas = templateImg.clone();  // 深拷贝
         }
 
         // 2. 绘制实心或空心轮廓
         std::vector<std::vector<cv::Point>> contoursToDraw = { m_templateContour };
         cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // 绿色线条
 
-        // --- 裁剪逻辑开始 ---
-
-        // 3. 计算轮廓的包围盒 (Bounding Rect)
-        // cv::Rect boundRect = cv::boundingRect(m_templateContour);
-
-        // 4. 增加一点 padding (边距)，防止轮廓紧贴着边缘不好看
-        // int padding = 10;
-        // boundRect.x = std::max(0, boundRect.x - padding);
-        // boundRect.y = std::max(0, boundRect.y - padding);
-        // boundRect.width = std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
-        // boundRect.height = std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
-
-        // 5. 裁剪图像 (ROI - Region of Interest)
-        // cv::Mat croppedCanvas = canvas(boundRect);
-
-        // --- 裁剪逻辑结束 ---
+        auto cropped = m_matcher.croppedCanvas(templateImg, m_templateContour);
 
         // 6. 显示裁剪后的图像
-        // m_contourLabel->setPixmap(cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
-        m_contourLabel->setPixmap(cvMatToQPixmap(canvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+        // m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+        m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(cropped).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
     }
 
     if (!m_templateContour.empty()) {
-        // 计算 Hu 矩
-        cv::Moments moms = cv::moments(m_templateContour);
-        double hu[7];
-        cv::HuMoments(moms, hu);
-
         m_logTextEdit->append("<b>[模板加载成功]</b>");
         m_logTextEdit->append("Hu 矩特征 (Log Scale):");
-        QString huStr;
-        for (int i = 0; i < 7; i++) {
-            double value = hu[i];
-            double result;
-            // 使用 Log 变换方便查看数量级
-            // 取Hu矩的绝对值
-            // 以10为底的对数
-            // 保存原始hu[i]的符号
-            if (fabs(value) < 1e-20) {  // 接近0的处理
-                result = 0.0;
-            } else {
-                result = -1 * copysign(1.0, value) * log10(fabs(value));
-            }
-            // huStr += QString::number(-1 * copysign(1.0, hu[i]) * log10(abs(hu[i])),
-            //                          'f', 2) +
-            //          " ";
-            huStr += QString::number(result, 'f', 2) + " ";
-        }
+        // 计算 Hu 矩
+        QString huStr = m_matcher.calcHuMoments(m_templateContour);
+
         m_logTextEdit->append(huStr);
     }
 }
@@ -195,40 +138,9 @@ void MainWindow::onLoadScene() {
         return;
 
     m_sceneLabel->setPixmap(
-        cvMatToQPixmap(m_sceneImg)
+        m_matcher.cvMatToQPixmap(m_sceneImg)
             .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
     m_logTextEdit->append("<b>[场景加载成功]</b> 等待识别...");
-}
-
-// 核心：寻找最大轮廓
-std::vector<cv::Point> MainWindow::findLargestContour(const cv::Mat &src,
-                                                      bool isTemplate) {
-    cv::Mat thr;
-    // 背光图片：物体黑(0)，背景白(255)。
-    // 使用 THRESH_BINARY_INV 将物体变成白色(255)，背景变成黑色(0)
-    // 这样 findContours 才能正确找到物体
-    cv::threshold(src, thr, 240, 255, cv::THRESH_BINARY_INV);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(thr, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-    if (contours.empty())
-        return {};
-
-    // 找到面积最大的轮廓
-    double maxArea = 0;
-    int maxIdx = -1;
-    for (size_t i = 0; i < contours.size(); i++) {
-        double area = cv::contourArea(contours[i]);
-        if (area > maxArea) {
-            maxArea = area;
-            maxIdx = i;
-        }
-    }
-
-    if (maxIdx != -1)
-        return contours[maxIdx];
-    return {};
 }
 
 void MainWindow::onRunMatching() {
@@ -324,6 +236,6 @@ void MainWindow::onRunMatching() {
     }
 
     // 更新界面显示
-    m_sceneLabel->setPixmap(cvMatToQPixmap(resultImg).scaled(
+    m_sceneLabel->setPixmap(m_matcher.cvMatToQPixmap(resultImg).scaled(
         m_sceneLabel->size(), Qt::KeepAspectRatio));
 }
