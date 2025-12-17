@@ -1,11 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include <QStyle>
-
+#include <QLayout>
 #include <QFormLayout>
 #include <QList>
+#include <QLinkedList>
 #include <QString>
 #include <QtGlobal>
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 class QLayout;
@@ -80,12 +82,21 @@ namespace Layouting {
         LayoutItem(const LayoutItem& t);
         LayoutItem& operator=(const LayoutItem& t) = default;
 
-        template<class T>
+        template <
+            typename T,
+            typename = typename std::enable_if<std::is_base_of<LayoutItem, T>::value>::type
+            >
         LayoutItem(const T& t) {
-            if constexpr (std::is_base_of_v<LayoutItem, T>)
-                LayoutItem::operator=(t);
-            else
-                createItem(this, t);
+            LayoutItem::operator=(t);
+        }
+
+        template <
+            typename T,
+            typename = typename std::enable_if<!std::is_base_of<LayoutItem, T>::value>::type,
+            typename = void
+            >
+        LayoutItem(const T& t) {
+            createItem(this, t);
         }
 
         void attachTo(QWidget* w) const;
@@ -133,9 +144,19 @@ namespace Layouting {
         Column(std::initializer_list<LayoutItem> items);
     };
 
+    class ColumnWithMargin : public LayoutItem {
+    public:
+        ColumnWithMargin(std::initializer_list<LayoutItem> items, int margin = 5);
+    };
+
     class Row : public LayoutItem {
     public:
         Row(std::initializer_list<LayoutItem> items);
+    };
+
+    class RowWithMargin : public LayoutItem {
+    public:
+        RowWithMargin(std::initializer_list<LayoutItem> items, int margin = 5);
     };
 
     class Flow : public LayoutItem {
@@ -276,7 +297,7 @@ namespace Layouting {
     // "Signals"
 
     LayoutItem onClicked(const std::function<void()>&, QObject* guard = nullptr);
-    LayoutItem onTextChanged(const std::function<void(const QString&)>&,
+    LayoutItem onStringChanged(const std::function<void(const QString&)>&,
                                            QObject* guard = nullptr);
     LayoutItem onValueChanged(const std::function<void(int)>&,
                                             QObject* guard = nullptr);
@@ -294,4 +315,4 @@ namespace Layouting {
         };
     }
 
-} // namespace Layout
+} // namespace Layouting
