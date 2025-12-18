@@ -7,6 +7,8 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     this->setMinimumSize(1200, 850);
     this->createComponents();
+
+    m_matcher.setTemplateFolder("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
 }
 
 void MainWindow::createComponents() {
@@ -18,8 +20,24 @@ void MainWindow::createComponents() {
     m_loadSceneButton = new QPushButton("2. 加载检测图像", this);
     m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
-    auto btnLayout =
-        Layouting::Row{m_loadTemplateButton, m_loadSceneButton, m_matchButton};
+    m_templateFolderLabel = new QLabel("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler", this);
+    m_templateDescLabel = new QLabel("模板文件夹路径: ", this);
+    m_templateFolderLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    m_templateFolderLabel->setFixedHeight(30);
+    m_templateDescLabel->setFixedHeight(30);
+
+    auto btnLayout = Layouting::Column{
+        Layouting::Row{
+            m_loadTemplateButton,
+            m_loadSceneButton,
+            m_matchButton,
+        },
+        Layouting::Row{
+            m_templateDescLabel,
+            m_templateFolderLabel,
+        },
+    };
 
     // 中间图像显示区
     QHBoxLayout *imgLayout = new QHBoxLayout();

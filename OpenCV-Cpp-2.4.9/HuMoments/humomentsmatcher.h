@@ -10,11 +10,33 @@
 #include <QMap>
 #include <QPixmap>
 #include <QString>
+#include <QObject>
 #include <opencv2/opencv.hpp>
 
-class HuMomentsMatcher {
+class HuMomentsMatcher: QObject {
+    Q_OBJECT
+public:
+    enum ErrorCode {
+        SUCCESS = 0,           // 成功
+        FILE_NOT_FOUND = 1,     // 文件不存在
+        IMAGE_LOAD_FAILED = 2,  // 图像加载失败
+        INVALID_IMAGE = 3,      // 无效图像
+        NO_CONTOURS_FOUND = 4,  // 未找到轮廓
+        TEMPLATE_NOT_SET = 5,   // 模板未设置
+        MATCH_FAILED = 6        // 匹配失败
+    };
+    Q_ENUM(ErrorCode)  // 启用Qt元对象系统
+
+signals:
+    void errorOccured(const QString& errorStr);
+
 public:
     HuMomentsMatcher();
+
+    int m_whiteThreshold{240};
+    void setWhiteThreshold(int thres) {
+        m_whiteThreshold = thres;
+    }
 
     void addTemplateIntoMap(const QString &name, const QString &huStr,
                             std::vector<cv::Point> contour);

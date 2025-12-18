@@ -30,6 +30,9 @@ private slots:
 
 private:
     // UI 组件
+    QLabel *m_templateFolderLabel;
+    QLabel *m_templateDescLabel;
+
     QLabel *m_templateLabel;
     QLabel *m_contourLabel;
     QLabel *m_sceneLabel;

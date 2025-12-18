@@ -12,7 +12,7 @@ cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
     } else {
         auto folderName = FileUtils::getFolderBaseName(fileName);
 
-        cv::threshold(templateImg, templateImg, 240, 255, cv::THRESH_BINARY);
+        cv::threshold(templateImg, templateImg, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
         auto templateContour = this->findLargestContour(templateImg, true);
 
@@ -63,7 +63,7 @@ std::vector<cv::Point> HuMomentsMatcher::findLargestContour(const cv::Mat &src,
     // 背光图片：物体黑(0)，背景白(255)。
     // 使用 THRESH_BINARY_INV 将物体变成白色(255)，背景变成黑色(0)
     // 这样 findContours 才能正确找到物体
-    cv::threshold(src, thr, 240, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(src, thr, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(thr, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
@@ -173,7 +173,7 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
     cv::cvtColor(sceneImg, grayScene, cv::COLOR_BGR2GRAY);
-    cv::threshold(grayScene, thrScene, 240, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contours;
@@ -223,6 +223,7 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
             // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
             if (score < 0.2) {
+                auto objName = std::get<0>(m_humomentsList[i]);
                 matchCount++;
 
                 // C. 获取旋转矩形 (RotatedRect)
@@ -244,18 +245,22 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 // cv::Point2f(40, 40)
                 //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-                qDebug() <<
-                    QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
-                        .arg(score)
-                        .arg(rotRect.angle)
-                        .arg(rotRect.center.x)
-                        .arg(rotRect.center.y).toUtf8().constData();
+                qDebug() << QString("发现目标 %1 -> 相似度: %2, 角度: %3, "
+                                    "坐标: (%4, %5)")
+                                .arg(objName)
+                                .arg(score)
+                                .arg(rotRect.angle)
+                                .arg(rotRect.center.x)
+                                .arg(rotRect.center.y)
+                                .toUtf8()
+                                .constData();
+
+                break;
             } else {
                 // 可选：绘制不匹配的轮廓为红色，方便调试
                 // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255),
                 // 1);
             }
-            break;
         }
     }
 
