@@ -24,10 +24,12 @@ int main(int argc, char *argv[]) {
     }
 
     if (auto useMainWindow = false) {
-        MainWindow* w = new MainWindow;
-        w->setWindowFlags(Qt::Window);
-        w->show();
-        w->showMaximized();
+        MainWindow w;
+        w.setWindowFlags(Qt::Window);
+        w.show();
+        w.showMaximized();
+
+        return a.exec();
     } else {
         QString sceneImage = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
                              "A_20250429172418975_1044_16_hrotate_multiobj.png";
@@ -38,7 +40,11 @@ int main(int argc, char *argv[]) {
 
         matcher.setTemplateFolder(
             "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
-        auto results = matcher.matchImage(sceneImage);
+
+        // auto results = matcher.matchImage(sceneImage);
+        // 等同于
+        cv::Mat imageMat = cv::imread(sceneImage.toStdString(), cv::IMREAD_COLOR);
+        auto results = matcher.matchMat(imageMat);
 
         int i = 0;
         for (auto &result : results) {
@@ -61,7 +67,9 @@ int main(int argc, char *argv[]) {
         auto resultImage = matcher.drawResultsOnImage(sceneImg, results);
 
         cv::imshow("resultImage", resultImage);
-    }
+        cv::waitKey(0);
+        cv::destroyAllWindows();
 
-    return a.exec();
+        return 0;
+    }
 }
