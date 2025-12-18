@@ -41,6 +41,15 @@ void MainWindow::createComponents() {
     m_templateFolderLabel->setFixedHeight(30);
     m_templateDescLabel->setFixedHeight(30);
 
+    m_matchImageLabel = new QLabel(
+        "", this);
+    m_matchImageDescLabel = new QLabel("检测图片路径: ", this);
+    m_matchImageLabel->setSizePolicy(QSizePolicy::Expanding,
+                                         QSizePolicy::Fixed);
+
+    m_matchImageLabel->setFixedHeight(30);
+    m_matchImageDescLabel->setFixedHeight(30);
+
     auto btnLayout = Layouting::Column{
         Layouting::Row{
             m_loadTemplateButton,
@@ -50,6 +59,10 @@ void MainWindow::createComponents() {
         Layouting::Row{
             m_templateDescLabel,
             m_templateFolderLabel,
+        },
+        Layouting::Row{
+            m_matchImageDescLabel,
+            m_matchImageLabel,
         },
     };
 
@@ -86,6 +99,8 @@ void MainWindow::createComponents() {
     setWindowTitle("OpenCV形状匹配与定位");
 
     connect(m_loadTemplateButton, &QPushButton::clicked, this, [=]() {
+        qDebug() << "m_loadTemplateButton clicked";
+
         QElapsedTimer timer;
         timer.start();
         // this->onLoadTemplate();
@@ -123,7 +138,7 @@ void MainWindow::onLoadTemplate() {
     if (fileName.isEmpty())
         return;
 
-    cv::Mat templateImg = m_matcher.addTemplate(fileName);
+    auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
 
     if (templateImg.empty())
         return;
@@ -176,6 +191,8 @@ void MainWindow::onLoadScene() {
                                                    "Images (*.png *.jpg *.bmp)");
     if (m_sceneFileName.isEmpty())
         return;
+
+    m_matchImageLabel->setText(m_sceneFileName);
 
     // 这里读取彩色图，方便最后画绿色的框
     m_sceneImg = cv::imread(m_sceneFileName.toStdString(), cv::IMREAD_COLOR);

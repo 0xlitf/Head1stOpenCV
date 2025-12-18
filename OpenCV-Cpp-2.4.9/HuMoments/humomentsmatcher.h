@@ -34,7 +34,9 @@ signals:
 public:
     HuMomentsMatcher(QObject* parent = nullptr);
 
+    double m_scoreThreshold{0.2};
     int m_whiteThreshold{240};
+
     void setWhiteThreshold(int thres) {
         m_whiteThreshold = thres;
     }
@@ -49,7 +51,7 @@ public:
     std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
                                               bool isTemplate);
 
-    cv::Mat addTemplate(const QString &fileName);
+    void addTemplate(const QString &fileName);
 
     QString calcHuMoments(std::vector<cv::Point> contour);
 
@@ -63,7 +65,7 @@ public:
     void matchMat(cv::Mat sceneImg);
 
 private:
-    QList<std::tuple<QString, QString, std::vector<cv::Point>>> m_humomentsList;
+    QList<std::tuple<QString, QString, std::vector<cv::Point>>> m_huMomentsList;
 };
 
 #endif // HUMOMENTSMATCHER_H

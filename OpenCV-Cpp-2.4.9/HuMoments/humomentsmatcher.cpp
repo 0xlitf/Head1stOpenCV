@@ -2,14 +2,14 @@
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
-cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
+void HuMomentsMatcher::addTemplate(const QString &fileName) {
 
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
     if (templateImg.empty()) {
         qDebug() << "templateImg is empty: " << fileName;
         emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
-        return cv::Mat();
+        return;
     } else {
         auto folderName = FileUtils::getFolderBaseName(fileName);
 
@@ -27,14 +27,12 @@ cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
 
         this->addTemplateIntoMap(folderName, huStr, templateContour);
     }
-
-    return templateImg;
 }
 
 void HuMomentsMatcher::addTemplateIntoMap(const QString &name, const QString& huStr, std::vector<cv::Point> contour) {
 
     auto tuple = std::make_tuple(name, huStr, contour);
-    m_humomentsList.append(tuple);
+    m_huMomentsList.append(tuple);
 }
 
 QPixmap HuMomentsMatcher::cvMatToQPixmap(const cv::Mat &inMat) {
@@ -148,11 +146,13 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
         this->addTemplate(filename);
     }
 
-    emit sendLog(QString("setTemplateFolder: %1").arg(folderName));
+    auto folderNames = FileUtils::findDepth1Folder(folderName);
+
+    emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: %2\ntemplate images count: %3").arg(folderName).arg(folderNames.size()).arg(m_huMomentsList.size()));
 
     qDebug() << "m_humomentsList:";
-    for (int i = 0; i < m_humomentsList.size(); ++i) {
-        auto tuple = m_humomentsList[i];
+    for (int i = 0; i < m_huMomentsList.size(); ++i) {
+        auto tuple = m_huMomentsList[i];
         qDebug() << i << ", key, value.size: " << std::get<0>(tuple)
                  << std::get<1>(tuple);
     }
@@ -218,28 +218,30 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         // B. 形状匹配 (OpenCV matchShapes)
         // 返回值越小越相似。0 表示完全一样。
 
-        for (int i = 0; i < m_humomentsList.size(); ++i) {
-            auto contour = std::get<2>(m_humomentsList[i]);
+        for (int j = 0; j < m_huMomentsList.size(); ++j) {
+            auto contour = std::get<2>(m_huMomentsList[j]);
 
             double score = cv::matchShapes(contour, contours[i],
                                            CV_CONTOURS_MATCH_I1, 0.0);
 
-            qDebug() << "counters index:" << i << ", area:" << area
+            qDebug() << "counters index:" << j << ", area:" << area
                      << ", score:" << score;
 
+            emit sendLog(QString("counters index: %1, area: %2, score: %3").arg(j).arg(area).arg(score));
+
             // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
-            if (score < 0.2) {
-                auto objName = std::get<0>(m_humomentsList[i]);
+            if (score < m_scoreThreshold) {
+                auto objName = std::get<0>(m_huMomentsList[j]);
                 matchCount++;
 
                 // C. 获取旋转矩形 (RotatedRect)
-                cv::RotatedRect rotRect = cv::minAreaRect(contours[i]);
+                cv::RotatedRect rotRect = cv::minAreaRect(contours[j]);
 
                 // D. 绘制旋转矩形
                 cv::Point2f vertices[4];
                 rotRect.points(vertices);
-                for (int j = 0; j < 4; j++) {
-                    cv::line(resultImg, vertices[j], vertices[(j + 1) % 4],
+                for (int k = 0; k < 4; k++) {
+                    cv::line(resultImg, vertices[k], vertices[(k + 1) % 4],
                              cv::Scalar(0, 255, 0), 3);
                 }
 
@@ -251,15 +253,16 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 // cv::Point2f(40, 40)
                 //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-                qDebug() << QString("发现目标 %1 -> 相似度: %2, 角度: %3, "
-                                    "坐标: (%4, %5)")
-                                .arg(objName)
-                                .arg(score)
-                                .arg(rotRect.angle)
-                                .arg(rotRect.center.x)
-                                .arg(rotRect.center.y)
-                                .toUtf8()
-                                .constData();
+                auto str = QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
+                                   "坐标: (%4, %5)")
+                               .arg(objName)
+                               .arg(score)
+                               .arg(rotRect.angle)
+                               .arg(rotRect.center.x)
+                               .arg(rotRect.center.y);
+                qDebug() << str;
+
+                emit sendLog(str);
 
                 break;
             } else {

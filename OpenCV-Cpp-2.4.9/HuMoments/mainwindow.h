@@ -33,6 +33,9 @@ private:
     QLabel *m_templateFolderLabel;
     QLabel *m_templateDescLabel;
 
+    QLabel *m_matchImageLabel;
+    QLabel *m_matchImageDescLabel;
+
     QLabel *m_templateLabel;
     QLabel *m_contourLabel;
     QLabel *m_sceneLabel;
