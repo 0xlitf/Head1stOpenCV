@@ -31,19 +31,32 @@ int main(int argc, char *argv[]) {
 
         return a.exec();
     } else {
-        QString sceneImage = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
+        QString sceneImageStr = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
                              "A_20250429172418975_1044_16_hrotate_multiobj.png";
 
         HuMomentsMatcher matcher;
         matcher.setWhiteThreshold(240);
         matcher.setScoreThreshold(0.1);
 
-        matcher.setTemplateFolder(
-            "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
+        QString templateFolderStr = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler";
+        matcher.setTemplateFolder(templateFolderStr);
+
+        // 3. 检查模板文件夹
+        QDir templateDir(templateFolderStr);
+        if (!templateDir.exists()) {
+            qWarning() << "警告：模板文件夹不存在";
+            return -1;
+        }
+
+        QFile sceneImageFile(sceneImageStr);
+        if (!sceneImageFile.exists()) {
+            qWarning() << "警告：匹配图片不存在";
+            return -1;
+        }
 
         // auto results = matcher.matchImage(sceneImage);
         // 等同于
-        cv::Mat imageMat = cv::imread(sceneImage.toStdString(), cv::IMREAD_COLOR);
+        cv::Mat imageMat = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
         auto results = matcher.matchMat(imageMat);
 
         int i = 0;
@@ -62,7 +75,7 @@ int main(int argc, char *argv[]) {
             ++i;
         }
 
-        auto sceneImg = cv::imread(sceneImage.toStdString(), cv::IMREAD_COLOR);
+        auto sceneImg = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
 
         auto resultImage = matcher.drawResultsOnImage(sceneImg, results);
 
