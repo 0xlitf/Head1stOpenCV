@@ -2,7 +2,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "humomentsmatcher.h"
-// #include "mainwindow.h"
+#include "mainwindow.h"
 #include "messageinstaller.h"
 #include <QApplication>
 #include <QFontDatabase>
@@ -24,10 +24,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (auto useMainWindow = false) {
-        // MainWindow* w = new MainWindow;
-        // w->setWindowFlags(Qt::Window);
-        // w->show();
-        // w->showMaximized();
+        MainWindow* w = new MainWindow;
+        w->setWindowFlags(Qt::Window);
+        w->show();
+        w->showMaximized();
     } else {
         QString sceneImage = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
                              "A_20250429172418975_1044_16_hrotate_multiobj.png";
