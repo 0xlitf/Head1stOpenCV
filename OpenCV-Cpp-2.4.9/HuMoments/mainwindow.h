@@ -45,6 +45,8 @@ private:
     cv::Mat m_sceneImg;                       // 原始场景图
 
     HuMomentsMatcher m_matcher;
+
+    QString m_sceneFileName;
 };
 
 #endif // MAINWINDOW_H
