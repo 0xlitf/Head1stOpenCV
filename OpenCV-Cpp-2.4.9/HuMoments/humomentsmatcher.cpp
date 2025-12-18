@@ -398,13 +398,3 @@ void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
     cv::putText(image, text, cv::Point(position.x, position.y),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
-
-bool HuMomentsMatcher::innerContourEnabled() const
-{
-    return m_innerContourEnabled;
-}
-
-void HuMomentsMatcher::setInnerContourEnabled(bool newInnerContourEnabled)
-{
-    m_innerContourEnabled = newInnerContourEnabled;
-}

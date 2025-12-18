@@ -72,16 +72,11 @@ public:
     static void drawLabel(cv::Mat &image, const QString &label,
                           const cv::Point &position, const cv::Scalar &color);
 
-    bool innerContourEnabled() const;
-    void setInnerContourEnabled(bool newInnerContourEnabled);
-
 private:
     QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>>
         m_huMomentsList;
     double m_scoreThreshold{0.1};
     int m_whiteThreshold{240};
-
-    bool m_innerContourEnabled{true};
 };
 
 #endif // HUMOMENTSMATCHER_H

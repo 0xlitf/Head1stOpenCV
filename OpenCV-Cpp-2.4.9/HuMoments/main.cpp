@@ -2,7 +2,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "humomentsmatcher.h"
-#include "mainwindow.h"
+// #include "mainwindow.h"
 #include "messageinstaller.h"
 #include <QApplication>
 #include <QFontDatabase>
@@ -23,11 +23,11 @@ int main(int argc, char *argv[]) {
         qDebug() << "微软雅黑字体未找到，使用系统默认字体";
     }
 
-    if (auto useMainWindow = true) {
-        MainWindow* w = new MainWindow;
-        w->setWindowFlags(Qt::Window);
-        w->show();
-        w->showMaximized();
+    if (auto useMainWindow = false) {
+        // MainWindow* w = new MainWindow;
+        // w->setWindowFlags(Qt::Window);
+        // w->show();
+        // w->showMaximized();
     } else {
         QString sceneImage = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
                              "A_20250429172418975_1044_16_hrotate_multiobj.png";
