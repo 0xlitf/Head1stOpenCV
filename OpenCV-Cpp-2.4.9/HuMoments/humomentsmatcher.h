@@ -59,8 +59,8 @@ public:
 
     cv::Mat croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour);
 
-    // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_foler
-    void setTemplateFolder(const QString &folderName);
+    // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_folder
+    void setTemplateFolder(const QStringList &folderName);
 
     QList<MatchResult> matchImage(const QString &fileName);
 

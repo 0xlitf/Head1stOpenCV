@@ -166,19 +166,28 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg,
     return croppedCanvas;
 }
 
-void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
-    auto imageFilenames = FileUtils::findAllImageFiles(folderName);
-    for (auto &filename : imageFilenames) {
-        this->addTemplate(filename);
+void HuMomentsMatcher::setTemplateFolder(const QStringList &folderNames) {
+    for (auto & folderName: folderNames) {
+        QDir templateDir(folderName);
+        if (!templateDir.exists()) {
+            qWarning() << "警告：模板文件夹不存在: " << folderName;
+            continue;
+        }
+
+        auto imageFilenames = FileUtils::findAllImageFiles(folderName);
+        for (auto &filename : imageFilenames) {
+            this->addTemplate(filename);
+        }
     }
 
-    auto folderNames = FileUtils::findDepth1Folder(folderName);
 
-    emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: "
-                         "%2\ntemplate images count: %3")
-                     .arg(folderName)
-                     .arg(folderNames.size())
-                     .arg(m_huMomentsList.size()));
+    // auto folderNames = FileUtils::findDepth1Folder(folderNames);
+
+    // emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: "
+    //                      "%2\ntemplate images count: %3")
+    //                  .arg(folderNames)
+    //                  .arg(folderNames.size())
+    //                  .arg(m_huMomentsList.size()));
 
     return;
     qDebug() << "m_humomentsList:";

@@ -23,8 +23,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
                 .arg(errorStr));
     });
 
-    m_matcher.setTemplateFolder(
-        "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
+    QStringList templateFolderStr;
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-3";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
+    m_matcher.setTemplateFolder(templateFolderStr);
 }
 
 void MainWindow::createComponents() {
@@ -37,7 +43,7 @@ void MainWindow::createComponents() {
     m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
     m_templateFolderLabel = new QLabel(
-        "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler", this);
+        "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder", this);
     m_templateDescLabel = new QLabel("模板文件夹路径: ", this);
     m_templateFolderLabel->setSizePolicy(QSizePolicy::Expanding,
                                          QSizePolicy::Fixed);
@@ -132,7 +138,15 @@ void MainWindow::onLoadTemplateFolder() {
     if (folderName.isEmpty()) {
         return;
     }
-    m_matcher.setTemplateFolder(folderName);
+
+    QStringList templateFolderStr;
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-3";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
+    templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
+    m_matcher.setTemplateFolder(templateFolderStr);
 }
 
 void MainWindow::onLoadTemplate() {

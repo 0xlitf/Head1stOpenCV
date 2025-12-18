@@ -38,15 +38,14 @@ int main(int argc, char *argv[]) {
         matcher.setWhiteThreshold(240);
         matcher.setScoreThreshold(0.1);
 
-        QString templateFolderStr = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler";
+        QStringList templateFolderStr;
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-3";
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
         matcher.setTemplateFolder(templateFolderStr);
-
-        // 3. 检查模板文件夹
-        QDir templateDir(templateFolderStr);
-        if (!templateDir.exists()) {
-            qWarning() << "警告：模板文件夹不存在";
-            return -1;
-        }
 
         QFile sceneImageFile(sceneImageStr);
         if (!sceneImageFile.exists()) {
