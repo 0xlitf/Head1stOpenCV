@@ -3,6 +3,8 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "fileutils.h"
+#include "humomentsmatcher.h"
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -10,8 +12,6 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
-#include "humomentsmatcher.h"
-#include "fileutils.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -47,8 +47,8 @@ private:
     std::vector<cv::Point> m_templateContour; // 存储提取出的模板轮廓
 
     // 图像数据
-    cv::Mat m_templateImg;                    // 原始模板图
-    cv::Mat m_sceneImg;                       // 原始场景图
+    cv::Mat m_templateImg; // 原始模板图
+    cv::Mat m_sceneImg;    // 原始场景图
 
     HuMomentsMatcher m_matcher;
 

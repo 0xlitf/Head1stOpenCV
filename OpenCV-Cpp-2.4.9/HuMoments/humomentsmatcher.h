@@ -8,33 +8,34 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QMap>
+#include <QObject>
 #include <QPixmap>
 #include <QString>
-#include <QObject>
 #include <opencv2/opencv.hpp>
 
-using MatchResult = std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double>;
+using MatchResult =
+    std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double>;
 
-class HuMomentsMatcher: public QObject {
+class HuMomentsMatcher : public QObject {
     Q_OBJECT
 public:
     enum ErrorCode {
         SUCCESS = 0,           // 成功
-        FILE_NOT_FOUND = 1,     // 文件不存在
-        IMAGE_LOAD_FAILED = 2,  // 图像加载失败
-        INVALID_IMAGE = 3,      // 无效图像
-        NO_CONTOURS_FOUND = 4,  // 未找到轮廓
-        TEMPLATE_NOT_SET = 5,   // 模板未设置
-        MATCH_FAILED = 6        // 匹配失败
+        FILE_NOT_FOUND = 1,    // 文件不存在
+        IMAGE_LOAD_FAILED = 2, // 图像加载失败
+        INVALID_IMAGE = 3,     // 无效图像
+        NO_CONTOURS_FOUND = 4, // 未找到轮廓
+        TEMPLATE_NOT_SET = 5,  // 模板未设置
+        MATCH_FAILED = 6       // 匹配失败
     };
-    Q_ENUM(ErrorCode)  // 启用Qt元对象系统
+    Q_ENUM(ErrorCode) // 启用Qt元对象系统
 
 signals:
-    void sendLog(const QString& logStr);
-    void errorOccured(ErrorCode errorCode, const QString& errorStr);
+    void sendLog(const QString &logStr);
+    void errorOccured(ErrorCode errorCode, const QString &errorStr);
 
 public:
-    HuMomentsMatcher(QObject* parent = nullptr);
+    HuMomentsMatcher(QObject *parent = nullptr);
 
     double scoreThreshold() const;
     void setScoreThreshold(double newScoreThreshold);
@@ -42,8 +43,8 @@ public:
     int whiteThreshold() const;
     void setWhiteThreshold(int thres);
 
-    void addTemplateIntoMap(const QString &name, const QString &fileName, const QString &huStr,
-                            std::vector<cv::Point> contour);
+    void addTemplateIntoMap(const QString &name, const QString &fileName,
+                            const QString &huStr, std::vector<cv::Point> contour);
 
     // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
     QPixmap cvMatToQPixmap(const cv::Mat &inMat);
@@ -65,16 +66,22 @@ public:
 
     QList<MatchResult> matchMat(cv::Mat sceneImg);
 
-    static cv::Mat drawResultsOnImage(const cv::Mat& inputImage,
-                                      const QList<MatchResult>& resultList);
+    static cv::Mat drawResultsOnImage(const cv::Mat &inputImage,
+                                      const QList<MatchResult> &resultList);
 
-    static void drawLabel(cv::Mat& image, const QString& label,
-                          const cv::Point& position, const cv::Scalar& color);
+    static void drawLabel(cv::Mat &image, const QString &label,
+                          const cv::Point &position, const cv::Scalar &color);
+
+    bool innerContourEnabled() const;
+    void setInnerContourEnabled(bool newInnerContourEnabled);
 
 private:
-    QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>> m_huMomentsList;
+    QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>>
+        m_huMomentsList;
     double m_scoreThreshold{0.1};
     int m_whiteThreshold{240};
+
+    bool m_innerContourEnabled{true};
 };
 
 #endif // HUMOMENTSMATCHER_H

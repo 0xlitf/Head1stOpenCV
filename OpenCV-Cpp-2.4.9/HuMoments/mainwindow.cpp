@@ -85,8 +85,8 @@ void MainWindow::createComponents() {
     m_sceneLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_sceneLabel->setMinimumSize(500, 300);
 
-    imgLayout->addWidget(
-        Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
+    // imgLayout->addWidget(
+    //     Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
     imgLayout->addWidget(m_sceneLabel, 2);
 
     // 底部日志区
@@ -229,10 +229,10 @@ void MainWindow::onRunMatching() {
         double score = std::get<3>(result);                   // 分数
 
         qDebug() << "结果" << i + 1 << ":";
-        qDebug() << "  名称:" << name;
-        qDebug() << "  匹配分数:" << QString::number(score, 'f', 6);
-        qDebug() << "  中心坐标: (" << center.x << "," << center.y << ")";
-        qDebug() << "  轮廓点数:" << contour.size();
+        qDebug() << "\t名称:" << name;
+        qDebug() << "\t匹配分数:" << QString::number(score, 'f', 6);
+        qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
+        qDebug() << "\t轮廓点数:" << contour.size();
 
         ++i;
     }
@@ -245,8 +245,4 @@ void MainWindow::onRunMatching() {
         m_matcher.cvMatToQPixmap(resultImage)
             .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
     m_logTextEdit->append("--- 结束匹配 ---");
-
-    // 更新界面显示
-    // m_sceneLabel->setPixmap(m_matcher.cvMatToQPixmap(resultImg).scaled(
-    //     m_sceneLabel->size(), Qt::KeepAspectRatio));
 }

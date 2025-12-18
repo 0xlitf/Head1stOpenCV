@@ -6,18 +6,11 @@ void HuMomentsMatcher::setWhiteThreshold(int thres) {
     m_whiteThreshold = thres;
 }
 
-int HuMomentsMatcher::whiteThreshold() const
-{
-    return m_whiteThreshold;
-}
+int HuMomentsMatcher::whiteThreshold() const { return m_whiteThreshold; }
 
-double HuMomentsMatcher::scoreThreshold() const
-{
-    return m_scoreThreshold;
-}
+double HuMomentsMatcher::scoreThreshold() const { return m_scoreThreshold; }
 
-void HuMomentsMatcher::setScoreThreshold(double newScoreThreshold)
-{
+void HuMomentsMatcher::setScoreThreshold(double newScoreThreshold) {
     m_scoreThreshold = newScoreThreshold;
 }
 
@@ -27,12 +20,14 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
     auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
     if (templateImg.empty()) {
         qDebug() << "templateImg is empty: " << fileName;
-        emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
+        emit errorOccured(IMAGE_LOAD_FAILED,
+                          QString("templateImg is empty: %1").arg(fileName));
         return;
     } else {
         auto folderBaseName = FileUtils::getFolderBaseName(fileName);
 
-        cv::threshold(templateImg, templateImg, m_whiteThreshold, 255, cv::THRESH_BINARY);
+        cv::threshold(templateImg, templateImg, m_whiteThreshold, 255,
+                      cv::THRESH_BINARY);
 
         auto templateContour = this->findLargestContour(templateImg, true);
 
@@ -41,14 +36,20 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
             huStr = this->calcHuMoments(templateContour);
         } else {
             qDebug() << "calcHuMoments failed: templateContour is empty";
-            emit errorOccured(NO_CONTOURS_FOUND, QString("calcHuMoments failed: templateContour is empty: %1").arg(fileName));
+            emit errorOccured(
+                NO_CONTOURS_FOUND,
+                QString("calcHuMoments failed: templateContour is empty: %1")
+                    .arg(fileName));
         }
 
         this->addTemplateIntoMap(folderBaseName, fileName, huStr, templateContour);
     }
 }
 
-void HuMomentsMatcher::addTemplateIntoMap(const QString &folderBaseName, const QString &fileName, const QString& huStr, std::vector<cv::Point> contour) {
+void HuMomentsMatcher::addTemplateIntoMap(const QString &folderBaseName,
+                                          const QString &fileName,
+                                          const QString &huStr,
+                                          std::vector<cv::Point> contour) {
 
     auto tuple = std::make_tuple(folderBaseName, fileName, huStr, contour);
     m_huMomentsList.append(tuple);
@@ -119,7 +120,7 @@ QString HuMomentsMatcher::calcHuMoments(std::vector<cv::Point> contour) {
         // 取Hu矩的绝对值
         // 以10为底的对数
         // 保存原始hu[i]的符号
-        if (fabs(value) < 1e-20) {  // 接近0的处理
+        if (fabs(value) < 1e-20) { // 接近0的处理
             result = 0.0;
         } else {
             result = -1 * copysign(1.0, value) * log10(fabs(value));
@@ -132,16 +133,18 @@ QString HuMomentsMatcher::calcHuMoments(std::vector<cv::Point> contour) {
     return huStr;
 }
 
-cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour) {
+cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg,
+                                        std::vector<cv::Point> contour) {
     cv::Mat canvas;
     if (templateImg.channels() == 1) {
         cv::cvtColor(templateImg, canvas, cv::COLOR_GRAY2BGR);
     } else {
-        canvas = templateImg.clone();  // 深拷贝
+        canvas = templateImg.clone(); // 深拷贝
     }
 
-    std::vector<std::vector<cv::Point>> contoursToDraw = { contour };
-    cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // 绿色线条
+    std::vector<std::vector<cv::Point>> contoursToDraw = {contour};
+    cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0),
+                     2); // 绿色线条
 
     // 3. 计算轮廓的包围盒 (Bounding Rect)
     cv::Rect boundRect = cv::boundingRect(contour);
@@ -150,8 +153,10 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg, std::vector<cv::Poi
     int padding = 10;
     boundRect.x = std::max(0, boundRect.x - padding);
     boundRect.y = std::max(0, boundRect.y - padding);
-    boundRect.width = std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
-    boundRect.height = std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
+    boundRect.width =
+        std::min(canvas.cols - boundRect.x, boundRect.width + 2 * padding);
+    boundRect.height =
+        std::min(canvas.rows - boundRect.y, boundRect.height + 2 * padding);
 
     // 5. 裁剪图像 (ROI - Region of Interest)
     cv::Mat croppedCanvas = canvas(boundRect);
@@ -161,13 +166,17 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg, std::vector<cv::Poi
 
 void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
     auto imageFilenames = FileUtils::findAllImageFiles(folderName);
-    for (auto& filename: imageFilenames) {
+    for (auto &filename : imageFilenames) {
         this->addTemplate(filename);
     }
 
     auto folderNames = FileUtils::findDepth1Folder(folderName);
 
-    emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: %2\ntemplate images count: %3").arg(folderName).arg(folderNames.size()).arg(m_huMomentsList.size()));
+    emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: "
+                         "%2\ntemplate images count: %3")
+                     .arg(folderName)
+                     .arg(folderNames.size())
+                     .arg(m_huMomentsList.size()));
 
     return;
     qDebug() << "m_humomentsList:";
@@ -183,7 +192,8 @@ QList<MatchResult> HuMomentsMatcher::matchImage(const QString &fileName) {
 
     if (fileName.isEmpty()) {
         qDebug() << "matchImage fileName isEmpty";
-        emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
+        emit errorOccured(IMAGE_LOAD_FAILED,
+                          QString("matchImage fileName isEmpty: %1").arg(fileName));
         return tuple;
     }
 
@@ -201,7 +211,8 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
     cv::cvtColor(sceneImg, grayScene, cv::COLOR_BGR2GRAY);
-    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255,
+                  cv::THRESH_BINARY_INV);
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contours;
@@ -253,7 +264,8 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
             // qDebug() << "counters index:" << j << ", area:" << area
             //          << ", score:" << score;
 
-            // emit sendLog(QString("counters index: %1, area: %2, score: %3").arg(j).arg(area).arg(score));
+            // emit sendLog(QString("counters index: %1, area: %2, score:
+            // %3").arg(j).arg(area).arg(score));
 
             // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
             if (score < m_scoreThreshold) {
@@ -311,8 +323,9 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     return resultList;
 }
 
-cv::Mat HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
-                                       const QList<MatchResult> &resultList) {
+cv::Mat
+HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
+                                     const QList<MatchResult> &resultList) {
     // 创建输出图像（复制原始图像）
     cv::Mat outputImage = inputImage.clone();
 
@@ -366,7 +379,8 @@ cv::Mat HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
 }
 
 void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
-                           const cv::Point &position, const cv::Scalar &color) {
+                                 const cv::Point &position,
+                                 const cv::Scalar &color) {
     std::string text = label.toStdString();
 
     // 计算文本尺寸
@@ -383,4 +397,14 @@ void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
     // 绘制文本
     cv::putText(image, text, cv::Point(position.x, position.y),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+}
+
+bool HuMomentsMatcher::innerContourEnabled() const
+{
+    return m_innerContourEnabled;
+}
+
+void HuMomentsMatcher::setInnerContourEnabled(bool newInnerContourEnabled)
+{
+    m_innerContourEnabled = newInnerContourEnabled;
 }
