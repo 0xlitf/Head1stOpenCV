@@ -8,6 +8,7 @@ cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
     auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
     if (templateImg.empty()) {
         qDebug() << "templateImg is empty: " << fileName;
+        emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
         return cv::Mat();
     } else {
         auto folderName = FileUtils::getFolderBaseName(fileName);
@@ -21,6 +22,7 @@ cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
             huStr = this->calcHuMoments(templateContour);
         } else {
             qDebug() << "calcHuMoments failed: templateContour is empty";
+            emit errorOccured(NO_CONTOURS_FOUND, QString("calcHuMoments failed: templateContour is empty: %1").arg(fileName));
         }
 
         this->addTemplateIntoMap(folderName, huStr, templateContour);
@@ -146,6 +148,7 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
         this->addTemplate(filename);
     }
 
+    emit sendLog(QString("setTemplateFolder: %1").arg(folderName));
 
     qDebug() << "m_humomentsList:";
     for (int i = 0; i < m_humomentsList.size(); ++i) {
@@ -158,8 +161,11 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
 void HuMomentsMatcher::matchImage(const QString &fileName) {
     if (fileName.isEmpty()) {
         qDebug() << "matchImage fileName isEmpty";
+        emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
         return;
     }
+
+    emit sendLog(QString("matchImage: %1").arg(fileName));
 
     auto imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
     if (imageMat.empty())

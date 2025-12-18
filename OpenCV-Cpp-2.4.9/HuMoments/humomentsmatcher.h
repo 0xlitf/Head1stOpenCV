@@ -13,7 +13,7 @@
 #include <QObject>
 #include <opencv2/opencv.hpp>
 
-class HuMomentsMatcher: QObject {
+class HuMomentsMatcher: public QObject {
     Q_OBJECT
 public:
     enum ErrorCode {
@@ -28,7 +28,8 @@ public:
     Q_ENUM(ErrorCode)  // 启用Qt元对象系统
 
 signals:
-    void errorOccured(const QString& errorStr);
+    void sendLog(const QString& logStr);
+    void errorOccured(ErrorCode errorCode, const QString& errorStr);
 
 public:
     HuMomentsMatcher(QObject* parent = nullptr);

@@ -8,7 +8,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     this->setMinimumSize(1200, 850);
     this->createComponents();
 
-    m_matcher.setTemplateFolder("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
+    connect(&m_matcher, &HuMomentsMatcher::sendLog, this,
+            [=](const QString &logStr) { m_logTextEdit->append(logStr); });
+
+    connect(&m_matcher, &HuMomentsMatcher::errorOccured, this,
+            [=](HuMomentsMatcher::ErrorCode errorCode, const QString &errorStr) {
+        m_logTextEdit->append(
+            QString("HuMomentsMatcher算法错误, 错误码:%1, 错误描述:%2")
+                .arg(errorCode)
+                .arg(errorStr));
+    });
+
+    m_matcher.setTemplateFolder(
+        "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler");
 }
 
 void MainWindow::createComponents() {
@@ -20,9 +32,11 @@ void MainWindow::createComponents() {
     m_loadSceneButton = new QPushButton("2. 加载检测图像", this);
     m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
-    m_templateFolderLabel = new QLabel("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler", this);
+    m_templateFolderLabel = new QLabel(
+        "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_foler", this);
     m_templateDescLabel = new QLabel("模板文件夹路径: ", this);
-    m_templateFolderLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_templateFolderLabel->setSizePolicy(QSizePolicy::Expanding,
+                                         QSizePolicy::Fixed);
 
     m_templateFolderLabel->setFixedHeight(30);
     m_templateDescLabel->setFixedHeight(30);
@@ -159,7 +173,7 @@ void MainWindow::onLoadTemplate() {
 
 void MainWindow::onLoadScene() {
     m_sceneFileName = QFileDialog::getOpenFileName(this, "选择场景图片", "",
-                                                    "Images (*.png *.jpg *.bmp)");
+                                                   "Images (*.png *.jpg *.bmp)");
     if (m_sceneFileName.isEmpty())
         return;
 
@@ -181,7 +195,6 @@ void MainWindow::onRunMatching() {
     // }
 
     m_logTextEdit->append("--- 开始匹配 ---");
-
 
     m_matcher.matchImage(m_sceneFileName);
 
