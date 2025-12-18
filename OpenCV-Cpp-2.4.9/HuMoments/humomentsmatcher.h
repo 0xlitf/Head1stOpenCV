@@ -32,7 +32,9 @@ public:
     // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_foler
     void setTemplateFolder(const QString& folderName) {
         auto imageFilenames = FileUtils::findAllImageFiles(folderName);
-
+        for (auto& filename: imageFilenames) {
+            this->addTemplate(filename);
+        }
     }
 
 private:

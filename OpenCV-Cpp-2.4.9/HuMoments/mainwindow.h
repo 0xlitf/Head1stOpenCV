@@ -11,6 +11,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include "humomentsmatcher.h"
+#include "fileutils.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -21,6 +22,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void onLoadTemplateFolder();
+
     void onLoadTemplate();
     void onLoadScene();
     void onRunMatching();

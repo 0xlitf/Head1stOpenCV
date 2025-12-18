@@ -1,8 +1,8 @@
 ﻿#include "mainwindow.h"
-#include <QDebug>
-#include <QMessageBox>
-#include <QElapsedTimer>
 #include "layoutbuilder.h"
+#include <QDebug>
+#include <QElapsedTimer>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     this->setMinimumSize(1200, 850);
@@ -18,20 +18,19 @@ void MainWindow::createComponents() {
     m_loadSceneButton = new QPushButton("2. 加载检测图像", this);
     m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
-    auto btnLayout = Layouting::Row{m_loadTemplateButton, m_loadSceneButton, m_matchButton};
+    auto btnLayout =
+        Layouting::Row{m_loadTemplateButton, m_loadSceneButton, m_matchButton};
 
     // 中间图像显示区
     QHBoxLayout *imgLayout = new QHBoxLayout();
     m_templateLabel = new QLabel("模板预览", this);
     m_templateLabel->setAlignment(Qt::AlignCenter);
-    m_templateLabel->setStyleSheet(
-        "border: 1px solid gray; background: #eee;");
+    m_templateLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_templateLabel->setMinimumSize(300, 300);
 
     m_contourLabel = new QLabel("轮廓预览", this);
     m_contourLabel->setAlignment(Qt::AlignCenter);
-    m_contourLabel->setStyleSheet(
-        "border: 1px solid gray; background: #eee;");
+    m_contourLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_contourLabel->setMinimumSize(300, 300);
 
     m_sceneLabel = new QLabel("检测场景预览", this);
@@ -39,8 +38,8 @@ void MainWindow::createComponents() {
     m_sceneLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_sceneLabel->setMinimumSize(500, 300);
 
-
-    imgLayout->addWidget(Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
+    imgLayout->addWidget(
+        Layouting::Column{m_templateLabel, m_contourLabel}.emerge(), 1);
     imgLayout->addWidget(m_sceneLabel, 2);
 
     // 底部日志区
@@ -48,24 +47,27 @@ void MainWindow::createComponents() {
     m_logTextEdit->setMaximumHeight(150);
     m_logTextEdit->setReadOnly(true);
 
-    Layouting::Column{btnLayout, imgLayout, m_logTextEdit}.attachTo(centralWidget);
+    Layouting::Column{btnLayout, imgLayout, m_logTextEdit}.attachTo(
+        centralWidget);
 
     resize(1000, 700);
     setWindowTitle("OpenCV形状匹配与定位");
 
-    connect(m_loadTemplateButton, &QPushButton::clicked, this, [=](){
+    connect(m_loadTemplateButton, &QPushButton::clicked, this, [=]() {
         QElapsedTimer timer;
         timer.start();
-        this->onLoadTemplate();
+        // this->onLoadTemplate();
+
+        this->onLoadTemplateFolder();
         qDebug() << "onLoadTemplate elapsed:" << timer.elapsed();
     });
-    connect(m_loadSceneButton, &QPushButton::clicked, this, [=](){
+    connect(m_loadSceneButton, &QPushButton::clicked, this, [=]() {
         QElapsedTimer timer;
         timer.start();
         this->onLoadScene();
         qDebug() << "onLoadScene elapsed:" << timer.elapsed();
     });
-    connect(m_matchButton, &QPushButton::clicked, this, [=](){
+    connect(m_matchButton, &QPushButton::clicked, this, [=]() {
         QElapsedTimer timer;
         timer.start();
         this->onRunMatching();
@@ -74,6 +76,14 @@ void MainWindow::createComponents() {
 }
 
 MainWindow::~MainWindow() {}
+
+void MainWindow::onLoadTemplateFolder() {
+    auto folderName = FileUtils::selectFolderDialog(this);
+    if (folderName.isEmpty()) {
+        return;
+    }
+    m_matcher.setTemplateFolder(folderName);
+}
 
 void MainWindow::onLoadTemplate() {
     QString fileName = QFileDialog::getOpenFileName(this, "选择模板图片", "",
@@ -102,18 +112,21 @@ void MainWindow::onLoadTemplate() {
         if (templateImg.channels() == 1) {
             cv::cvtColor(templateImg, canvas, cv::COLOR_GRAY2BGR);
         } else {
-            canvas = templateImg.clone();  // 深拷贝
+            canvas = templateImg.clone(); // 深拷贝
         }
 
         // 2. 绘制实心或空心轮廓
-        std::vector<std::vector<cv::Point>> contoursToDraw = { m_templateContour };
-        cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // 绿色线条
+        std::vector<std::vector<cv::Point>> contoursToDraw = {m_templateContour};
+        cv::drawContours(canvas, contoursToDraw, 0, cv::Scalar(0, 255, 0),
+                         2); // 绿色线条
 
         auto cropped = m_matcher.croppedCanvas(templateImg, m_templateContour);
 
         // 6. 显示裁剪后的图像
-        // m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
-        m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(cropped).scaled(m_contourLabel->size(), Qt::KeepAspectRatio));
+        // m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(),
+        // Qt::KeepAspectRatio));
+        m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(cropped).scaled(
+            m_contourLabel->size(), Qt::KeepAspectRatio));
     }
 
     if (!m_templateContour.empty()) {
@@ -166,14 +179,14 @@ void MainWindow::onRunMatching() {
     cv::Mat resultImg = m_sceneImg.clone();
     if (!contours.empty()) {
         // 青色在BGR中是 (255, 255, 0)
-        cv::Scalar cyanColor(255, 255, 0);  // B=255, G=255, R=0
+        cv::Scalar cyanColor(255, 255, 0); // B=255, G=255, R=0
 
         // 绘制所有轮廓
         cv::drawContours(resultImg, contours,
-                         -1,           // 绘制所有轮廓
-                         cyanColor,    // 青色
-                         2,            // 线宽
-                         CV_AA); // 抗锯齿
+                         -1,        // 绘制所有轮廓
+                         cyanColor, // 青色
+                         2,         // 线宽
+                         CV_AA);    // 抗锯齿
 
         qDebug() << "已绘制" << contours.size() << "个轮廓";
     } else {
@@ -195,7 +208,8 @@ void MainWindow::onRunMatching() {
         double score = cv::matchShapes(m_templateContour, contours[i],
                                        CV_CONTOURS_MATCH_I1, 0.0);
 
-        qDebug() << "counters index:" << i  << ", area:" << area << ", score:" << score;
+        qDebug() << "counters index:" << i << ", area:" << area
+                 << ", score:" << score;
 
         // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
         if (score < 0.2) {
@@ -216,14 +230,16 @@ void MainWindow::onRunMatching() {
             cv::circle(resultImg, rotRect.center, 5, cv::Scalar(0, 0, 255), -1);
 
             // std::string text = "Ang: " + std::to_string((int)rotRect.angle);
-            // cv::putText(resultImg, text, rotRect.center, // rotRect.center + cv::Point2f(40, 40)
+            // cv::putText(resultImg, text, rotRect.center, // rotRect.center +
+            // cv::Point2f(40, 40)
             //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-            m_logTextEdit->append(QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
-                               .arg(score)
-                               .arg(rotRect.angle)
-                               .arg(rotRect.center.x)
-                               .arg(rotRect.center.y));
+            m_logTextEdit->append(
+                QString("发现目标 -> 相似度: %1, 角度: %2, 坐标: (%3, %4)")
+                    .arg(score)
+                    .arg(rotRect.angle)
+                    .arg(rotRect.center.x)
+                    .arg(rotRect.center.y));
         } else {
             // 可选：绘制不匹配的轮廓为红色，方便调试
             // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255),
