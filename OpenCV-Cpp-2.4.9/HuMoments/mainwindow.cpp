@@ -3,8 +3,12 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QMessageBox>
+#include <opencv2/opencv.hpp>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+    // setWindowState(windowState() | Qt::WindowFullScreen);
+    showMaximized();
+
     this->setMinimumSize(1200, 850);
     this->createComponents();
 
@@ -41,11 +45,9 @@ void MainWindow::createComponents() {
     m_templateFolderLabel->setFixedHeight(30);
     m_templateDescLabel->setFixedHeight(30);
 
-    m_matchImageLabel = new QLabel(
-        "", this);
+    m_matchImageLabel = new QLabel("", this);
     m_matchImageDescLabel = new QLabel("检测图片路径: ", this);
-    m_matchImageLabel->setSizePolicy(QSizePolicy::Expanding,
-                                         QSizePolicy::Fixed);
+    m_matchImageLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     m_matchImageLabel->setFixedHeight(30);
     m_matchImageDescLabel->setFixedHeight(30);
@@ -197,8 +199,6 @@ void MainWindow::onLoadScene() {
 
     return;
 
-
-
     // 这里读取彩色图，方便最后画绿色的框
     m_sceneImg = cv::imread(m_sceneFileName.toStdString(), cv::IMREAD_COLOR);
     if (m_sceneImg.empty())
@@ -218,10 +218,31 @@ void MainWindow::onRunMatching() {
 
     m_logTextEdit->append("--- 开始匹配 ---");
 
-    auto mat = m_matcher.matchImage(m_sceneFileName);
+    auto results = m_matcher.matchImage(m_sceneFileName);
+    qDebug() << "m_matcher.matchImage result" << results.size();
+
+    int i = 0;
+    for (auto &result : results) {
+        QString name = std::get<0>(result);                   // 名称
+        std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
+        cv::Point2f center = std::get<2>(result);             // 中心点
+        double score = std::get<3>(result);                   // 分数
+
+        qDebug() << "结果" << i + 1 << ":";
+        qDebug() << "  名称:" << name;
+        qDebug() << "  匹配分数:" << QString::number(score, 'f', 6);
+        qDebug() << "  中心坐标: (" << center.x << "," << center.y << ")";
+        qDebug() << "  轮廓点数:" << contour.size();
+
+        ++i;
+    }
+
+    auto sceneImg = cv::imread(m_sceneFileName.toStdString(), cv::IMREAD_COLOR);
+
+    auto resultImage = m_matcher.drawResultsOnImage(sceneImg, results);
 
     m_sceneLabel->setPixmap(
-        m_matcher.cvMatToQPixmap(mat)
+        m_matcher.cvMatToQPixmap(resultImage)
             .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
     m_logTextEdit->append("--- 结束匹配 ---");
 

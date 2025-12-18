@@ -13,6 +13,8 @@
 #include <QObject>
 #include <opencv2/opencv.hpp>
 
+using MatchResult = std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double>;
+
 class HuMomentsMatcher: public QObject {
     Q_OBJECT
 public:
@@ -34,12 +36,11 @@ signals:
 public:
     HuMomentsMatcher(QObject* parent = nullptr);
 
-    double m_scoreThreshold{0.2};
-    int m_whiteThreshold{240};
+    double scoreThreshold() const;
+    void setScoreThreshold(double newScoreThreshold);
 
-    void setWhiteThreshold(int thres) {
-        m_whiteThreshold = thres;
-    }
+    int whiteThreshold() const;
+    void setWhiteThreshold(int thres);
 
     void addTemplateIntoMap(const QString &name, const QString &fileName, const QString &huStr,
                             std::vector<cv::Point> contour);
@@ -60,12 +61,20 @@ public:
     // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_foler
     void setTemplateFolder(const QString &folderName);
 
-    cv::Mat matchImage(const QString &fileName);
+    QList<MatchResult> matchImage(const QString &fileName);
 
-    cv::Mat matchMat(cv::Mat sceneImg);
+    QList<MatchResult> matchMat(cv::Mat sceneImg);
+
+    static cv::Mat drawResultsOnImage(const cv::Mat& inputImage,
+                                      const QList<MatchResult>& resultList);
+
+    static void drawLabel(cv::Mat& image, const QString& label,
+                          const cv::Point& position, const cv::Scalar& color);
 
 private:
     QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>> m_huMomentsList;
+    double m_scoreThreshold{0.1};
+    int m_whiteThreshold{240};
 };
 
 #endif // HUMOMENTSMATCHER_H

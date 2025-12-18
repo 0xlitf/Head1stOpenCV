@@ -2,6 +2,25 @@
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
+void HuMomentsMatcher::setWhiteThreshold(int thres) {
+    m_whiteThreshold = thres;
+}
+
+int HuMomentsMatcher::whiteThreshold() const
+{
+    return m_whiteThreshold;
+}
+
+double HuMomentsMatcher::scoreThreshold() const
+{
+    return m_scoreThreshold;
+}
+
+void HuMomentsMatcher::setScoreThreshold(double newScoreThreshold)
+{
+    m_scoreThreshold = newScoreThreshold;
+}
+
 void HuMomentsMatcher::addTemplate(const QString &fileName) {
 
     // 读取灰度图
@@ -150,6 +169,7 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
 
     emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: %2\ntemplate images count: %3").arg(folderName).arg(folderNames.size()).arg(m_huMomentsList.size()));
 
+    return;
     qDebug() << "m_humomentsList:";
     for (int i = 0; i < m_huMomentsList.size(); ++i) {
         auto tuple = m_huMomentsList[i];
@@ -158,25 +178,25 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
     }
 }
 
-cv::Mat HuMomentsMatcher::matchImage(const QString &fileName) {
-    cv::Mat imageMat;
+QList<MatchResult> HuMomentsMatcher::matchImage(const QString &fileName) {
+    QList<MatchResult> tuple;
 
     if (fileName.isEmpty()) {
         qDebug() << "matchImage fileName isEmpty";
         emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
-        return imageMat;
+        return tuple;
     }
 
     emit sendLog(QString("matchImage: %1").arg(fileName));
 
-    imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
+    cv::Mat imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
     if (imageMat.empty())
-        return imageMat;
+        return tuple;
 
     return this->matchMat(imageMat);
 }
 
-cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
+QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
@@ -207,9 +227,12 @@ cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         qDebug() << "未找到任何轮廓";
     }
 
+    QList<MatchResult> resultList;
+
     int matchCount = 0;
     for (size_t i = 0; i < contours.size(); i++) {
-        double area = cv::contourArea(contours[i]);
+        auto objContour = contours[i];
+        double area = cv::contourArea(objContour);
 
         // A. 简单的面积过滤，排除极小的噪点
         if (area < 300) {
@@ -221,23 +244,28 @@ cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         // 返回值越小越相似。0 表示完全一样。
 
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
-            auto contour = std::get<3>(m_huMomentsList[j]);
+            auto templateTuple = m_huMomentsList[j];
+            auto templateContour = std::get<3>(templateTuple);
 
-            double score = cv::matchShapes(contour, contours[i],
+            double score = cv::matchShapes(templateContour, objContour,
                                            CV_CONTOURS_MATCH_I1, 0.0);
 
-            qDebug() << "counters index:" << j << ", area:" << area
-                     << ", score:" << score;
+            // qDebug() << "counters index:" << j << ", area:" << area
+            //          << ", score:" << score;
 
-            emit sendLog(QString("counters index: %1, area: %2, score: %3").arg(j).arg(area).arg(score));
+            // emit sendLog(QString("counters index: %1, area: %2, score: %3").arg(j).arg(area).arg(score));
 
             // 阈值判定：根据实际情况调整，通常 0.1 - 0.2 是很严格的，0.5 较宽松
             if (score < m_scoreThreshold) {
-                auto objName = std::get<0>(m_huMomentsList[j]);
+                auto objName = std::get<0>(templateTuple);
                 matchCount++;
 
+                // 计算轮廓中心点
+                cv::Moments m = cv::moments(objContour);
+                cv::Point2f center(m.m10 / m.m00, m.m01 / m.m00);
+
                 // C. 获取旋转矩形 (RotatedRect)
-                cv::RotatedRect rotRect = cv::minAreaRect(contours[i]);
+                cv::RotatedRect rotRect = cv::minAreaRect(objContour);
 
                 // D. 绘制旋转矩形
                 cv::Point2f vertices[4];
@@ -266,7 +294,7 @@ cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
                 emit sendLog(str);
 
-                return resultImg;
+                resultList.append(std::make_tuple(objName, objContour, center, score));
 
                 break;
             } else {
@@ -280,5 +308,79 @@ cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     if (matchCount == 0) {
         qDebug() << "未在场景中找到匹配物体。";
     }
-    return resultImg;
+    return resultList;
+}
+
+cv::Mat HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
+                                       const QList<MatchResult> &resultList) {
+    // 创建输出图像（复制原始图像）
+    cv::Mat outputImage = inputImage.clone();
+
+    // 如果原始图像是灰度图，转换为彩色以便绘制
+    if (outputImage.channels() == 1) {
+        cv::cvtColor(outputImage, outputImage, cv::COLOR_GRAY2BGR);
+    }
+
+    // 定义颜色数组
+    std::vector<cv::Scalar> colors = {
+        cv::Scalar(0, 255, 0),   // 绿色
+        cv::Scalar(255, 0, 0),   // 蓝色
+        cv::Scalar(0, 0, 255),   // 红色
+        cv::Scalar(255, 255, 0), // 青色
+        cv::Scalar(255, 0, 255), // 洋红
+        cv::Scalar(0, 255, 255)  // 黄色
+    };
+
+    int colorIndex = 0;
+
+    // 遍历所有结果
+    for (const auto &result : resultList) {
+        QString label = std::get<0>(result);
+        std::vector<cv::Point> contour = std::get<1>(result);
+
+        if (contour.empty()) {
+            qDebug() << "contour is empty";
+            continue;
+        }
+
+        // 选择颜色
+        cv::Scalar color = colors[colorIndex % colors.size()];
+        colorIndex++;
+
+        // 绘制轮廓
+        cv::drawContours(outputImage, std::vector<std::vector<cv::Point>>{contour},
+                         -1, color, 2, CV_AA);
+
+        // 计算轮廓中心点用于放置标签
+        cv::Moments m = cv::moments(contour);
+        if (m.m00 != 0) {
+            int centerX = static_cast<int>(m.m10 / m.m00);
+            int centerY = static_cast<int>(m.m01 / m.m00);
+
+            // 绘制标签
+            drawLabel(outputImage, label, cv::Point(centerX, centerY), color);
+        }
+    }
+
+    return outputImage;
+}
+
+void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
+                           const cv::Point &position, const cv::Scalar &color) {
+    std::string text = label.toStdString();
+
+    // 计算文本尺寸
+    int baseline = 0;
+    cv::Size textSize =
+        cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+
+    // 绘制背景矩形
+    cv::rectangle(image,
+                  cv::Point(position.x - 5, position.y - textSize.height - 5),
+                  cv::Point(position.x + textSize.width + 5, position.y + 5),
+                  cv::Scalar(0, 0, 0), -1); // 黑色背景
+
+    // 绘制文本
+    cv::putText(image, text, cv::Point(position.x, position.y),
+                cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
