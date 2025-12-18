@@ -11,7 +11,7 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
         emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
         return;
     } else {
-        auto folderName = FileUtils::getFolderBaseName(fileName);
+        auto folderBaseName = FileUtils::getFolderBaseName(fileName);
 
         cv::threshold(templateImg, templateImg, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
@@ -25,13 +25,13 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
             emit errorOccured(NO_CONTOURS_FOUND, QString("calcHuMoments failed: templateContour is empty: %1").arg(fileName));
         }
 
-        this->addTemplateIntoMap(folderName, huStr, templateContour);
+        this->addTemplateIntoMap(folderBaseName, fileName, huStr, templateContour);
     }
 }
 
-void HuMomentsMatcher::addTemplateIntoMap(const QString &name, const QString& huStr, std::vector<cv::Point> contour) {
+void HuMomentsMatcher::addTemplateIntoMap(const QString &folderBaseName, const QString &fileName, const QString& huStr, std::vector<cv::Point> contour) {
 
-    auto tuple = std::make_tuple(name, huStr, contour);
+    auto tuple = std::make_tuple(folderBaseName, fileName, huStr, contour);
     m_huMomentsList.append(tuple);
 }
 
@@ -154,27 +154,29 @@ void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
     for (int i = 0; i < m_huMomentsList.size(); ++i) {
         auto tuple = m_huMomentsList[i];
         qDebug() << i << ", key, value.size: " << std::get<0>(tuple)
-                 << std::get<1>(tuple);
+                 << std::get<2>(tuple);
     }
 }
 
-void HuMomentsMatcher::matchImage(const QString &fileName) {
+cv::Mat HuMomentsMatcher::matchImage(const QString &fileName) {
+    cv::Mat imageMat;
+
     if (fileName.isEmpty()) {
         qDebug() << "matchImage fileName isEmpty";
         emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
-        return;
+        return imageMat;
     }
 
     emit sendLog(QString("matchImage: %1").arg(fileName));
 
-    auto imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
+    imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
     if (imageMat.empty())
-        return;
+        return imageMat;
 
-    this->matchMat(imageMat);
+    return this->matchMat(imageMat);
 }
 
-void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
+cv::Mat HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
@@ -219,7 +221,7 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         // 返回值越小越相似。0 表示完全一样。
 
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
-            auto contour = std::get<2>(m_huMomentsList[j]);
+            auto contour = std::get<3>(m_huMomentsList[j]);
 
             double score = cv::matchShapes(contour, contours[i],
                                            CV_CONTOURS_MATCH_I1, 0.0);
@@ -235,7 +237,7 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 matchCount++;
 
                 // C. 获取旋转矩形 (RotatedRect)
-                cv::RotatedRect rotRect = cv::minAreaRect(contours[j]);
+                cv::RotatedRect rotRect = cv::minAreaRect(contours[i]);
 
                 // D. 绘制旋转矩形
                 cv::Point2f vertices[4];
@@ -260,9 +262,11 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                                .arg(rotRect.angle)
                                .arg(rotRect.center.x)
                                .arg(rotRect.center.y);
-                qDebug() << str;
+                qDebug() << str.toUtf8().constData();
 
                 emit sendLog(str);
+
+                return resultImg;
 
                 break;
             } else {
@@ -276,4 +280,5 @@ void HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     if (matchCount == 0) {
         qDebug() << "未在场景中找到匹配物体。";
     }
+    return resultImg;
 }

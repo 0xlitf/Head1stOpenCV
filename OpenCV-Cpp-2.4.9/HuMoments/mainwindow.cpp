@@ -28,7 +28,7 @@ void MainWindow::createComponents() {
     this->setCentralWidget(centralWidget);
 
     // 顶部按钮区
-    m_loadTemplateButton = new QPushButton("1. 加载模板图像", this);
+    m_loadTemplateButton = new QPushButton("1. 选择模板文件夹", this);
     m_loadSceneButton = new QPushButton("2. 加载检测图像", this);
     m_matchButton = new QPushButton("3. 开始识别与定位", this);
 
@@ -68,12 +68,12 @@ void MainWindow::createComponents() {
 
     // 中间图像显示区
     QHBoxLayout *imgLayout = new QHBoxLayout();
-    m_templateLabel = new QLabel("模板预览", this);
+    m_templateLabel = new QLabel("模板图像", this);
     m_templateLabel->setAlignment(Qt::AlignCenter);
     m_templateLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_templateLabel->setMinimumSize(300, 300);
 
-    m_contourLabel = new QLabel("轮廓预览", this);
+    m_contourLabel = new QLabel("模板轮廓", this);
     m_contourLabel->setAlignment(Qt::AlignCenter);
     m_contourLabel->setStyleSheet("border: 1px solid gray; background: #eee;");
     m_contourLabel->setMinimumSize(300, 300);
@@ -118,6 +118,7 @@ void MainWindow::createComponents() {
         QElapsedTimer timer;
         timer.start();
         this->onRunMatching();
+
         qDebug() << "onRunMatching elapsed:" << timer.elapsed();
     });
 }
@@ -194,6 +195,10 @@ void MainWindow::onLoadScene() {
 
     m_matchImageLabel->setText(m_sceneFileName);
 
+    return;
+
+
+
     // 这里读取彩色图，方便最后画绿色的框
     m_sceneImg = cv::imread(m_sceneFileName.toStdString(), cv::IMREAD_COLOR);
     if (m_sceneImg.empty())
@@ -213,7 +218,12 @@ void MainWindow::onRunMatching() {
 
     m_logTextEdit->append("--- 开始匹配 ---");
 
-    m_matcher.matchImage(m_sceneFileName);
+    auto mat = m_matcher.matchImage(m_sceneFileName);
+
+    m_sceneLabel->setPixmap(
+        m_matcher.cvMatToQPixmap(mat)
+            .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
+    m_logTextEdit->append("--- 结束匹配 ---");
 
     // 更新界面显示
     // m_sceneLabel->setPixmap(m_matcher.cvMatToQPixmap(resultImg).scaled(

@@ -41,7 +41,7 @@ public:
         m_whiteThreshold = thres;
     }
 
-    void addTemplateIntoMap(const QString &name, const QString &huStr,
+    void addTemplateIntoMap(const QString &name, const QString &fileName, const QString &huStr,
                             std::vector<cv::Point> contour);
 
     // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
@@ -60,12 +60,12 @@ public:
     // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_foler
     void setTemplateFolder(const QString &folderName);
 
-    void matchImage(const QString &fileName);
+    cv::Mat matchImage(const QString &fileName);
 
-    void matchMat(cv::Mat sceneImg);
+    cv::Mat matchMat(cv::Mat sceneImg);
 
 private:
-    QList<std::tuple<QString, QString, std::vector<cv::Point>>> m_huMomentsList;
+    QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>> m_huMomentsList;
 };
 
 #endif // HUMOMENTSMATCHER_H
