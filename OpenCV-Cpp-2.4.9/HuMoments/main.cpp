@@ -38,6 +38,10 @@ int main(int argc, char *argv[]) {
         matcher.setWhiteThreshold(240);
         matcher.setScoreThreshold(0.1);
 
+        auto image1 = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
+        auto image2 = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
+        matcher.analyzeAndDrawContours();
+
         QStringList templateFolderStr;
         templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
         templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";

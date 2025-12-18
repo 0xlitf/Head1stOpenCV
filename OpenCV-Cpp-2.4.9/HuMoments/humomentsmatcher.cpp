@@ -4,6 +4,102 @@
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
+std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContours(const cv::Mat &inputImage) {
+    // 1. 检查输入图像
+    if (inputImage.empty()) {
+        cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+        cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150),
+                    cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        return std::make_tuple(0, emptyResult);
+    }
+
+    // 2. 创建输出图像（彩色）
+    cv::Mat outputImage;
+    if (inputImage.channels() == 1) {
+        cv::cvtColor(inputImage, outputImage, cv::COLOR_GRAY2BGR);
+    } else {
+        outputImage = inputImage.clone();
+    }
+
+    // 3. 转换为灰度图
+    cv::Mat grayImage;
+    if (inputImage.channels() == 3) {
+        cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
+    } else {
+        grayImage = inputImage.clone();
+    }
+
+    // 4. 二值化处理
+    cv::Mat binaryImage;
+    cv::threshold(grayImage, binaryImage, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+
+    // 5. 查找轮廓
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    int contourCount = static_cast<int>(contours.size());
+
+    // 6. 根据轮廓数量选择颜色
+    cv::Scalar boxColor;
+    if (contourCount > 1) {
+        boxColor = cv::Scalar(0, 0, 255); // 红色 (BGR)
+    } else if (contourCount == 1) {
+        boxColor = cv::Scalar(0, 255, 0); // 绿色 (BGR)
+    } else {
+        boxColor = cv::Scalar(255, 255, 255); // 白色 (无轮廓)
+    }
+
+    // 7. 绘制轮廓和边界框
+    for (size_t i = 0; i < contours.size(); ++i) {
+        if (contours[i].empty()) continue;
+
+        // 7.1 绘制轮廓线
+        cv::drawContours(outputImage, contours, static_cast<int>(i), boxColor, 2, CV_AA);
+
+        // 7.2 计算边界矩形
+        cv::Rect boundingBox = cv::boundingRect(contours[i]);
+
+        // 7.3 绘制边界框
+        cv::rectangle(outputImage, boundingBox, boxColor, 2, CV_AA);
+
+        // 7.4 添加轮廓编号和面积信息
+        double area = cv::contourArea(contours[i]);
+        std::string info = "C" + std::to_string(i + 1) + " A:" + std::to_string(static_cast<int>(area));
+
+        // 计算文本位置（在边界框上方）
+        cv::Point textPos(boundingBox.x, std::max(boundingBox.y - 5, 10));
+
+        // 绘制文本背景
+        int baseline = 0;
+        cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
+        cv::rectangle(outputImage,
+                      textPos - cv::Point(0, textSize.height + 5),
+                      textPos + cv::Point(textSize.width, 5),
+                      cv::Scalar(0, 0, 0), -1);
+
+        // 绘制文本
+        cv::putText(outputImage, info, textPos,
+                    cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255, 255, 255), 1);
+    }
+
+    // 8. 添加统计信息到图像
+    std::string statusText;
+    if (contourCount > 1) {
+        statusText = "找到 " + std::to_string(contourCount) + " 个轮廓 (红色)";
+    } else if (contourCount == 1) {
+        statusText = "找到 1 个轮廓 (绿色)";
+    } else {
+        statusText = "未找到轮廓";
+    }
+
+    // 在图像底部添加状态信息
+    cv::Point statusPos(10, outputImage.rows - 10);
+    cv::putText(outputImage, statusText, statusPos,
+                cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 2);
+
+    return std::make_tuple(contourCount, outputImage);
+}
+
 void HuMomentsMatcher::setWhiteThreshold(int thres) {
     m_whiteThreshold = thres;
 }
