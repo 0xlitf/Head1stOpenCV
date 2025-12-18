@@ -31,7 +31,7 @@ signals:
     void errorOccured(const QString& errorStr);
 
 public:
-    HuMomentsMatcher();
+    HuMomentsMatcher(QObject* parent = nullptr);
 
     int m_whiteThreshold{240};
     void setWhiteThreshold(int thres) {

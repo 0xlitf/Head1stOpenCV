@@ -1,6 +1,6 @@
 ﻿#include "humomentsmatcher.h"
 
-HuMomentsMatcher::HuMomentsMatcher() {}
+HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
 cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
 
