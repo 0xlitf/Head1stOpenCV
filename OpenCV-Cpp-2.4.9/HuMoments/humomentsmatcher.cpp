@@ -1,5 +1,7 @@
 ﻿#include "humomentsmatcher.h"
 
+#include <QElapsedTimer>
+
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
 void HuMomentsMatcher::setWhiteThreshold(int thres) {
@@ -207,6 +209,8 @@ QList<MatchResult> HuMomentsMatcher::matchImage(const QString &fileName) {
 }
 
 QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
+    QElapsedTimer timer;
+    timer.start();
 
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
@@ -320,6 +324,9 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     if (matchCount == 0) {
         qDebug() << "未在场景中找到匹配物体。";
     }
+
+    qDebug() << "matchMat elapsed:" << timer.elapsed();
+
     return resultList;
 }
 
