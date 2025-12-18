@@ -14,7 +14,7 @@ class HuMomentsMatcher
 {
 public:
     HuMomentsMatcher();
-    void addTemplateIntoMap(const QString& name, cv::Mat mat);
+    void addTemplateIntoMap(const QString& name, const QString& huStr);
 
     // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
     QPixmap cvMatToQPixmap(const cv::Mat &inMat);
@@ -30,18 +30,14 @@ public:
     cv::Mat croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour);
 
     // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_foler
-    void setTemplateFolder(const QString& folderName) {
-        auto imageFilenames = FileUtils::findAllImageFiles(folderName);
-        for (auto& filename: imageFilenames) {
-            this->addTemplate(filename);
-        }
-    }
+    void setTemplateFolder(const QString& folderName);
 
 private:
 
     std::vector<cv::Point> m_templateContour; // 存储提取出的模板轮廓
 
-    QMap<QString, QList<cv::Mat>> m_matMap;
+    // QMap<QString, QList<cv::Mat>> m_humomentsList;
+    QList<std::tuple<QString, QString>> m_humomentsList;
 };
 
 #endif // HUMOMENTSMATCHER_H

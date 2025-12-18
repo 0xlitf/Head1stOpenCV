@@ -11,21 +11,28 @@ cv::Mat HuMomentsMatcher::addTemplate(const QString &fileName) {
         return cv::Mat();
     } else {
         auto folderName = FileUtils::getFolderBaseName(fileName);
-        this->addTemplateIntoMap(folderName, templateImg);
+
+        cv::threshold(templateImg, templateImg, 240, 255, cv::THRESH_BINARY);
+
+        auto templateContour = this->findLargestContour(templateImg, true);
+
+        QString huStr;
+        if (!templateContour.empty()) {
+            huStr = this->calcHuMoments(templateContour);
+        } else {
+            qDebug() << "calcHuMoments failed: templateContour is empty";
+        }
+
+        this->addTemplateIntoMap(folderName, huStr);
     }
 
     return templateImg;
 }
 
-void HuMomentsMatcher::addTemplateIntoMap(const QString &name, cv::Mat mat) {
-    QList<cv::Mat> &matList = m_matMap[name];
-    matList.append(mat.clone());
+void HuMomentsMatcher::addTemplateIntoMap(const QString &name, const QString& huStr) {
 
-    qDebug() << "m_matMap:";
-    for (int i = 0; i < m_matMap.size(); ++i) {
-        qDebug() << i << ", key, value.size: " << m_matMap.keys()[i]
-                 << m_matMap.values()[i].size();
-    }
+    auto tuple = std::make_tuple(name, huStr);
+    m_humomentsList.append(tuple);
 }
 
 QPixmap HuMomentsMatcher::cvMatToQPixmap(const cv::Mat &inMat) {
@@ -131,4 +138,19 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg, std::vector<cv::Poi
     cv::Mat croppedCanvas = canvas(boundRect);
 
     return croppedCanvas;
+}
+
+void HuMomentsMatcher::setTemplateFolder(const QString &folderName) {
+    auto imageFilenames = FileUtils::findAllImageFiles(folderName);
+    for (auto& filename: imageFilenames) {
+        this->addTemplate(filename);
+    }
+
+
+    qDebug() << "m_humomentsList:";
+    for (int i = 0; i < m_humomentsList.size(); ++i) {
+        auto tuple = m_humomentsList[i];
+        qDebug() << i << ", key, value.size: " << std::get<0>(tuple)
+                 << std::get<1>(tuple);
+    }
 }
