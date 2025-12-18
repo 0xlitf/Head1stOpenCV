@@ -157,10 +157,10 @@ void MainWindow::onLoadScene() {
 }
 
 void MainWindow::onRunMatching() {
-    if (m_sceneImg.empty() || m_templateContour.empty()) {
-        QMessageBox::warning(this, "提示", "请先加载模板和场景图片！");
-        return;
-    }
+    // if (m_sceneImg.empty() || m_templateContour.empty()) {
+    //     QMessageBox::warning(this, "提示", "请先加载模板和场景图片！");
+    //     return;
+    // }
 
     m_logTextEdit->append("--- 开始匹配 ---");
 
