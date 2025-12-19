@@ -62,7 +62,7 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
                          2,              // 线宽
                          CV_AA);   // 抗锯齿
 
-        if (m_drawContourInfo) {
+        if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
             double area = cv::contourArea(contours[i]);
 
@@ -377,8 +377,14 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
             continue;
         }
 
+        // 计算轮廓中心点
+        cv::Moments m = cv::moments(objContour);
+        cv::Point2f center(m.m10 / m.m00, m.m01 / m.m00);
+
         // B. 形状匹配 (OpenCV matchShapes)
         // 返回值越小越相似。0 表示完全一样。
+
+        bool finded = false;
 
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
             auto templateTuple = m_huMomentsList[j];
@@ -397,10 +403,6 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
             if (score < m_scoreThreshold) {
                 auto objName = std::get<0>(templateTuple);
                 matchCount++;
-
-                // 计算轮廓中心点
-                cv::Moments m = cv::moments(objContour);
-                cv::Point2f center(m.m10 / m.m00, m.m01 / m.m00);
 
                 // C. 获取旋转矩形 (RotatedRect)
                 cv::RotatedRect rotRect = cv::minAreaRect(objContour);
@@ -432,6 +434,8 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
                 emit sendLog(str);
 
+                finded = true;
+
                 resultList.append(std::make_tuple(objName, objContour, center, score));
 
                 break;
@@ -440,6 +444,10 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255),
                 // 1);
             }
+        }
+
+        if (!finded) {
+            resultList.append(std::make_tuple(QString(""), objContour, center, 100));
         }
     }
 
@@ -487,6 +495,7 @@ HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
 
         // 选择颜色
         cv::Scalar color = colors[colorIndex % colors.size()];
+        // cv::Scalar color = cv::Scalar(255, 255, 255);
         colorIndex++;
 
         // 绘制轮廓

@@ -37,7 +37,7 @@ signals:
 public:
     HuMomentsMatcher(QObject *parent = nullptr);
 
-    std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
+    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
 
     double scoreThreshold() const;
     void setScoreThreshold(double newScoreThreshold);
@@ -80,7 +80,7 @@ private:
     double m_scoreThreshold{0.1};
     int m_whiteThreshold{240};
 
-    bool m_drawContourInfo = false;
+
 };
 
 #endif // HUMOMENTSMATCHER_H
