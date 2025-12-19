@@ -1,6 +1,7 @@
 ﻿#include "humomentsmatcher.h"
 
 #include <QElapsedTimer>
+#include <QImageReader>
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
@@ -287,8 +288,19 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs, const QStr
             continue;
         }
 
-        auto imageFilenames = FileUtils::findAllImageFiles(folderName);
-        for (auto &filename : imageFilenames) {
+        QDir dir(folderName);
+        QStringList imageFiles;
+        QStringList filters;
+        foreach (const QString &format, QImageReader::supportedImageFormats()) {
+            filters << "*." + format;
+        }
+
+        imageFiles.append(dir.entryList(filters, QDir::Files));
+        for (int i = 0; i < imageFiles.size(); ++i) {
+            imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
+        }
+
+        for (auto &filename : imageFiles) {
             this->addTemplate(desc, filename);
         }
     }
