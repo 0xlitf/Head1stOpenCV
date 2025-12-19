@@ -45,7 +45,7 @@ public:
     int whiteThreshold() const;
     void setWhiteThreshold(int thres);
 
-    void addTemplateIntoMap(const QString &name, const QString &fileName,
+    void addTemplateIntoMap(const QString &desc, const QString &fileName,
                             const QString &huStr, std::vector<cv::Point> contour);
 
     // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
@@ -55,14 +55,14 @@ public:
     std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
                                               bool isTemplate);
 
-    void addTemplate(const QString &fileName);
+    void addTemplate(const QString &desc, const QString &fileName);
 
     QString calcHuMoments(std::vector<cv::Point> contour);
 
     cv::Mat croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour);
 
     // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_folder
-    void setTemplateFolder(const QStringList &folderName);
+    void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
     QList<MatchResult> matchImage(const QString &fileName);
 
@@ -79,6 +79,8 @@ private:
         m_huMomentsList;
     double m_scoreThreshold{0.1};
     int m_whiteThreshold{240};
+
+    bool m_drawContourInfo = false;
 };
 
 #endif // HUMOMENTSMATCHER_H

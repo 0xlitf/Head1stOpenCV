@@ -45,14 +45,27 @@ int main(int argc, char *argv[]) {
         cv::imshow("4", std::get<1>(matcher.analyzeAndDrawContour(image1)));
         cv::imshow("3", std::get<1>(matcher.analyzeAndDrawContour(image2)));
 
+        QStringList templateDescStr;
+        templateDescStr << "1"
+                        << "2"
+                        << "3"
+                        << "4"
+                        << "5"
+                        << "6";
         QStringList templateFolderStr;
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-3";
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
-        matcher.setTemplateFolder(templateFolderStr);
+        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/88011-1"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/88011-2"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/88011-3"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/88011-4"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/A6"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder/rect";
+        matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
         QFile sceneImageFile(sceneImageStr);
         if (!sceneImageFile.exists()) {

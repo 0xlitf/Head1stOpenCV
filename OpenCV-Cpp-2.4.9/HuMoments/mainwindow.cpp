@@ -23,6 +23,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
                 .arg(errorStr));
     });
 
+    QStringList templateDescStr;
+    templateDescStr << "1"
+                    << "2"
+                    << "3"
+                    << "4"
+                    << "5"
+                    << "6";
     QStringList templateFolderStr;
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
@@ -30,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
-    m_matcher.setTemplateFolder(templateFolderStr);
+    m_matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 }
 
 void MainWindow::createComponents() {
@@ -139,6 +146,13 @@ void MainWindow::onLoadTemplateFolder() {
         return;
     }
 
+    QStringList templateDescStr;
+    templateDescStr << "1"
+                    << "2"
+                    << "3"
+                    << "4"
+                    << "5"
+                    << "6";
     QStringList templateFolderStr;
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-1";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-2";
@@ -146,7 +160,7 @@ void MainWindow::onLoadTemplateFolder() {
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/88011-4";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/A6";
     templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder/rect";
-    m_matcher.setTemplateFolder(templateFolderStr);
+    m_matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 }
 
 void MainWindow::onLoadTemplate() {

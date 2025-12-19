@@ -32,7 +32,7 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
     cv::Mat binaryImage;
     cv::threshold(grayImage, binaryImage, 200, 255, cv::THRESH_BINARY_INV);
 
-    cv::imshow("binaryImage", binaryImage);
+    // cv::imshow("binaryImage", binaryImage);
 
     // 5. 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
@@ -62,34 +62,36 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
                          2,              // 线宽
                          CV_AA);   // 抗锯齿
 
-        // 可选：添加轮廓信息
-        double area = cv::contourArea(contours[i]);
+        if (m_drawContourInfo) {
+            // 可选：添加轮廓信息
+            double area = cv::contourArea(contours[i]);
 
-        // 计算轮廓中心点
-        cv::Moments m = cv::moments(contours[i]);
-        if (m.m00 != 0) {
-            int centerX = static_cast<int>(m.m10 / m.m00);
-            int centerY = static_cast<int>(m.m01 / m.m00);
+            // 计算轮廓中心点
+            cv::Moments m = cv::moments(contours[i]);
+            if (m.m00 != 0) {
+                int centerX = static_cast<int>(m.m10 / m.m00);
+                int centerY = static_cast<int>(m.m01 / m.m00);
 
-            std::string info = "C" + std::to_string(i + 1) +
-                               " A:" + std::to_string(static_cast<int>(area));
+                std::string info = "C" + std::to_string(i + 1) +
+                                   " A:" + std::to_string(static_cast<int>(area));
 
-            // 绘制中心点
-            cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor, -1);
+                // 绘制中心点
+                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor, -1);
 
-            // 添加文本信息
-            cv::Point textPos(centerX + 10, centerY);
+                // 添加文本信息
+                cv::Point textPos(centerX + 10, centerY);
 
-            // 绘制文本背景
-            int baseline = 0;
-            cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
-            cv::rectangle(outputImage,
-                          textPos - cv::Point(2, textSize.height + 2),
-                          textPos + cv::Point(textSize.width + 2, 2),
-                          cv::Scalar(0, 0, 0), -1);
+                // 绘制文本背景
+                int baseline = 0;
+                cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
+                cv::rectangle(outputImage,
+                              textPos - cv::Point(2, textSize.height + 2),
+                              textPos + cv::Point(textSize.width + 2, 2),
+                              cv::Scalar(0, 0, 0), -1);
 
-            cv::putText(outputImage, info, textPos,
-                        cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(125, 125, 125), 1);
+                cv::putText(outputImage, info, textPos,
+                            cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(125, 125, 125), 1);
+            }
         }
     }
 
@@ -120,7 +122,7 @@ void HuMomentsMatcher::setScoreThreshold(double newScoreThreshold) {
     m_scoreThreshold = newScoreThreshold;
 }
 
-void HuMomentsMatcher::addTemplate(const QString &fileName) {
+void HuMomentsMatcher::addTemplate(const QString &desc, const QString &fileName) {
 
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
@@ -130,7 +132,7 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
                           QString("templateImg is empty: %1").arg(fileName));
         return;
     } else {
-        auto folderBaseName = FileUtils::getFolderBaseName(fileName);
+        // auto folderBaseName = FileUtils::getFolderBaseName(fileName);
 
         cv::threshold(templateImg, templateImg, m_whiteThreshold, 255,
                       cv::THRESH_BINARY);
@@ -148,16 +150,16 @@ void HuMomentsMatcher::addTemplate(const QString &fileName) {
                     .arg(fileName));
         }
 
-        this->addTemplateIntoMap(folderBaseName, fileName, huStr, templateContour);
+        this->addTemplateIntoMap(desc, fileName, huStr, templateContour);
     }
 }
 
-void HuMomentsMatcher::addTemplateIntoMap(const QString &folderBaseName,
+void HuMomentsMatcher::addTemplateIntoMap(const QString &desc,
                                           const QString &fileName,
                                           const QString &huStr,
                                           std::vector<cv::Point> contour) {
 
-    auto tuple = std::make_tuple(folderBaseName, fileName, huStr, contour);
+    auto tuple = std::make_tuple(desc, fileName, huStr, contour);
     m_huMomentsList.append(tuple);
 }
 
@@ -270,8 +272,15 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg,
     return croppedCanvas;
 }
 
-void HuMomentsMatcher::setTemplateFolder(const QStringList &folderNames) {
-    for (auto & folderName: folderNames) {
+void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs, const QStringList &folderNames) {
+    if (descStrs.size() != folderNames.size()) {
+        qFatal("setTemplateFolder descStrs.size != folderNames.size");
+        return;
+    }
+
+    for (int i = 0; i < descStrs.size(); ++i) {
+        auto& desc = descStrs[i];
+        auto& folderName = folderNames[i];
         QDir templateDir(folderName);
         if (!templateDir.exists()) {
             qWarning() << "警告：模板文件夹不存在: " << folderName;
@@ -280,7 +289,7 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &folderNames) {
 
         auto imageFilenames = FileUtils::findAllImageFiles(folderName);
         for (auto &filename : imageFilenames) {
-            this->addTemplate(filename);
+            this->addTemplate(desc, filename);
         }
     }
 
