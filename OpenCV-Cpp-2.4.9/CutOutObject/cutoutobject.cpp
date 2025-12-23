@@ -92,20 +92,16 @@ cv::Mat CutOutObject::getObjectInBoundingRect(const cv::Mat& inputImage,
         return cv::Mat();
     }
 
-    // 关键修正：获取轮廓的轴对称边界矩形 [1,5](@ref)
     cv::Rect boundingRect = cv::boundingRect(contour);
 
-    // 创建一个与边界矩形尺寸相同的白色图像
     cv::Mat result(boundingRect.height, boundingRect.width, CV_8UC1, cv::Scalar(255));
 
-    // 将轮廓点坐标转换到边界矩形坐标系内
     std::vector<cv::Point> shiftedContour;
     for (const auto& point : contour) {
         shiftedContour.push_back(cv::Point(point.x - boundingRect.x,
                                            point.y - boundingRect.y));
     }
 
-    // 在边界矩形图像内绘制黑色轮廓（填充）
     if (!shiftedContour.empty()) {
         std::vector<std::vector<cv::Point>> contoursToDraw = {shiftedContour};
         cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
@@ -128,10 +124,8 @@ cv::Mat CutOutObject::getObjectInOriginalSize(const cv::Mat& inputImage,
         return cv::Mat();
     }
 
-    // 创建与原图同样尺寸的白色背景图像
     cv::Mat result(inputImage.size(), CV_8UC1, cv::Scalar(255));
 
-    // 在原图尺寸上直接绘制黑色轮廓（填充）
     if (!contour.empty()) {
         std::vector<std::vector<cv::Point>> contoursToDraw = {contour};
         cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
