@@ -100,17 +100,6 @@ int main(int argc, char *argv[]) {
 
         cv::imshow("resultImage", resultImage);
 
-
-
-        cv::Mat bigImage(480, 640, CV_8UC3, cv::Scalar(255, 255, 255));
-
-        cv::Mat smallImage(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
-
-        cv::Rect roi1(50, 50, smallImage.cols, smallImage.rows);
-        smallImage.copyTo(bigImage(roi1));
-
-        cv::imshow("Combined Image", bigImage);
-
         // 方法2：创建绿色小图并在另一位置放置
         // cv::Mat greenImage(80, 80, CV_8UC3, cv::Scalar(0, 255, 0));
         // cv::Rect roi2(200, 100, greenImage.cols, greenImage.rows);
@@ -119,6 +108,17 @@ int main(int argc, char *argv[]) {
         // // 方法3：居中放置蓝色小图
         // cv::Mat blueImage(120, 120, CV_8UC3, cv::Scalar(255, 0, 0));
         // placeImageCenter(bigImage, blueImage);
+
+        if (auto testImageCombine = true) {
+            cv::Mat bigImage(480, 640, CV_8UC3, cv::Scalar(255, 255, 255));
+
+            cv::Mat smallImage(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
+
+            cv::Rect roi1(50, 150, smallImage.cols, smallImage.rows);
+            smallImage.copyTo(bigImage(roi1));
+
+            cv::imshow("testImageCombine", bigImage);
+        }
 
 
         cv::waitKey(0);

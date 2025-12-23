@@ -34,10 +34,42 @@ signals:
     void sendLog(const QString &logStr);
     void errorOccured(ErrorCode errorCode, const QString &errorStr);
 
+// 外部调用的static接口
+public:
+    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
+
+    static cv::Mat drawResultsOnImage(const cv::Mat &inputImage,
+                                      const QList<MatchResult> &resultList);
+
+    static void drawLabel(cv::Mat &image, const QString &label,
+                          const cv::Point &position, const cv::Scalar &color);
+
+// 外部调用的算法接口
 public:
     HuMomentsMatcher(QObject *parent = nullptr);
 
-    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
+    // C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/dataset_folder
+    // 设置模版文件夹，传入描述的QStringList和文件夹路径的QStringList
+    void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
+
+    QList<MatchResult> matchImage(const QString &fileName);
+
+    QList<MatchResult> matchMat(cv::Mat sceneImg);
+
+    // 辅助函数：获取最大的轮廓
+    std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
+                                              bool isTemplate);
+
+public:
+    void addTemplateIntoMap(const QString &desc, const QString &fileName,
+                            const QString &huStr, std::vector<cv::Point> contour);
+
+    // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
+    QPixmap cvMatToQPixmap(const cv::Mat &inMat);
+
+    QString calcHuMoments(std::vector<cv::Point> contour);
+
+    cv::Mat croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour);
 
     double scoreThreshold() const;
     void setScoreThreshold(double newScoreThreshold);
@@ -45,34 +77,8 @@ public:
     int whiteThreshold() const;
     void setWhiteThreshold(int thres);
 
-    void addTemplateIntoMap(const QString &desc, const QString &fileName,
-                            const QString &huStr, std::vector<cv::Point> contour);
-
-    // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
-    QPixmap cvMatToQPixmap(const cv::Mat &inMat);
-
-    // 辅助函数：获取最大的轮廓
-    std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
-                                              bool isTemplate);
-
+private:
     void addTemplate(const QString &desc, const QString &fileName);
-
-    QString calcHuMoments(std::vector<cv::Point> contour);
-
-    cv::Mat croppedCanvas(cv::Mat templateImg, std::vector<cv::Point> contour);
-
-    // C:\GitHub\Head1stOpenCV\OpenCV-Cpp-2.4.9\HuMoments\dataset_folder
-    void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
-
-    QList<MatchResult> matchImage(const QString &fileName);
-
-    QList<MatchResult> matchMat(cv::Mat sceneImg);
-
-    static cv::Mat drawResultsOnImage(const cv::Mat &inputImage,
-                                      const QList<MatchResult> &resultList);
-
-    static void drawLabel(cv::Mat &image, const QString &label,
-                          const cv::Point &position, const cv::Scalar &color);
 
 private:
     QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>>

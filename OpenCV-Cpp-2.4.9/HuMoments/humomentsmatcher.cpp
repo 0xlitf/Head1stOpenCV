@@ -358,22 +358,26 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                      cv::CHAIN_APPROX_SIMPLE);
     qDebug() << "findContours contours.size: " << contours.size();
 
-    // 3. 复制一份场景图用于绘制结果
     cv::Mat resultImg = sceneImg.clone();
-    if (!contours.empty()) {
-        // 青色在BGR中是 (255, 255, 0)
-        cv::Scalar cyanColor(255, 255, 0); // B=255, G=255, R=0
+    if (auto showContoursImage = true) {
 
-        // 绘制所有轮廓
-        cv::drawContours(resultImg, contours,
-                         -1,        // 绘制所有轮廓
-                         cyanColor, // 青色
-                         2,         // 线宽
-                         CV_AA);    // 抗锯齿
+        // 3. 复制一份场景图用于绘制结果
+        if (!contours.empty()) {
+            // 青色在BGR中是 (255, 255, 0)
+            cv::Scalar cyanColor(255, 255, 0); // B=255, G=255, R=0
 
-        qDebug() << "已绘制" << contours.size() << "个轮廓";
-    } else {
-        qDebug() << "未找到任何轮廓";
+            // 绘制所有轮廓
+            cv::drawContours(resultImg, contours,
+                             -1,        // 绘制所有轮廓
+                             cyanColor, // 青色
+                             2,         // 线宽
+                             CV_AA);    // 抗锯齿
+
+            qDebug() << "已绘制" << contours.size() << "个轮廓";
+        } else {
+            qDebug() << "未找到任何轮廓";
+        }
+        cv::imshow("drawContours", resultImg);
     }
 
     QList<MatchResult> resultList;
