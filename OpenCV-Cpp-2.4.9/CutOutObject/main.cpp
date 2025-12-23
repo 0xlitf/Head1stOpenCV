@@ -62,7 +62,16 @@ int main(int argc, char *argv[]) {
     // return a.exec();
 
     CutOutObject cutout;
-    cutout.testExtractLargestContour("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/CutOutObject/dataset/14-39-42-685.png");
 
+    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/CutOutObject/dataset/14-39-42-685.png";
+    // cutout.testExtractLargestContour(imageName.toStdString());
+
+    auto image = cv::imread(imageName.toStdString());
+
+    cv::imshow("getObjectInBoundingRect", cutout.getObjectInBoundingRect(image));
+    cv::imshow("getObjectInBoundingRect", cutout.getObjectInOriginalSize(image));
+
+    cv::waitKey(0);
+    cv::destroyAllWindows();
     return 0;
 }

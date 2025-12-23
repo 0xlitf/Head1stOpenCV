@@ -21,6 +21,18 @@ public:
                                int blueThreshold = 50,
                                int kernelSize = 3);
 
+    // 新增接口1：返回物体所在的轴对称矩形，背景白色，物体黑色
+    cv::Mat getObjectInBoundingRect(const cv::Mat& inputImage,
+                                    int colorThreshold = 30,
+                                    int blueThreshold = 50,
+                                    int kernelSize = 3);
+
+    // 新增接口2：返回原图尺寸的掩码，背景白色，物体黑色
+    cv::Mat getObjectInOriginalSize(const cv::Mat& inputImage,
+                                    int colorThreshold = 30,
+                                    int blueThreshold = 50,
+                                    int kernelSize = 3);
+
     void testExtractLargestContour(const QString& imageFilename);
 };
 
