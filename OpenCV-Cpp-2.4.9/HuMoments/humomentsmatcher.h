@@ -14,7 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 using MatchResult =
-    std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double>;
+    std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double, double>;
 
 class HuMomentsMatcher : public QObject {
     Q_OBJECT

@@ -405,6 +405,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
             auto templateTuple = m_huMomentsList[j];
             auto templateContour = std::get<3>(templateTuple);
+            double templateArea = cv::contourArea(templateContour);
 
             double score = cv::matchShapes(templateContour, objContour,
                                            CV_CONTOURS_MATCH_I1, 0.0);
@@ -439,20 +440,24 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 // cv::Point2f(40, 40)
                 //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-                auto str = QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
-                                   "坐标: (%4, %5)")
+                double areaDifferencePercent = (templateArea - area) / area;
+
+                auto str =
+                    QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
+                                   "坐标: (%4, %5), 面积差值百分比: %6")
                                .arg(objName)
                                .arg(score)
                                .arg(rotRect.angle)
                                .arg(rotRect.center.x)
-                               .arg(rotRect.center.y);
+                               .arg(rotRect.center.y)
+                               .arg(areaDifferencePercent);
                 qDebug() << str.toUtf8().constData();
 
                 emit sendLog(str);
 
                 finded = true;
 
-                resultList.append(std::make_tuple(objName, objContour, center, score));
+                resultList.append(std::make_tuple(objName, objContour, center, score, areaDifferencePercent));
 
                 break;
             } else {
@@ -463,7 +468,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         }
 
         if (!finded) {
-            resultList.append(std::make_tuple(QString(""), objContour, center, 100));
+            resultList.append(std::make_tuple(QString(""), objContour, center, 100, -100.));
         }
     }
 
