@@ -62,15 +62,28 @@ int main(int argc, char *argv[]) {
     // return a.exec();
 
     CutOutObject cutout;
-
-    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/CutOutObject/dataset/14-39-42-685.png";
     // cutout.testExtractLargestContour(imageName.toStdString());
 
+    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/CutOutObject/dataset/14-39-42-685.png";
     auto image = cv::imread(imageName.toStdString());
+    if (image.empty()) {
+        qDebug() << "无法读取图像文件:" << imageName;
+        return -1;
+    }
+    cv::Mat boundingRectResult = cutout.getObjectInBoundingRect(image);
+    cv::Mat originalSizeResult = cutout.getObjectInOriginalSize(image);
 
-    cv::imshow("getObjectInBoundingRect", cutout.getObjectInBoundingRect(image));
-    cv::imshow("getObjectInBoundingRect", cutout.getObjectInOriginalSize(image));
+    if (!boundingRectResult.empty()) {
+        cv::imshow("getObjectInBoundingRect - 最小轴对称矩形", boundingRectResult);
+    } else {
+        qDebug() << "getObjectInBoundingRect 返回空图像";
+    }
 
+    if (!originalSizeResult.empty()) {
+        cv::imshow("getObjectInOriginalSize - 原图尺寸", originalSizeResult);
+    } else {
+        qDebug() << "getObjectInOriginalSize 返回空图像";
+    }
     cv::waitKey(0);
     cv::destroyAllWindows();
     return 0;

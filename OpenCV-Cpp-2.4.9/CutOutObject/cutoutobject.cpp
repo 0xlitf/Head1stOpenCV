@@ -32,7 +32,7 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     cv::bitwise_not(cvImage, cvImage);
 
-    cv::imshow("threshold (30,50)", cvImage);
+    // cv::imshow("threshold (30,50)", cvImage);
 
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
@@ -78,8 +78,6 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     return true;
 }
-
-// 新增接口1：返回物体所在的轴对称矩形，背景白色，物体黑色
 cv::Mat CutOutObject::getObjectInBoundingRect(const cv::Mat& inputImage,
                                               int colorThreshold,
                                               int blueThreshold,
@@ -94,29 +92,28 @@ cv::Mat CutOutObject::getObjectInBoundingRect(const cv::Mat& inputImage,
         return cv::Mat();
     }
 
-    // 获取旋转矩形的轴对称边界矩形 [5](@ref)
-    cv::Rect boundingRect = minRect.boundingRect();
+    // 关键修正：获取轮廓的轴对称边界矩形 [1,5](@ref)
+    cv::Rect boundingRect = cv::boundingRect(contour);
 
-    // 创建白色背景图像 [6](@ref)
+    // 创建一个与边界矩形尺寸相同的白色图像
     cv::Mat result(boundingRect.height, boundingRect.width, CV_8UC1, cv::Scalar(255));
 
-    // 将轮廓点坐标转换到边界矩形坐标系
+    // 将轮廓点坐标转换到边界矩形坐标系内
     std::vector<cv::Point> shiftedContour;
     for (const auto& point : contour) {
         shiftedContour.push_back(cv::Point(point.x - boundingRect.x,
                                            point.y - boundingRect.y));
     }
 
-    // 在边界矩形内绘制黑色轮廓（填充） [5](@ref)
+    // 在边界矩形图像内绘制黑色轮廓（填充）
     if (!shiftedContour.empty()) {
         std::vector<std::vector<cv::Point>> contoursToDraw = {shiftedContour};
-        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED);
+        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
     }
 
     return result;
 }
 
-// 新增接口2：返回原图尺寸的cv::Mat，背景白色，物体黑色
 cv::Mat CutOutObject::getObjectInOriginalSize(const cv::Mat& inputImage,
                                               int colorThreshold,
                                               int blueThreshold,
@@ -131,13 +128,13 @@ cv::Mat CutOutObject::getObjectInOriginalSize(const cv::Mat& inputImage,
         return cv::Mat();
     }
 
-    // 创建与原图同样尺寸的白色背景图像 [6](@ref)
+    // 创建与原图同样尺寸的白色背景图像
     cv::Mat result(inputImage.size(), CV_8UC1, cv::Scalar(255));
 
-    // 在原图尺寸上绘制黑色轮廓（填充） [5](@ref)
+    // 在原图尺寸上直接绘制黑色轮廓（填充）
     if (!contour.empty()) {
         std::vector<std::vector<cv::Point>> contoursToDraw = {contour};
-        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED);
+        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0), CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
     }
 
     return result;
