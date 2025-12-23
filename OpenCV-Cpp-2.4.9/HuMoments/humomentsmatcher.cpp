@@ -467,7 +467,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         qDebug() << "未在场景中找到匹配物体。";
     }
 
-    qDebug() << "matchMat elapsed:" << timer.elapsed();
+    qDebug() << "matchMat elapsed:" << timer.nsecsElapsed();
 
     return resultList;
 }
