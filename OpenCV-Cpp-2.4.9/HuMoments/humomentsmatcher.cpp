@@ -359,7 +359,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     qDebug() << "findContours contours.size: " << contours.size();
 
     cv::Mat resultImg = sceneImg.clone();
-    if (auto showContoursImage = true) {
+    if (auto showContoursImage = false) {
 
         // 3. 复制一份场景图用于绘制结果
         if (!contours.empty()) {

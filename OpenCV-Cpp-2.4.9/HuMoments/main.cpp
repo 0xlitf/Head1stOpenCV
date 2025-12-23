@@ -41,9 +41,10 @@ int main(int argc, char *argv[]) {
         auto image1 = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/image1.png").toStdString(), cv::IMREAD_COLOR);
         auto image2 = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/image2.png").toStdString(), cv::IMREAD_COLOR);
 
-
-        cv::imshow("4", std::get<1>(matcher.analyzeAndDrawContour(image1)));
-        cv::imshow("3", std::get<1>(matcher.analyzeAndDrawContour(image2)));
+        if (auto showResult = false) {
+            cv::imshow("image1 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image1)));
+            cv::imshow("image2 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image2)));
+        }
 
         QStringList templateDescStr;
         templateDescStr << "1"
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]) {
 
         auto resultImage = matcher.drawResultsOnImage(sceneImg, results);
 
-        cv::imshow("resultImage", resultImage);
+        cv::imshow("resultImage detect result", resultImage);
 
         // 方法2：创建绿色小图并在另一位置放置
         // cv::Mat greenImage(80, 80, CV_8UC3, cv::Scalar(0, 255, 0));
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
         // cv::Mat blueImage(120, 120, CV_8UC3, cv::Scalar(255, 0, 0));
         // placeImageCenter(bigImage, blueImage);
 
-        if (auto testImageCombine = true) {
+        if (auto testImageCombine = false) {
             cv::Mat bigImage(480, 640, CV_8UC3, cv::Scalar(255, 255, 255));
 
             cv::Mat smallImage(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
