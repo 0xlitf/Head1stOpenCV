@@ -128,6 +128,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
             ${PROJECT_SOURCES}
             ${app_icon_resource_windows}
             ../share/messageinstaller.cpp ../share/messageinstaller.h
+            cutoutobject.h cutoutobject.cpp
         )
     else()
         qt_add_executable(${PROJECT_NAME}
@@ -270,3 +271,8 @@ endif()
 
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE QT_MESSAGELOGCONTEXT)
+
+if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /source-charset:utf-8 /execution-charset:gbk")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /source-charset:utf-8 /execution-charset:gbk")
+endif()
