@@ -78,6 +78,7 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     return true;
 }
+
 cv::Mat CutOutObject::getObjectInBoundingRect(const cv::Mat& inputImage,
                                               int colorThreshold,
                                               int blueThreshold,
