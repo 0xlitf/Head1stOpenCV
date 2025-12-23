@@ -74,13 +74,13 @@ int main(int argc, char *argv[]) {
     cv::Mat originalSizeResult = cutout.getObjectInOriginalSize(image);
 
     if (!boundingRectResult.empty()) {
-        cv::imshow("getObjectInBoundingRect - 最小轴对称矩形", boundingRectResult);
+        cv::imshow("getObjectInBoundingRect", boundingRectResult);
     } else {
         qDebug() << "getObjectInBoundingRect 返回空图像";
     }
 
     if (!originalSizeResult.empty()) {
-        cv::imshow("getObjectInOriginalSize - 原图尺寸", originalSizeResult);
+        cv::imshow("getObjectInOriginalSize - originalSizeResult", originalSizeResult);
     } else {
         qDebug() << "getObjectInOriginalSize 返回空图像";
     }
