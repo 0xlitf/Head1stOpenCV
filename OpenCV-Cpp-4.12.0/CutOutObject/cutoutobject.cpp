@@ -4,8 +4,9 @@ CutOutObject::CutOutObject() {}
 
 bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
                                          std::vector<cv::Point> &contour,
-                                         double &area, int colorThreshold,
-                                         int blueThreshold, int kernelSize) {
+                                         double &area, cv::RotatedRect &minRect,
+                                         int colorThreshold, int blueThreshold,
+                                         int kernelSize) {
 
     if (inputImage.empty()) {
         std::cerr << "错误：输入图像为空！" << std::endl;
@@ -35,7 +36,7 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     cv::bitwise_not(cvImage, cvImage);
 
-    cv::imshow("宽松阈值 (30,50)", cvImage);
+    cv::imshow("threshold (30,50)", cvImage);
 
     // 转换为灰度图用于形态学操作
     cv::Mat gray;

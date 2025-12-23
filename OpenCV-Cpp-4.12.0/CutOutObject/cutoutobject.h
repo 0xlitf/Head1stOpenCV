@@ -14,6 +14,7 @@ public:
     bool extractLargestContour(const cv::Mat& inputImage,
                                std::vector<cv::Point>& contour,
                                double& area,
+                               cv::RotatedRect &minRect,
                                int colorThreshold = 30,
                                int blueThreshold = 50,
                                int kernelSize = 3);
