@@ -1,5 +1,7 @@
 ﻿#include "cutoutobject.h"
 
+#include <QElapsedTimer>
+
 CutOutObject::CutOutObject() {}
 
 // 新增：提取多个物体的核心函数
@@ -37,22 +39,24 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
         }
     }
 
+    // cv::imshow("cvImage", cvImage);
+
     cv::bitwise_not(cvImage, cvImage);
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
 
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                               cv::Size(kernelSize, kernelSize));
+    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+    //                                            cv::Size(kernelSize, kernelSize));
 
-    cv::Mat morphResult;
-    cv::morphologyEx(gray, morphResult, cv::MORPH_OPEN, kernel);
-    cv::morphologyEx(morphResult, morphResult, cv::MORPH_CLOSE, kernel);
-    cv::dilate(morphResult, morphResult, kernel, cv::Point(-1, -1), 2);
+    // cv::Mat morphResult;
+    // cv::morphologyEx(gray, morphResult, cv::MORPH_OPEN, kernel);
+    // cv::morphologyEx(morphResult, morphResult, cv::MORPH_CLOSE, kernel);
+    // cv::dilate(morphResult, morphResult, kernel, cv::Point(-1, -1), 2);
 
     // 查找所有轮廓
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
-    cv::findContours(morphResult, contours, hierarchy, cv::RETR_EXTERNAL,
+    cv::findContours(gray, contours, hierarchy, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
 
     if (contours.empty()) {
@@ -122,9 +126,18 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
     double minAreaThreshold,
     double maxAreaThreshold) {
 
+    // cv::imshow("inputImage", inputImage);
+
     std::vector<cv::Mat> resultImages;
-    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
-                                          colorThreshold, blueThreshold, kernelSize);
+
+    QElapsedTimer timer;
+    timer.start();
+
+    auto results =
+        extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
+                                          kernelSize, minAreaThreshold, maxAreaThreshold);
+
+    qDebug() << "extractMultipleObjects elapsed:" << timer.elapsed();
 
     for (const auto& result : results) {
         cv::Rect boundingRect = result.boundingRect;
@@ -158,12 +171,13 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
     double minAreaThreshold,
     double maxAreaThreshold) {
 
-    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
-                                          colorThreshold, blueThreshold, kernelSize);
+    auto results =
+        extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
+                                          kernelSize, minAreaThreshold, maxAreaThreshold);
 
     cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 
-    for (const auto& result : results) {
+    for (const auto &result : results) {
         if (!result.contour.empty()) {
             std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
             cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 0, 0),
@@ -190,6 +204,8 @@ void CutOutObject::testExtractMultipleObjects(const QString& imageFilename,
         qDebug() << "未找到符合面积阈值的物体！";
         return;
     }
+
+    // cv::imshow("results", results);
 
     cv::Mat resultImage = image.clone();
 
@@ -230,7 +246,7 @@ void CutOutObject::testExtractMultipleObjects(const QString& imageFilename,
                  << "," << result.minRect.center.y << ")";
     }
 
-    cv::imshow("Multiple Objects Detection", resultImage);
+    // cv::imshow("Multiple Objects Detection", resultImage);
 }
 
 // 保持原有的测试函数

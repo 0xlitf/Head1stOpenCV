@@ -37,8 +37,8 @@ public:
         int colorThreshold = 30,
         int blueThreshold = 50,
         int kernelSize = 3,
-        double minAreaThreshold = 2000.0,    // 最小面积阈值
-        double maxAreaThreshold = 100000.0); // 最大面积阈值
+        double minAreaThreshold = 1000.0,    // 最小面积阈值
+        double maxAreaThreshold = 50000.0); // 最大面积阈值
 
     // 新增：获取多个物体的边界框结果
     std::vector<cv::Mat> getMultipleObjectsInBoundingRect(
@@ -46,8 +46,8 @@ public:
         int colorThreshold = 30,
         int blueThreshold = 50,
         int kernelSize = 3,
-        double minAreaThreshold = 2000.0,
-        double maxAreaThreshold = 100000.0);
+        double minAreaThreshold = 1000.0,
+        double maxAreaThreshold = 50000.0);
 
     // 新增：获取多个物体的原图尺寸掩码
     cv::Mat getMultipleObjectsInOriginalSize(
@@ -55,12 +55,12 @@ public:
         int colorThreshold = 30,
         int blueThreshold = 50,
         int kernelSize = 3,
-        double minAreaThreshold = 2000.0,
-        double maxAreaThreshold = 100000.0);
+        double minAreaThreshold = 1000.0,
+        double maxAreaThreshold = 50000.0);
 
     void testExtractMultipleObjects(const QString& imageFilename,
-                                    double minAreaThreshold = 2000.0,
-                                    double maxAreaThreshold = 100000.0);
+                                    double minAreaThreshold = 1000.0,
+                                    double maxAreaThreshold = 50000.0);
 
     void testExtractLargestContour(const QString& imageFilename);
 };
