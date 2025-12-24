@@ -64,9 +64,9 @@ int main(int argc, char *argv[]) {
     CutOutObject cutout;
     // cutout.testExtractLargestContour(imageName.toStdString());
 
-    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/bg.png";
-    // QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/1.png";
-    // QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/2.png";
+    // QString imageName = QString(PROJECT_DIR) + "/dataset/bg.png"; // 纯背景
+    // QString imageName = QString(PROJECT_DIR) + "/dataset/1.png"; // 1个物体
+    QString imageName = QString(PROJECT_DIR) + "/dataset/2.png"; // 2个物体
     auto image = cv::imread(imageName.toStdString());
     if (image.empty()) {
         qDebug() << "无法读取图像文件:" << imageName;
