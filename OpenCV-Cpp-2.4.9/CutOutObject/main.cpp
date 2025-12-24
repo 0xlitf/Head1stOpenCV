@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
 
     cutout.testExtractMultipleObjects(imageName, minArea, maxArea);
 
-    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(image, 5000, 30000, 30, 50, 3);
-    std::vector<cv::Mat> masks = cutout.getMultipleObjectsInOriginalSize(image, 5000, 30000, 30, 50, 3);
+    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(image);
+    std::vector<cv::Mat> masks = cutout.getMultipleObjectsInOriginalSize(image);
 
     qDebug() << "boundings.size:" << boundings.size();
     qDebug() << "masks.size:" << masks.size();
