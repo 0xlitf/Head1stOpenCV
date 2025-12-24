@@ -5,7 +5,7 @@ date:  2016.8.23(start)
 #ifndef PARTSTRAINER_H
 #define PARTSTRAINER_H
 
-#include "cfg.h"
+// #include "cfg.h"
 #include "hp_detection_partstrainer.h"
 using namespace cv;
 

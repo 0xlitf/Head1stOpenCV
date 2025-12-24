@@ -1,12 +1,13 @@
 ﻿#ifndef QT_HALCON_H
 #define QT_HALCON_H
 
-#include "HDevEngineCpp.h"
+// #include "HDevEngineCpp.h"
 #include "HalconCpp.h"
-#include "cfg.h"
+// #include "cfg.h"
+#include <opencv2/opencv.hpp>
 
 using namespace HalconCpp;
-using namespace HDevEngineCpp;
+// using namespace HDevEngineCpp;
 
 #if defined(TRANSPARENT_PART_LIBRARY)
 #define HALCON_EXPORT // Q_DECL_EXPORT

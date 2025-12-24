@@ -10,7 +10,9 @@
 //
 // Source files with different encoding should not be mixed in one project.
 ///////////////////////////////////////////////////////////////////////////////
-#include "HDevThread.h"
+
+// #include "HDevThread.h"
+
 #include "HalconCpp.h"
 
 using namespace HalconCpp;

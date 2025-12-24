@@ -2,22 +2,20 @@
 #define HPDETECTIONPARTSTRAINER_H
 #pragma once
 #include "cfg.h"
-#include "halcon.h"
 #include "halconDLL.h"
-#include "qt_halcon.h"
 #include <HalconCpp.h>
 
 #ifdef __APPLE__
 #include <HALCONCpp/HALCONCpp.h>
 #include <HDevEngineCpp/HDevEngineCpp.h>
 #else
-#include "HDevEngineCpp.h"
+
 #include "HalconCpp.h"
 #endif
 
 using namespace std;
 using namespace HalconCpp;
-using namespace HDevEngineCpp;
+// using namespace HDevEngineCpp;
 
 struct ResultData {
     cv::Mat image;

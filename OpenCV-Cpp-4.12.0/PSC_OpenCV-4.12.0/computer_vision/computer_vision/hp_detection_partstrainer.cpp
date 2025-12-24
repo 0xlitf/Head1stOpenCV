@@ -1,4 +1,6 @@
 ﻿#include "hp_detection_partstrainer.h"
+#include "qt_halcon.h"
+#include "HDevEngineCpp.h"
 
 HPDetectionPartsTrainer::HPDetectionPartsTrainer() : m_pData(NULL) {
     if (m_pData == NULL)
@@ -38,7 +40,7 @@ void HPDetectionPartsTrainer::init() {
         m_isDynamicHD = false;   // 默认手动训练模式
         m_useCountDebug = false; // 默认关闭视觉计数调试
         m_pData->strError.clear();
-    } catch (HDevEngineException &e) {
+    } catch (HDevEngineCpp::HDevEngineException &e) {
         m_pData->strError = e.Message();
     } catch (HException &e) {
         m_pData->strError = e.ErrorMessage();
@@ -110,7 +112,7 @@ bool HPDetectionPartsTrainer::updateParam(int threshValue, int wdiffValue) {
                    &m_pData->WindowHandle);
         SetPart(m_pData->WindowHandle, 0, 0, height - 1, width - 1);
         return true;
-    } catch (HDevEngineException &e) {
+    } catch (HDevEngineCpp::HDevEngineException &e) {
         m_pData->strError = e.Message();
     } catch (HException &e) {
         m_pData->strError = e.ErrorMessage();
@@ -165,7 +167,7 @@ double HPDetectionPartsTrainer::getCalibFactor(cv::Mat &image) {
     try {
         //		get_calib_factor(hImageCalib, &scaleFactor);
         s = scaleFactor[0].D();
-    } catch (HDevEngineException &e) {
+    } catch (HDevEngineCpp::HDevEngineException &e) {
         m_pData->strError = e.Message();
     } catch (HException &e) {
         m_pData->strError = e.ErrorMessage();
@@ -311,7 +313,7 @@ bool HPDetectionPartsTrainer::train(cv::Mat &image, cv::Mat &trainResult) {
         if (hModelID.Length() == 0) {
             m_pData->strError = "result error";
         }
-    } catch (HDevEngineException &e) {
+    } catch (HDevEngineCpp::HDevEngineException &e) {
         m_pData->strError = e.Message();
         return false;
     } catch (HException &e) {
