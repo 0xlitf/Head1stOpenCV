@@ -79,10 +79,9 @@ int main(int argc, char *argv[]) {
     cutout.testExtractMultipleObjects(imageName, minArea, maxArea);
 
     std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(image);
-    std::vector<cv::Mat> masks = cutout.getMultipleObjectsInOriginalSize(image);
+    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(image);
 
     qDebug() << "boundings.size:" << boundings.size();
-    qDebug() << "masks.size:" << masks.size();
 
     int i = 0;
     for (auto & mat: boundings) {
@@ -90,10 +89,7 @@ int main(int argc, char *argv[]) {
         ++i;
     }
 
-    for (auto & mask: masks) {
-        cv::imshow(QString("masks %1").arg(i).toStdString(), mask);
-        ++i;
-    }
+    cv::imshow(QString("mask %1").arg(i).toStdString(), mask);
 
     cv::waitKey(0);
     cv::destroyAllWindows();

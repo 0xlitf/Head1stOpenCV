@@ -50,7 +50,7 @@ public:
         int kernelSize = 3);
 
     // 新增：获取多个物体的原图尺寸掩码
-    std::vector<cv::Mat> getMultipleObjectsInOriginalSize(
+    cv::Mat getMultipleObjectsInOriginalSize(
         const cv::Mat& inputImage,
         double minAreaThreshold = 2000.0,
         double maxAreaThreshold = 100000.0,

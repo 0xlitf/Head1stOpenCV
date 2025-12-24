@@ -150,7 +150,7 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
 }
 
 // 新增：获取多个物体的原图尺寸掩码
-std::vector<cv::Mat> CutOutObject::getMultipleObjectsInOriginalSize(
+cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
     const cv::Mat& inputImage,
     double minAreaThreshold,
     double maxAreaThreshold,
@@ -158,23 +158,20 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInOriginalSize(
     int blueThreshold,
     int kernelSize) {
 
-    std::vector<cv::Mat> resultImages;
     auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
                                           colorThreshold, blueThreshold, kernelSize);
 
-    for (const auto& result : results) {
-        cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+    cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 
+    for (const auto& result : results) {
         if (!result.contour.empty()) {
             std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
             cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 0, 0),
                              CV_FILLED);
         }
-
-        resultImages.push_back(resultImg);
     }
 
-    return resultImages;
+    return resultImg;
 }
 
 // 新增：测试多物体检测功能
