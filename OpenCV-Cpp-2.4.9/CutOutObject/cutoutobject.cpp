@@ -1,17 +1,24 @@
 ﻿#include "cutoutobject.h"
 
 CutOutObject::CutOutObject() {}
-bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
-                                         std::vector<cv::Point> &contour,
-                                         double &area, cv::RotatedRect &minRect,
-                                         int colorThreshold, int blueThreshold,
-                                         int kernelSize) {
+
+// 新增：提取多个物体的核心函数
+std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
+    const cv::Mat& inputImage,
+    double minAreaThreshold,
+    double maxAreaThreshold,
+    int colorThreshold,
+    int blueThreshold,
+    int kernelSize) {
+
+    std::vector<ObjectDetectionResult> results;
 
     if (inputImage.empty()) {
         qWarning() << "错误, 输入图像为空";
-        return false;
+        return results;
     }
 
+    // 图像预处理（与原有逻辑相同）
     cv::Mat cvImage = inputImage.clone();
     for (int i = 0; i < cvImage.rows; ++i) {
         for (int j = 0; j < cvImage.cols; ++j) {
@@ -31,9 +38,6 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
     }
 
     cv::bitwise_not(cvImage, cvImage);
-
-    // cv::imshow("threshold (30,50)", cvImage);
-
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
 
@@ -42,11 +46,10 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     cv::Mat morphResult;
     cv::morphologyEx(gray, morphResult, cv::MORPH_OPEN, kernel);
-
     cv::morphologyEx(morphResult, morphResult, cv::MORPH_CLOSE, kernel);
-
     cv::dilate(morphResult, morphResult, kernel, cv::Point(-1, -1), 2);
 
+    // 查找所有轮廓
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     cv::findContours(morphResult, contours, hierarchy, cv::RETR_EXTERNAL,
@@ -54,129 +57,186 @@ bool CutOutObject::extractLargestContour(const cv::Mat &inputImage,
 
     if (contours.empty()) {
         qDebug() << "未找到任何轮廓！";
+        return results;
+    }
+
+    // 对轮廓按面积进行排序[8](@ref)
+    std::sort(contours.begin(), contours.end(),
+              [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b) {
+                  return cv::contourArea(a) > cv::contourArea(b);
+              });
+
+    // 筛选符合面积阈值的轮廓[6,7](@ref)
+    for (const auto& contour : contours) {
+        double area = cv::contourArea(contour);
+
+        // 应用面积阈值过滤
+        if (area >= minAreaThreshold && area <= maxAreaThreshold) {
+            ObjectDetectionResult result;
+            result.contour = contour;
+            result.area = area;
+            result.boundingRect = cv::boundingRect(contour);
+
+            if (contour.size() >= 5) {
+                result.minRect = cv::minAreaRect(contour);
+            } else {
+                result.minRect = cv::RotatedRect();
+            }
+
+            results.push_back(result);
+        }
+    }
+
+    qDebug() << "找到" << results.size() << "个符合面积阈值的物体";
+    return results;
+}
+
+// 保持原有的单个物体检测函数（向后兼容）
+bool CutOutObject::extractLargestContour(const cv::Mat& inputImage,
+                                         std::vector<cv::Point>& contour,
+                                         double& area, cv::RotatedRect& minRect,
+                                         int colorThreshold, int blueThreshold,
+                                         int kernelSize) {
+
+    auto results = extractMultipleObjects(inputImage, 0, 1000000,
+                                          colorThreshold, blueThreshold, kernelSize);
+
+    if (results.empty()) {
         return false;
     }
 
-    auto maxContourIt = std::max_element(
-        contours.begin(), contours.end(),
-        [](const std::vector<cv::Point> &a, const std::vector<cv::Point> &b) {
-            return cv::contourArea(a) < cv::contourArea(b);
-        });
-
-    if (maxContourIt == contours.end()) {
-        return false;
-    }
-
-    contour = *maxContourIt;
-    area = cv::contourArea(contour);
-
-    if (contour.size() >= 5) {
-        minRect = cv::minAreaRect(contour);
-    } else {
-        minRect = cv::RotatedRect(cv::minAreaRect(contour));
-    }
+    // 返回面积最大的物体
+    contour = results[0].contour;
+    area = results[0].area;
+    minRect = results[0].minRect;
 
     return true;
 }
-cv::Mat CutOutObject::getObjectInBoundingRect(const cv::Mat &inputImage,
-                                              int colorThreshold,
-                                              int blueThreshold,
-                                              int kernelSize) {
-    std::vector<cv::Point> contour;
-    double area;
-    cv::RotatedRect minRect;
 
-    if (!extractLargestContour(inputImage, contour, area, minRect, colorThreshold,
-                               blueThreshold, kernelSize)) {
-        qWarning() << "无法提取轮廓，返回空矩阵";
-        return cv::Mat();
+// 新增：获取多个物体的边界框结果
+std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
+    const cv::Mat& inputImage,
+    double minAreaThreshold,
+    double maxAreaThreshold,
+    int colorThreshold,
+    int blueThreshold,
+    int kernelSize) {
+
+    std::vector<cv::Mat> resultImages;
+    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
+                                          colorThreshold, blueThreshold, kernelSize);
+
+    for (const auto& result : results) {
+        cv::Rect boundingRect = result.boundingRect;
+        cv::Mat resultImg(boundingRect.height, boundingRect.width, CV_8UC3,
+                          cv::Scalar(255, 255, 255));
+
+        std::vector<cv::Point> shiftedContour;
+        for (const auto& point : result.contour) {
+            shiftedContour.push_back(
+                cv::Point(point.x - boundingRect.x, point.y - boundingRect.y));
+        }
+
+        if (!shiftedContour.empty()) {
+            std::vector<std::vector<cv::Point>> contoursToDraw = {shiftedContour};
+            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 0, 0),
+                             CV_FILLED);
+        }
+
+        resultImages.push_back(resultImg);
     }
 
-    cv::Rect boundingRect = cv::boundingRect(contour);
-
-    cv::Mat result(boundingRect.height, boundingRect.width, CV_8UC3,
-                   cv::Scalar(255, 255, 255));
-
-    std::vector<cv::Point> shiftedContour;
-    for (const auto &point : contour) {
-        shiftedContour.push_back(
-            cv::Point(point.x - boundingRect.x, point.y - boundingRect.y));
-    }
-
-    if (!shiftedContour.empty()) {
-        std::vector<std::vector<cv::Point>> contoursToDraw = {shiftedContour};
-        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0, 0, 0),
-                         CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
-    }
-
-    return result;
+    return resultImages;
 }
 
-cv::Mat CutOutObject::getObjectInOriginalSize(const cv::Mat &inputImage,
-                                              int colorThreshold,
-                                              int blueThreshold,
-                                              int kernelSize) {
-    std::vector<cv::Point> contour;
-    double area;
-    cv::RotatedRect minRect;
+// 新增：获取多个物体的原图尺寸掩码
+std::vector<cv::Mat> CutOutObject::getMultipleObjectsInOriginalSize(
+    const cv::Mat& inputImage,
+    double minAreaThreshold,
+    double maxAreaThreshold,
+    int colorThreshold,
+    int blueThreshold,
+    int kernelSize) {
 
-    if (!extractLargestContour(inputImage, contour, area, minRect, colorThreshold,
-                               blueThreshold, kernelSize)) {
-        qWarning() << "无法提取轮廓，返回空矩阵";
-        return cv::Mat();
+    std::vector<cv::Mat> resultImages;
+    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
+                                          colorThreshold, blueThreshold, kernelSize);
+
+    for (const auto& result : results) {
+        cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+
+        if (!result.contour.empty()) {
+            std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
+            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 0, 0),
+                             CV_FILLED);
+        }
+
+        resultImages.push_back(resultImg);
     }
 
-    cv::Mat result(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-
-    if (!contour.empty()) {
-        std::vector<std::vector<cv::Point>> contoursToDraw = {contour};
-        cv::drawContours(result, contoursToDraw, 0, cv::Scalar(0, 0, 0),
-                         CV_FILLED); // 注意：OpenCV 2.4.9中使用CV_FILLED
-    }
-
-    return result;
+    return resultImages;
 }
 
-void CutOutObject::testExtractLargestContour(const QString &imageFilename) {
+// 新增：测试多物体检测功能
+void CutOutObject::testExtractMultipleObjects(const QString& imageFilename,
+                                              double minAreaThreshold,
+                                              double maxAreaThreshold) {
     cv::Mat image = cv::imread(imageFilename.toStdString());
     if (image.empty()) {
         qDebug() << "无法读取图像";
         return;
     }
 
-    std::vector<cv::Point> largestContour;
-    double contourArea;
-    cv::RotatedRect minRect;
+    auto results = extractMultipleObjects(image, minAreaThreshold, maxAreaThreshold);
 
-    if (extractLargestContour(image, largestContour, contourArea, minRect, 30, 50,
-                              3)) {
-        qDebug() << "找到最大轮廓，面积: " << contourArea << " 像素";
+    if (results.empty()) {
+        qDebug() << "未找到符合面积阈值的物体！";
+        return;
+    }
 
-        qDebug() << "最小外接矩形信息:";
-        qDebug() << "中心点: (" << minRect.center.x << ", " << minRect.center.y
-                 << ")";
-        qDebug() << "尺寸: " << minRect.size.width << " x " << minRect.size.height;
-        qDebug() << "旋转角度: " << minRect.angle << " 度";
+    cv::Mat resultImage = image.clone();
 
-        cv::Mat result = image.clone();
+    // 用不同颜色绘制每个检测到的物体
+    std::vector<cv::Scalar> colors = {
+        cv::Scalar(0, 255, 0),   // 绿色
+        cv::Scalar(0, 0, 255),   // 红色
+        cv::Scalar(255, 0, 0),   // 蓝色
+        cv::Scalar(0, 255, 255), // 黄色
+        cv::Scalar(255, 0, 255), // 粉色
+        cv::Scalar(255, 255, 0)  // 青色
+    };
 
-        cv::drawContours(result,
-                         std::vector<std::vector<cv::Point>>{largestContour}, -1,
-                         cv::Scalar(0, 255, 0), 3);
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto& result = results[i];
+        cv::Scalar color = colors[i % colors.size()];
 
+        // 绘制轮廓
+        std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
+        cv::drawContours(resultImage, contoursToDraw, 0, color, 3);
+
+        // 绘制最小外接矩形
         cv::Point2f rectPoints[4];
-        minRect.points(rectPoints);
-        for (int i = 0; i < 4; i++) {
-            cv::line(result, rectPoints[i], rectPoints[(i + 1) % 4],
-                     cv::Scalar(0, 0, 255), 2);
+        result.minRect.points(rectPoints);
+        for (int j = 0; j < 4; j++) {
+            cv::line(resultImage, rectPoints[j], rectPoints[(j + 1) % 4],
+                     color, 2);
         }
 
-        cv::circle(result, minRect.center, 5, cv::Scalar(255, 0, 0), -1);
+        // 标注面积信息
+        std::string areaText = "Area: " + std::to_string((int)result.area);
+        cv::putText(resultImage, areaText,
+                    cv::Point(result.boundingRect.x, result.boundingRect.y - 10),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 2);
 
-        cv::imshow("Original Image", image);
-        cv::imshow("Contour with Min Area Rect", result);
-        cv::waitKey(0);
-    } else {
-        qDebug() << "未找到有效轮廓！";
+        qDebug() << "物体" << i + 1 << ": 面积=" << result.area
+                 << ", 中心点=(" << result.minRect.center.x
+                 << "," << result.minRect.center.y << ")";
     }
+
+    cv::imshow("Multiple Objects Detection", resultImage);
+}
+
+// 保持原有的测试函数
+void CutOutObject::testExtractLargestContour(const QString& imageFilename) {
+    testExtractMultipleObjects(imageFilename, 0, 1000000);
 }

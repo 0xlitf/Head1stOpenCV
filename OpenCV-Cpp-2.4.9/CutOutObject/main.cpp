@@ -64,26 +64,37 @@ int main(int argc, char *argv[]) {
     CutOutObject cutout;
     // cutout.testExtractLargestContour(imageName.toStdString());
 
-    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/CutOutObject/dataset/14-39-42-685.png";
+    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/bg.png";
+    // QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/1.png";
+    // QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CutOutObject/dataset/2.png";
     auto image = cv::imread(imageName.toStdString());
     if (image.empty()) {
         qDebug() << "无法读取图像文件:" << imageName;
         return -1;
     }
-    cv::Mat boundingRectResult = cutout.getObjectInBoundingRect(image);
-    cv::Mat originalSizeResult = cutout.getObjectInOriginalSize(image);
 
-    if (!boundingRectResult.empty()) {
-        cv::imshow("getObjectInBoundingRect", boundingRectResult);
-    } else {
-        qDebug() << "getObjectInBoundingRect 返回空图像";
+    double minArea = 5000.0;    // 最小面积阈值
+    double maxArea = 100000.0; // 最大面积阈值
+
+    cutout.testExtractMultipleObjects(imageName, minArea, maxArea);
+
+    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(image, 5000, 30000, 30, 50, 3);
+    std::vector<cv::Mat> masks = cutout.getMultipleObjectsInOriginalSize(image, 5000, 30000, 30, 50, 3);
+
+    qDebug() << "boundings.size:" << boundings.size();
+    qDebug() << "masks.size:" << masks.size();
+
+    int i = 0;
+    for (auto & mat: boundings) {
+        cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
+        ++i;
     }
 
-    if (!originalSizeResult.empty()) {
-        cv::imshow("getObjectInOriginalSize - originalSizeResult", originalSizeResult);
-    } else {
-        qDebug() << "getObjectInOriginalSize 返回空图像";
+    for (auto & mask: masks) {
+        cv::imshow(QString("masks %1").arg(i).toStdString(), mask);
+        ++i;
     }
+
     cv::waitKey(0);
     cv::destroyAllWindows();
     return 0;

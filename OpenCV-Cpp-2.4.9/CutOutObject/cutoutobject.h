@@ -9,10 +9,20 @@
 #include <QString>
 #include <QDebug>
 
+// 新增：物体检测结果结构体
+struct ObjectDetectionResult {
+    std::vector<cv::Point> contour;  // 物体轮廓
+    double area;                      // 轮廓面积
+    cv::RotatedRect minRect;          // 最小外接矩形
+    cv::Rect boundingRect;           // 轴对称矩形
+};
+
 class CutOutObject {
+
 public:
     CutOutObject();
 
+    // 修改：检测单个最大轮廓（保持向后兼容）
     bool extractLargestContour(const cv::Mat& inputImage,
                                std::vector<cv::Point>& contour,
                                double& area,
@@ -21,17 +31,36 @@ public:
                                int blueThreshold = 50,
                                int kernelSize = 3);
 
-    // 新增接口1：返回物体所在的轴对称矩形，背景白色，物体黑色
-    cv::Mat getObjectInBoundingRect(const cv::Mat& inputImage,
-                                    int colorThreshold = 30,
-                                    int blueThreshold = 50,
-                                    int kernelSize = 3);
+    // 新增：检测多个轮廓，基于面积阈值
+    std::vector<ObjectDetectionResult> extractMultipleObjects(
+        const cv::Mat& inputImage,
+        double minAreaThreshold = 100.0,    // 最小面积阈值
+        double maxAreaThreshold = 100000.0, // 最大面积阈值
+        int colorThreshold = 30,
+        int blueThreshold = 50,
+        int kernelSize = 3);
 
-    // 新增接口2：返回原图尺寸的掩码，背景白色，物体黑色
-    cv::Mat getObjectInOriginalSize(const cv::Mat& inputImage,
-                                    int colorThreshold = 30,
-                                    int blueThreshold = 50,
-                                    int kernelSize = 3);
+    // 新增：获取多个物体的边界框结果
+    std::vector<cv::Mat> getMultipleObjectsInBoundingRect(
+        const cv::Mat& inputImage,
+        double minAreaThreshold = 100.0,
+        double maxAreaThreshold = 100000.0,
+        int colorThreshold = 30,
+        int blueThreshold = 50,
+        int kernelSize = 3);
+
+    // 新增：获取多个物体的原图尺寸掩码
+    std::vector<cv::Mat> getMultipleObjectsInOriginalSize(
+        const cv::Mat& inputImage,
+        double minAreaThreshold = 100.0,
+        double maxAreaThreshold = 100000.0,
+        int colorThreshold = 30,
+        int blueThreshold = 50,
+        int kernelSize = 3);
+
+    void testExtractMultipleObjects(const QString& imageFilename,
+                                    double minAreaThreshold = 100.0,
+                                    double maxAreaThreshold = 100000.0);
 
     void testExtractLargestContour(const QString& imageFilename);
 };
