@@ -5,11 +5,11 @@ CutOutObject::CutOutObject() {}
 // 新增：提取多个物体的核心函数
 std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     const cv::Mat& inputImage,
-    double minAreaThreshold,
-    double maxAreaThreshold,
     int colorThreshold,
     int blueThreshold,
-    int kernelSize) {
+    int kernelSize,
+    double minAreaThreshold,
+    double maxAreaThreshold) {
 
     std::vector<ObjectDetectionResult> results;
 
@@ -116,11 +116,11 @@ bool CutOutObject::extractLargestContour(const cv::Mat& inputImage,
 // 新增：获取多个物体的边界框结果
 std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
     const cv::Mat& inputImage,
-    double minAreaThreshold,
-    double maxAreaThreshold,
     int colorThreshold,
     int blueThreshold,
-    int kernelSize) {
+    int kernelSize,
+    double minAreaThreshold,
+    double maxAreaThreshold) {
 
     std::vector<cv::Mat> resultImages;
     auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
@@ -152,11 +152,11 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
 // 新增：获取多个物体的原图尺寸掩码
 cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
     const cv::Mat& inputImage,
-    double minAreaThreshold,
-    double maxAreaThreshold,
     int colorThreshold,
     int blueThreshold,
-    int kernelSize) {
+    int kernelSize,
+    double minAreaThreshold,
+    double maxAreaThreshold) {
 
     auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold,
                                           colorThreshold, blueThreshold, kernelSize);
