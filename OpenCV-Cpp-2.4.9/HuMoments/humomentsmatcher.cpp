@@ -279,6 +279,8 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs, const QStr
         return;
     }
 
+    m_huMomentsList.clear();
+
     for (int i = 0; i < descStrs.size(); ++i) {
         auto& desc = descStrs[i];
         auto& folderName = folderNames[i];
