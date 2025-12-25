@@ -5,6 +5,7 @@
 #include "mainwindow.h"
 #include "messageinstaller.h"
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFontDatabase>
 #include <opencv2/opencv.hpp>
 
@@ -52,20 +53,33 @@ int main(int argc, char *argv[]) {
                         << "3"
                         << "4"
                         << "5"
-                        << "6";
+                        << "6"
+                        << "7"
+                        << "8"
+                        << "9"
+                        << "10"
+            ;
         QStringList templateFolderStr;
         templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/88011-1"
+                             "HuMoments/dataset_folder_20251225/006"
                           << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/88011-2"
+                             "HuMoments/dataset_folder_20251225/88011-1"
                           << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/88011-3"
+                             "HuMoments/dataset_folder_20251225/88011-2"
                           << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/88011-4"
+                             "HuMoments/dataset_folder_20251225/88011-3"
                           << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/A6"
+                             "HuMoments/dataset_folder_20251225/88011-4"
                           << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder/rect";
+                             "HuMoments/dataset_folder_20251225/88012-1"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder_20251225/A3"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder_20251225/A6"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder_20251225/M1"
+                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                             "HuMoments/dataset_folder_20251225/rect";
         matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
         QFile sceneImageFile(sceneImageStr);
@@ -77,7 +91,11 @@ int main(int argc, char *argv[]) {
         // auto results = matcher.matchImage(sceneImage);
         // 等同于
         cv::Mat imageMat = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
+
+        QElapsedTimer timer;
+        timer.start();
         auto results = matcher.matchMat(imageMat);
+        qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;
         for (auto &result : results) {
