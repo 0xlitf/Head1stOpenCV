@@ -70,6 +70,11 @@ int main(int argc, char *argv[]) {
                           << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
         matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
+        qDebug() << matcher.getTemplateSize();
+        matcher.setTemplateFolder(templateDescStr, templateFolderStr);
+
+        qDebug() << matcher.getTemplateSize();
+
         QFile sceneImageFile(sceneImageStr);
         if (!sceneImageFile.exists()) {
             qWarning() << "警告：匹配图片不存在";

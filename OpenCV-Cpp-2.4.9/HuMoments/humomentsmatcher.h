@@ -52,6 +52,10 @@ public:
     // 设置模版文件夹，传入描述的QStringList和文件夹路径的QStringList
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
+    int getTemplateSize() {
+        return m_huMomentsList.size();
+    }
+
     QList<MatchResult> matchImage(const QString &fileName);
 
     QList<MatchResult> matchMat(cv::Mat sceneImg);
