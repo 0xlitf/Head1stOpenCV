@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
         return a.exec();
     } else {
-        QString sceneImageStr = QString(PROJECT_DIR) + "/A_20250429172418975_1044_16_hrotate_multiobj.png";
+        QString sceneImageStr = QString(PROJECT_DIR) + "/input/chanel1/14-30-00-395.png";
 
         HuMomentsMatcher matcher;
         matcher.setWhiteThreshold(240);
