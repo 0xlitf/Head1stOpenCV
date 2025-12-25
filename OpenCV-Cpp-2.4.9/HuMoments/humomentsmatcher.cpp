@@ -5,7 +5,8 @@
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
-std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& inputImage) {
+std::tuple<int, cv::Mat>
+HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage) {
     if (inputImage.empty()) {
         cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
         cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150),
@@ -37,7 +38,8 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
 
     // 5. 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL,
+                     cv::CHAIN_APPROX_SIMPLE);
 
     qDebug() << "contours.size()" << contours.size();
 
@@ -55,13 +57,14 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
 
     // 7. 绘制轮廓线
     for (size_t i = 0; i < contours.size(); ++i) {
-        if (contours[i].empty() || contours[i].size() < 3) continue;
+        if (contours[i].empty() || contours[i].size() < 3)
+            continue;
 
         // 绘制轮廓线
         cv::drawContours(outputImage, contours, static_cast<int>(i),
-                         contourColor,  // 轮廓颜色
-                         2,              // 线宽
-                         CV_AA);   // 抗锯齿
+                         contourColor, // 轮廓颜色
+                         2,            // 线宽
+                         CV_AA);       // 抗锯齿
 
         if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
@@ -77,21 +80,22 @@ std::tuple<int, cv::Mat> HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat& 
                                    " A:" + std::to_string(static_cast<int>(area));
 
                 // 绘制中心点
-                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor, -1);
+                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor,
+                           -1);
 
                 // 添加文本信息
                 cv::Point textPos(centerX + 10, centerY);
 
                 // 绘制文本背景
                 int baseline = 0;
-                cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
-                cv::rectangle(outputImage,
-                              textPos - cv::Point(2, textSize.height + 2),
+                cv::Size textSize =
+                    cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
+                cv::rectangle(outputImage, textPos - cv::Point(2, textSize.height + 2),
                               textPos + cv::Point(textSize.width + 2, 2),
                               cv::Scalar(0, 0, 0), -1);
 
-                cv::putText(outputImage, info, textPos,
-                            cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(125, 125, 125), 1);
+                cv::putText(outputImage, info, textPos, cv::FONT_HERSHEY_SIMPLEX, 0.4,
+                            cv::Scalar(125, 125, 125), 1);
             }
         }
     }
@@ -123,7 +127,8 @@ void HuMomentsMatcher::setScoreThreshold(double newScoreThreshold) {
     m_scoreThreshold = newScoreThreshold;
 }
 
-void HuMomentsMatcher::addTemplate(const QString &desc, const QString &fileName) {
+void HuMomentsMatcher::addTemplate(const QString &desc,
+                                   const QString &fileName) {
 
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
@@ -273,17 +278,18 @@ cv::Mat HuMomentsMatcher::croppedCanvas(cv::Mat templateImg,
     return croppedCanvas;
 }
 
-void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs, const QStringList &folderNames) {
+void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs,
+                                         const QStringList &folderNames) {
     if (descStrs.size() != folderNames.size()) {
         qFatal("setTemplateFolder descStrs.size != folderNames.size");
         return;
     }
 
-    // m_huMomentsList.clear();
+    m_huMomentsList.clear();
 
     for (int i = 0; i < descStrs.size(); ++i) {
-        auto& desc = descStrs[i];
-        auto& folderName = folderNames[i];
+        auto &desc = descStrs[i];
+        auto &folderName = folderNames[i];
         QDir templateDir(folderName);
         if (!templateDir.exists()) {
             qWarning() << "警告：模板文件夹不存在: " << folderName;
@@ -306,7 +312,6 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs, const QStr
             this->addTemplate(desc, filename);
         }
     }
-
 
     // auto folderNames = FileUtils::findDepth1Folder(folderNames);
 
@@ -355,27 +360,27 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                   cv::THRESH_BINARY_INV);
 
     // 2. 提取场景所有轮廓
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(thrScene, contours, cv::RETR_EXTERNAL,
+    std::vector<std::vector<cv::Point>> contoursInScene;
+    cv::findContours(thrScene, contoursInScene, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
-    qDebug() << "findContours contours.size: " << contours.size();
+    qDebug() << "findContours contours.size: " << contoursInScene.size();
 
     cv::Mat resultImg = sceneImg.clone();
     if (auto showContoursImage = false) {
 
         // 3. 复制一份场景图用于绘制结果
-        if (!contours.empty()) {
+        if (!contoursInScene.empty()) {
             // 青色在BGR中是 (255, 255, 0)
             cv::Scalar cyanColor(255, 255, 0); // B=255, G=255, R=0
 
             // 绘制所有轮廓
-            cv::drawContours(resultImg, contours,
+            cv::drawContours(resultImg, contoursInScene,
                              -1,        // 绘制所有轮廓
                              cyanColor, // 青色
                              2,         // 线宽
                              CV_AA);    // 抗锯齿
 
-            qDebug() << "已绘制" << contours.size() << "个轮廓";
+            qDebug() << "已绘制" << contoursInScene.size() << "个轮廓";
         } else {
             qDebug() << "未找到任何轮廓";
         }
@@ -385,18 +390,18 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
     QList<MatchResult> resultList;
 
     int matchCount = 0;
-    for (size_t i = 0; i < contours.size(); i++) {
-        auto objContour = contours[i];
-        double area = cv::contourArea(objContour);
+    for (size_t i = 0; i < contoursInScene.size(); i++) {
+        auto objContourInScene = contoursInScene[i];
+        double objArea = cv::contourArea(objContourInScene);
 
         // A. 简单的面积过滤，排除极小的噪点
-        if (area < 300) {
+        if (objArea < 300) {
             // qDebug() << "counters index:" << i << ", area:" << area << " < 500";
             continue;
         }
 
         // 计算轮廓中心点
-        cv::Moments m = cv::moments(objContour);
+        cv::Moments m = cv::moments(objContourInScene);
         cv::Point2f center(m.m10 / m.m00, m.m01 / m.m00);
 
         // B. 形状匹配 (OpenCV matchShapes)
@@ -409,7 +414,12 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
             auto templateContour = std::get<3>(templateTuple);
             double templateArea = cv::contourArea(templateContour);
 
-            double score = cv::matchShapes(templateContour, objContour,
+            double areaDifferencePercent = (templateArea - objArea) / objArea;
+            if (qAbs(areaDifferencePercent) > 0.1) {
+                continue;
+            }
+
+            double score = cv::matchShapes(templateContour, objContourInScene,
                                            CV_CONTOURS_MATCH_I1, 0.0);
 
             // qDebug() << "counters index:" << j << ", area:" << area
@@ -424,7 +434,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 matchCount++;
 
                 // C. 获取旋转矩形 (RotatedRect)
-                cv::RotatedRect rotRect = cv::minAreaRect(objContour);
+                cv::RotatedRect rotRect = cv::minAreaRect(objContourInScene);
 
                 // D. 绘制旋转矩形
                 cv::Point2f vertices[4];
@@ -442,10 +452,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
                 // cv::Point2f(40, 40)
                 //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-                double areaDifferencePercent = (templateArea - area) / area;
-
-                auto str =
-                    QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
+                auto str = QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
                                    "坐标: (%4, %5), 面积差值百分比: %6")
                                .arg(objName)
                                .arg(score)
@@ -459,7 +466,8 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
                 finded = true;
 
-                resultList.append(std::make_tuple(objName, objContour, center, score, areaDifferencePercent));
+                resultList.append(std::make_tuple(objName, objContourInScene, center,
+                                                  score, areaDifferencePercent));
 
                 break;
             } else {
@@ -470,7 +478,8 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
         }
 
         if (!finded) {
-            resultList.append(std::make_tuple(QString(""), objContour, center, 100, -100.));
+            resultList.append(
+                std::make_tuple(QString(""), objContourInScene, center, 100, -100.));
         }
     }
 
