@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     cv::imshow("image", image);
 
     double minArea = 2000.0;   // 最小面积阈值
-    double maxArea = 100000.0; // 最大面积阈值
+    double maxArea = 10000000.0; // 最大面积阈值
 
     cutout.testExtractMultipleObjects(imageName, minArea, maxArea);
 
