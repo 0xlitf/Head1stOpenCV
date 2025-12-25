@@ -7,6 +7,7 @@ greaterThan(QT_MAJOR_VERSION, 6): QT += core5compat
 CONFIG += c++11
 
 DEFINES += QT_MESSAGELOGCONTEXT
+DEFINES += PROJECT_DIR=\\\"$$PWD\\\"
 
 include($$PWD/../install.pri)
 include($$PWD/compile.pri)

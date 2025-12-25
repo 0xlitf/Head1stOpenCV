@@ -32,15 +32,14 @@ int main(int argc, char *argv[]) {
 
         return a.exec();
     } else {
-        QString sceneImageStr = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/bin/Debug/"
-                             "A_20250429172418975_1044_16_hrotate_multiobj.png";
+        QString sceneImageStr = QString(PROJECT_DIR) + "/A_20250429172418975_1044_16_hrotate_multiobj.png";
 
         HuMomentsMatcher matcher;
         matcher.setWhiteThreshold(240);
         matcher.setScoreThreshold(0.1);
 
-        auto image1 = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/image1.png").toStdString(), cv::IMREAD_COLOR);
-        auto image2 = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/HuMoments/image2.png").toStdString(), cv::IMREAD_COLOR);
+        auto image1 = cv::imread(QString(QString(PROJECT_DIR) + "/image1.png").toStdString(), cv::IMREAD_COLOR);
+        auto image2 = cv::imread(QString(QString(PROJECT_DIR) + "/image2.png").toStdString(), cv::IMREAD_COLOR);
 
         if (auto showResult = false) {
             cv::imshow("image1 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image1)));
@@ -57,29 +56,18 @@ int main(int argc, char *argv[]) {
                         << "7"
                         << "8"
                         << "9"
-                        << "10"
-            ;
+                        << "10";
         QStringList templateFolderStr;
-        templateFolderStr << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/006"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/88011-1"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/88011-2"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/88011-3"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/88011-4"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/88012-1"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/A3"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/A6"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/M1"
-                          << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                             "HuMoments/dataset_folder_20251225/rect";
+        templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-2"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-3"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-4"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88012-1"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
         matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
         QFile sceneImageFile(sceneImageStr);
