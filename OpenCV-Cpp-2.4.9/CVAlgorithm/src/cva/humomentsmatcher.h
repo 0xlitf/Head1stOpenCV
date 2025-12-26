@@ -3,7 +3,7 @@
 
 #pragma execution_character_set("utf-8")
 
-// #include "fileutils.h"
+#include "cva_global.h"
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
@@ -16,7 +16,7 @@
 using MatchResult =
     std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double, double>;
 
-class HuMomentsMatcher : public QObject {
+class CVASHARED_EXPORT HuMomentsMatcher : public QObject {
     Q_OBJECT
 public:
     enum ErrorCode {

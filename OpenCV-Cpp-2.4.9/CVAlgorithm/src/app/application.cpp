@@ -60,7 +60,8 @@ int Application::startApplication() {
     }
 
     AppMainWindow mainWindow;
-    mainWindow.show();
+    // mainWindow.show();
+    mainWindow.showMaximized();
 
     m_userSettings = new QSettings(organizationName(),applicationName(),this);
 
