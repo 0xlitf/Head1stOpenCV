@@ -471,9 +471,7 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
                 break;
             } else {
-                // 可选：绘制不匹配的轮廓为红色，方便调试
-                // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255),
-                // 1);
+                // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255), 1);
             }
         }
 
