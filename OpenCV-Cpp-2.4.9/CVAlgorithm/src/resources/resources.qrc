@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>image/33HTLogo.png</file>
+        <file>image/33HTLogo2.png</file>
+        <file>image/33logo.jpg</file>
+        <file>image/33logo2.jpg</file>
+        <file>image/add.png</file>
+        <file>image/add_click.png</file>
+        <file>image/delete.svg</file>
+        <file>image/handtech.ico</file>
+        <file>image/icon.rc</file>
+        <file>image/icons8-settings.svg</file>
+        <file>image/QCheckBox_off.png</file>
+        <file>image/QCheckBox_on.png</file>
+        <file>image/reduce.png</file>
+        <file>image/reduce_click.png</file>
+        <file>image/sansan.png</file>
+        <file>image/sansan2.png</file>
+    </qresource>
+</RCC>
