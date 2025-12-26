@@ -221,6 +221,12 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
         int i = 0;
         for (auto &result : results) {
             QString name = std::get<0>(result);                   // 名称
+
+            if (name.isEmpty()) {
+                qDebug() << "图中没有物体或者物体为杂料";
+                break;
+            }
+
             std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
             cv::Point2f center = std::get<2>(result);             // 中心点
             double score = std::get<3>(result);                   // 分数

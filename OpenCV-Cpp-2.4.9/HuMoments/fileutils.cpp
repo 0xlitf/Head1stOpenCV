@@ -4,7 +4,7 @@ FileUtils::FileUtils(QObject *parent) : QObject{parent} {}
 
 QString FileUtils::selectFolderDialog(QWidget *parent) {
     QString folder = QFileDialog::getExistingDirectory(
-        parent, "选择文件夹", "",
+        parent, "选择文件夹", QString(PROJECT_DIR),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if (!folder.isEmpty()) {
@@ -18,7 +18,7 @@ QString FileUtils::selectFolderDialog(QWidget *parent) {
 
 QString FileUtils::selectFileDialog(const QString &filter, QWidget *parent) {
     QString folder =
-        QFileDialog::getOpenFileName(parent, "选择文件夹", "", filter);
+        QFileDialog::getOpenFileName(parent, "选择文件夹", QString(PROJECT_DIR), filter);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
