@@ -160,6 +160,16 @@ void HuMomentsMatcher::addTemplate(const QString &desc,
     }
 }
 
+double HuMomentsMatcher::areaThreshold() const
+{
+    return m_areaThreshold;
+}
+
+void HuMomentsMatcher::setAreaThreshold(double newAreaThreshold)
+{
+    m_areaThreshold = newAreaThreshold;
+}
+
 void HuMomentsMatcher::addTemplateIntoMap(const QString &desc,
                                           const QString &fileName,
                                           const QString &huStr,
@@ -411,19 +421,22 @@ QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
 
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
             auto templateTuple = m_huMomentsList[j];
+            auto templateName = std::get<0>(templateTuple);
             auto templateContour = std::get<3>(templateTuple);
             double templateArea = cv::contourArea(templateContour);
 
             double areaDifferencePercent = (templateArea - objArea) / objArea;
-            if (qAbs(areaDifferencePercent) > 0.1) {
+            if (qAbs(areaDifferencePercent) > m_areaThreshold) {
                 continue;
+            } else {
+                qDebug() << "templateName:" << templateName << "areaDifferencePercent:" << areaDifferencePercent;
             }
 
             double score = cv::matchShapes(templateContour, objContourInScene,
                                            CV_CONTOURS_MATCH_I1, 0.0);
 
-            // qDebug() << "counters index:" << j << ", area:" << area
-            //          << ", score:" << score;
+            qDebug() << "counters index:" << j << ", templateArea:" << templateArea
+                     << ", matchShapes score:" << score;
 
             // emit sendLog(QString("counters index: %1, area: %2, score:
             // %3").arg(j).arg(area).arg(score));

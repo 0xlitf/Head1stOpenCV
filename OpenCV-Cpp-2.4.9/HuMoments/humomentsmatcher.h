@@ -81,6 +81,9 @@ public:
     int whiteThreshold() const;
     void setWhiteThreshold(int thres);
 
+    double areaThreshold() const;
+    void setAreaThreshold(double newAreaThreshold);
+
 private:
     void addTemplate(const QString &desc, const QString &fileName);
 
@@ -90,6 +93,7 @@ private:
     double m_scoreThreshold{0.1};
     int m_whiteThreshold{240};
 
+    double m_areaThreshold{0.2};
 
 };
 

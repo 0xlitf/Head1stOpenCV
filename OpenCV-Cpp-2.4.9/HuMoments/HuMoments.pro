@@ -42,6 +42,7 @@ RESOURCES += \
 HEADERS += \
     ../share/layoutbuilder.h \
     ../share/messageinstaller.h \
+    cutoutobject.h \
     fileutils.h \
     humomentsmatcher.h \
     mainwindow.h
@@ -49,6 +50,7 @@ HEADERS += \
 SOURCES += \
     ../share/layoutbuilder.cpp \
     ../share/messageinstaller.cpp \
+    cutoutobject.cpp \
     fileutils.cpp \
     humomentsmatcher.cpp \
     main.cpp \

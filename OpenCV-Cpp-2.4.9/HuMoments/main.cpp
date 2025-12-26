@@ -8,10 +8,9 @@
 #include <QElapsedTimer>
 #include <QFontDatabase>
 #include <opencv2/opencv.hpp>
+#include "cutoutobject.h"
 
-int main(int argc, char *argv[]) {
-    MessageInstaller::instance()->install();
-
+int testHuMoments(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     QFontDatabase fontDB;
@@ -140,4 +139,119 @@ int main(int argc, char *argv[]) {
 
         return 0;
     }
+}
+
+int testCutoutObjectAndHu(int argc, char *argv[]) {
+    QApplication a(argc, argv);
+
+    QFontDatabase fontDB;
+    QStringList fonts = fontDB.families();
+    auto fontName = QString("微软雅黑");
+    if (fonts.contains(fontName)) {
+        QFont font(fontName, 11);
+        qApp->setFont(font);
+    } else {
+        qDebug() << "微软雅黑字体未找到，使用系统默认字体";
+    }
+
+
+    HuMomentsMatcher matcher;
+    matcher.setWhiteThreshold(240);
+    matcher.setScoreThreshold(0.1);
+
+    QStringList templateDescStr;
+    templateDescStr << "1"
+                    << "2"
+                    << "3"
+                    << "4"
+                    << "5"
+                    << "6"
+                    << "7"
+                    << "8"
+                    << "9"
+                    << "10";
+    QStringList templateFolderStr;
+    templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-2"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-3"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-4"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88012-1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
+
+    matcher.setTemplateFolder(templateDescStr, templateFolderStr);
+
+
+    CutOutObject cutout;
+    // cutout.testExtractLargestContour(imageName.toStdString());
+
+    // QString imageName = QString(PROJECT_DIR) + "/dataset/bg.png"; // 纯背景
+    // QString imageName = QString(PROJECT_DIR) + "/dataset/1.png"; // 1个物体
+    // QString imageName = QString(PROJECT_DIR) + "/dataset/2.png"; // 2个物体
+
+    auto allImage = FileUtils::findAllImageFiles(QString(PROJECT_DIR) + "/input/chanel1");
+
+    qDebug() << "allImage:" << allImage.size();
+    for (auto & imageName: allImage) {
+
+        auto image = cv::imread(imageName.toStdString());
+        if (image.empty()) {
+            qDebug() << "无法读取图像文件:" << imageName;
+            return -1;
+        }
+        cv::imshow("image", image);
+
+        double minArea = 2000.0;   // 最小面积阈值
+        double maxArea = 10000000.0; // 最大面积阈值
+
+        cv::Mat mask;
+        for (int t = 0; t < 1; ++t) {
+            mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea, maxArea);
+        }
+        cv::imshow("mask", mask);
+
+        QElapsedTimer timer;
+        timer.start();
+        auto results = matcher.matchMat(mask);
+        qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
+
+        int i = 0;
+        for (auto &result : results) {
+            QString name = std::get<0>(result);                   // 名称
+            std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
+            cv::Point2f center = std::get<2>(result);             // 中心点
+            double score = std::get<3>(result);                   // 分数
+            double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
+
+            qDebug() << "结果" << i + 1 << ":";
+            qDebug() << "\t名称:" << name;
+            qDebug() << "\t匹配分数:" << QString::number(score, 'f', 6);
+            qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
+            qDebug() << "\t轮廓点数:" << contour.size();
+            qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
+
+            ++i;
+        }
+
+        auto resultImage = matcher.drawResultsOnImage(mask, results);
+
+        cv::imshow("resultImage detect result", resultImage);
+
+
+        cv::waitKey(0);
+    }
+
+    cv::destroyAllWindows();
+
+    return a.exec();
+}
+int main(int argc, char *argv[]) {
+    MessageInstaller::instance()->install();
+
+    // testHuMoments(argc, argv);
+
+    testCutoutObjectAndHu(argc, argv);
 }
