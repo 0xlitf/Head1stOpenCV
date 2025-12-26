@@ -246,7 +246,6 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
         cv::imshow("resultImage detect result", resultImage);
 
-
         cv::waitKey(0);
     }
 
