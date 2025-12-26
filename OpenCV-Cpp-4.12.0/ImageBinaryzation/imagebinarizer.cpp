@@ -2,7 +2,7 @@
 
 void ImageBinarizer::loadImage() {
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    "打开图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
+                                                    "打开图像", QString(PROJECT_DIR), "图像文件 (*.png *.jpg *.bmp *.jpeg)");
 
     if (!fileName.isEmpty()) {
         originalImage.load(fileName);
