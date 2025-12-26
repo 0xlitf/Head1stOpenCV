@@ -1,8 +1,9 @@
 import cv2
+import os
 import numpy as np
 from centroidtracker import CentroidTracker
 
-folder_path = 'track_pictures'
+folder_path = 'track_pictures_up_to_down'
 
 # 获取文件夹内所有图片文件
 image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp'))]
