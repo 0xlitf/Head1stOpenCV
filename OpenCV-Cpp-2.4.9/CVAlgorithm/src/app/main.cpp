@@ -5,6 +5,8 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_DEVICE_PIXEL_RATIO", "auto");
+
     App::Application app(argc, argv);
 
     return app.startApplication();
