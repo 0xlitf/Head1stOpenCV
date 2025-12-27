@@ -22,26 +22,53 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
 
     // 图像预处理（与原有逻辑相同）
     cv::Mat cvImage = inputImage.clone();
-    for (int i = 0; i < cvImage.rows; ++i) {
-        for (int j = 0; j < cvImage.cols; ++j) {
-            cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
-            if ((pixel[0] - pixel[1] > colorThreshold) &&
-                (pixel[0] - pixel[2] > colorThreshold) &&
-                (pixel[0] > blueThreshold)) {
-                pixel[0] = 255;
-                pixel[1] = 255;
-                pixel[2] = 255;
-            } else {
-                pixel[0] = 0;
-                pixel[1] = 0;
-                pixel[2] = 0;
+    int rows = cvImage.rows;
+    int cols = cvImage.cols;
+
+    if (auto useBatch = true) {
+        for (int i = 0; i < rows; ++i) {
+            // 获取第i行的行首指针
+            cv::Vec3b* ptr = cvImage.ptr<cv::Vec3b>(i);
+            for (int j = 0; j < cols; ++j) {
+                cv::Vec3b& pixel = ptr[j]; // 通过指针快速访问像素
+                uchar blue = pixel[0];
+                uchar green = pixel[1];
+                uchar red = pixel[2];
+
+                if ((blue - green > colorThreshold) &&
+                    (blue - red > colorThreshold) &&
+                    (blue > blueThreshold)) {
+                    pixel = cv::Vec3b(255, 255, 255);
+                } else {
+                    pixel = cv::Vec3b(0, 0, 0);
+                }
+            }
+        }
+    } else {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
+                if ((pixel[0] - pixel[1] > colorThreshold) &&
+                    (pixel[0] - pixel[2] > colorThreshold) &&
+                    (pixel[0] > blueThreshold)) {
+                    pixel[0] = 0;
+                    pixel[1] = 0;
+                    pixel[2] = 0;
+                } else {
+                    pixel[0] = 255;
+                    pixel[1] = 255;
+                    pixel[2] = 255;
+                }
             }
         }
     }
 
     cv::imshow("cvImage after remove blue pixel", cvImage);
 
-    cv::bitwise_not(cvImage, cvImage);
+    // cv::bitwise_not(cvImage, cvImage);
+
+    cv::imshow("cvImage after fillWhiteBorder", cvImage);
+
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
 
