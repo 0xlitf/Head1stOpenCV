@@ -32,10 +32,10 @@ CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
     this->addPage("2", huPage);
 
     // 默认选中界面
-    this->setDefaultPage(1);
+    this->setDefaultPageIndex(1);
 }
 
-void CentralWidget::setDefaultPage(int i) {
+void CentralWidget::setDefaultPageIndex(int i) {
     if (i < m_buttonList.size() && i < m_stackedWidget->count()) {
         m_buttonList[i]->setChecked(true);
         m_stackedWidget->setCurrentIndex(i);
