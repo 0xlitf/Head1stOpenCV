@@ -1,7 +1,7 @@
 ﻿#include "cutoutobjectpage.h"
-#include <QLabel>
-#include <QFile>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QLabel>
 
 QString getImageFormatBySignature(const QString &filePath) {
     QFile file(filePath);
@@ -27,11 +27,8 @@ QString getImageFormatBySignature(const QString &filePath) {
     }
 }
 
-CutoutObjectPage::CutoutObjectPage(QWidget *parent)
-    : QWidget{parent}
-{
-    QLabel* label = new QLabel("CutoutObjectPage", this);
-
+CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
+    QLabel *label = new QLabel("CutoutObjectPage", this);
 
     CutOutObject cutout;
     // cutout.testExtractLargestContour(imageName.toStdString());
@@ -52,8 +49,8 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent)
         qDebug() << "无法读取图像文件:" << imageName;
         return;
     } else {
-        int width = image.cols;  // 图像宽度（像素）
-        int height = image.rows; // 图像高度（像素）
+        int width = image.cols;          // 图像宽度（像素）
+        int height = image.rows;         // 图像高度（像素）
         int channels = image.channels(); // 通道数[6](@ref)
 
         qDebug() << "=== 图像信息 ===";
@@ -65,10 +62,15 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent)
         int depth = image.depth();
         QString depthStr;
         switch (depth) {
-        case CV_8U: depthStr = "8位无符号整数"; break;
-        case CV_32F: depthStr = "32位浮点数"; break;
+        case CV_8U:
+            depthStr = "8位无符号整数";
+            break;
+        case CV_32F:
+            depthStr = "32位浮点数";
+            break;
         // ... 其他深度类型
-        default: depthStr = "其他";
+        default:
+            depthStr = "其他";
         }
         qDebug() << "位图深度:" << depthStr.toUtf8().constData();
     }
@@ -84,14 +86,16 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent)
 
     std::vector<cv::Mat> boundings;
     for (int t = 0; t < 1; ++t) {
-        boundings = cutout.getMultipleObjectsInBoundingRect(image, 30, 50, 3, minArea, maxArea);
+        boundings = cutout.getMultipleObjectsInBoundingRect(image, 30, 50, 3,
+                                                            minArea, maxArea);
     }
     qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
     timer.restart();
     cv::Mat mask;
     for (int t = 0; t < 1; ++t) {
-        mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea, maxArea);
+        mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea,
+                                                       maxArea);
     }
     qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 

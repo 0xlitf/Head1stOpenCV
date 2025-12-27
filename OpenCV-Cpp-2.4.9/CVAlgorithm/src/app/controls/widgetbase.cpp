@@ -49,9 +49,7 @@ void WidgetBase::setRandomColor() {
 
 void WidgetBase::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
-    painter.fillRect(rect(), m_backgroundColor);
-
-    QWidget::paintEvent(event);
+    painter.fillRect(event->rect(), m_backgroundColor);
 }
 
 HSeperateLine::HSeperateLine(QWidget* parent) {

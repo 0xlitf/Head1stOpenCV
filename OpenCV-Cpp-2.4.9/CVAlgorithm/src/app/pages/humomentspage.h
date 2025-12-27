@@ -3,10 +3,9 @@
 
 #pragma execution_character_set("utf-8")
 
-#include <QWidget>
+#include "controls/controls.h"
 
-class HuMomentsPage : public QWidget
-{
+class HuMomentsPage : public WidgetBase {
     Q_OBJECT
 public:
     explicit HuMomentsPage(QWidget *parent = nullptr);

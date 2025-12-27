@@ -3,11 +3,10 @@
 
 #pragma execution_character_set("utf-8")
 
-#include <QWidget>
+#include "controls/controls.h"
 #include "cutoutobject.h"
 
-class CutoutObjectPage : public QWidget
-{
+class CutoutObjectPage : public WidgetBase {
     Q_OBJECT
 public:
     explicit CutoutObjectPage(QWidget *parent = nullptr);

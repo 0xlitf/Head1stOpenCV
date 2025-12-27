@@ -22,14 +22,14 @@
 #include <QVBoxLayout>
 
 CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
-    this->setRandomColor();
     this->createComponents();
 
-    CutoutObjectPage *cutoutPage = new CutoutObjectPage();
-    HuMomentsPage *huPage = new HuMomentsPage();
-
-    this->addPage("1", cutoutPage);
-    this->addPage("2", huPage);
+    this->addPage("CutoutObject", []{
+        return new CutoutObjectPage();
+    }());
+    this->addPage("HuMoments", []{
+        return new HuMomentsPage();
+    }());
 
     // 默认选中界面
     this->setDefaultPageIndex(1);
@@ -72,8 +72,8 @@ void CentralWidget::addPage(const QString &text, QWidget *w) {
 }
 
 void CentralWidget::createComponents() {
-    m_stackedWidget = new QStackedWidget(this);
-    m_stackedWidget->setContentsMargins(5, 5, 5, 5);
+    m_stackedWidget = new QStackedWidget();
+    // m_stackedWidget->setContentsMargins(5, 5, 5, 5);
 
     auto m_centralTop = [=]() {
         WidgetBase *centralTop = new WidgetBase();
@@ -98,6 +98,7 @@ void CentralWidget::createComponents() {
     auto m_centralCenter = [=]() {
         WidgetBase *centralCenter = new WidgetBase();
         centralCenter->setBackgroundColor(QColor("#215a94"));
+        centralCenter->setContentsMargins(5, 5, 5, 5);
 
         Layouting::Column{m_stackedWidget}.attachTo(centralCenter);
 
