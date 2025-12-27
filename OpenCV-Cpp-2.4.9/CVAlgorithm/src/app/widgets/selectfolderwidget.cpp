@@ -18,11 +18,13 @@ void SelectFolderWidget::createComponents() {
     TextEdit* textEdit = new TextEdit(this);
     textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
     connect(textEdit, &QTextEdit::textChanged, this, [=](){
-        QFileInfo info(textEdit->toPlainText().trimmed());
+        auto folderPath = textEdit->toPlainText().trimmed();
+        QFileInfo info(folderPath);
         if (!info.exists()) {
             openButton->setEnabled(false);
         } else {
             openButton->setEnabled(true);
+            emit this->folderChanged(folderPath);
         }
     });
 

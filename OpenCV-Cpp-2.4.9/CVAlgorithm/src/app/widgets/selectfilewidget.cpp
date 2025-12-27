@@ -18,11 +18,13 @@ void SelectFileWidget::createComponents() {
     TextEdit* textEdit = new TextEdit(this);
     textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
     connect(textEdit, &QTextEdit::textChanged, this, [=](){
-        QFileInfo info(textEdit->toPlainText().trimmed());
+        auto filePath = textEdit->toPlainText().trimmed();
+        QFileInfo info(filePath);
         if (!info.exists()) {
             openButton->setEnabled(false);
         } else {
             openButton->setEnabled(true);
+            emit this->fileChanged(filePath);
         }
     });
 

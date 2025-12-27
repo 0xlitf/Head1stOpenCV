@@ -5,6 +5,9 @@
 
 class SelectFolderWidget: public WidgetBase {
     Q_OBJECT
+signals:
+    void folderChanged(const QString& folderPath);
+
 public:
     explicit SelectFolderWidget(QWidget *parent = nullptr);
 
