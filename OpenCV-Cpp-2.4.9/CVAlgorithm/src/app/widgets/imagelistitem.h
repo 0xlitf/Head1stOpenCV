@@ -3,6 +3,7 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "imageinfowidget.h"
 #include <QWidget>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -22,9 +23,7 @@ public:
 private:
     void setupUI(const QFileInfo& fileInfo);
 
-    QLabel* m_thumbnailLabel;
-    QLabel* m_nameLabel;
-    QLabel* m_infoLabel;
+    ImageInfoWidget* m_infoWidget = nullptr;
 };
 
 #endif // IMAGELISTITEM_H
