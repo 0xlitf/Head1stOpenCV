@@ -11,6 +11,7 @@ class CutoutObjectPage : public WidgetBase {
 public:
     explicit CutoutObjectPage(QWidget *parent = nullptr);
 
+    void createComponents();
 signals:
 };
 

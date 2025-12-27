@@ -3,35 +3,12 @@
 #include <QFile>
 #include <QLabel>
 #include "widgets/selectfilewidget.h"
-
-QString getImageFormatBySignature(const QString &filePath) {
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        return "无法打开文件";
-    }
-
-    QByteArray header = file.read(8); // 读取前8个字节通常足够识别常见格式
-    file.close();
-
-    if (header.startsWith("\x89PNG\x0D\x0A\x1A\x0A")) {
-        return "PNG";
-    } else if (header.startsWith("\xFF\xD8\xFF")) {
-        return "JPEG";
-    } else if (header.startsWith("BM")) {
-        return "BMP";
-    } else if (header.startsWith("GIF8")) {
-        return "GIF";
-    } else if (header.startsWith("II") || header.startsWith("MM")) {
-        return "TIFF";
-    } else {
-        return "未知格式";
-    }
-}
+#include "utils/imageutils.h"
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
-    // QLabel *label = new QLabel("CutoutObjectPage", this);
+    this->createComponents();
 
-    SelectFileWidget* selectFileWidget = new SelectFileWidget(this);
+    // QLabel *label = new QLabel("CutoutObjectPage", this);
 
     CutOutObject cutout;
     // cutout.testExtractLargestContour(imageName.toStdString());
@@ -44,7 +21,7 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     // QString imageName = QString(PROJECT_DIR) + "/Cam1_18-32-25-052.png";
     qDebug() << "imageName:" << imageName;
 
-    QString trueFormat = getImageFormatBySignature(imageName);
+    QString trueFormat = ImageUtils::getImageFormatBySignature(imageName);
     qDebug() << "图像的真实格式是：" << trueFormat;
 
     auto image = cv::imread(imageName.toStdString());
@@ -113,4 +90,11 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
 
     cv::waitKey(0);
     cv::destroyAllWindows();
+}
+
+void CutoutObjectPage::createComponents()
+{
+
+    SelectFileWidget* selectFileWidget = new SelectFileWidget(this);
+
 }

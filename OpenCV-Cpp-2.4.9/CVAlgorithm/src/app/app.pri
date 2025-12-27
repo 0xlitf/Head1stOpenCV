@@ -12,6 +12,7 @@ SOURCES += \
     $$PWD/controls/pagetabbutton.cpp \
     $$PWD/controls/textedit.cpp \
     $$PWD/controls/widgetbase.cpp \
+    $$PWD/utils/imageutils.cpp \
     $$PWD/widgets/selectfilewidget.cpp \
     $$PWD/main.cpp \
     $$PWD/pages/cutoutobjectpage.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     $$PWD/controls/pagetabbutton.h \
     $$PWD/controls/textedit.h \
     $$PWD/controls/widgetbase.h \
+    $$PWD/utils/imageutils.h \
     $$PWD/widgets/selectfilewidget.h \
     $$PWD/pages/cutoutobjectpage.h \
     $$PWD/pages/humomentspage.h \
