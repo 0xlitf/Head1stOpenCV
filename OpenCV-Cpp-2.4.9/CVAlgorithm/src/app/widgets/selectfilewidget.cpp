@@ -2,7 +2,8 @@
 #include "utils/fileutils.h"
 
 SelectFileWidget::SelectFileWidget(QWidget *parent) : WidgetBase{parent} {
-    this->setMinimumSize(400, 200);
+    this->setMinimumSize(300, 100);
+    this->setMaximumSize(300, 150);
 
     this->createComponents();
 }
@@ -17,7 +18,7 @@ void SelectFileWidget::createComponents() {
     textEdit->setPlaceholderText("选择图片");
 
     connect(selectButton, &QPushButton::clicked, this, [=]() {
-        auto folderName = FileUtils::selectFolderDialog(this);
+        auto folderName = FileUtils::selectFileDialog();
         if (!folderName.isEmpty()) {
             textEdit->setText(folderName);
         }

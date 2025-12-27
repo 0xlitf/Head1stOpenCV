@@ -19,7 +19,7 @@ public:
 
     static QString selectFolderDialog(QWidget* parent = nullptr);
 
-    static QString selectFileDialog(const QString& filter = "", QWidget* parent = nullptr);
+    static QString selectFileDialog(const QString& filter = getImageFileFilter(), QWidget* parent = nullptr);
 
     static QPair<int, int> recursiveCopyFolder(const QString& sourceDir, const QString& destinationDir);
 
@@ -33,6 +33,24 @@ public:
         QDir baseDir(basePath);
         return baseDir.relativeFilePath(absolutePath);
     }
+
+    static QString getImageFileFilter() {
+        QList<QByteArray> formats = QImageReader::supportedImageFormats();
+
+        QStringList filterList;
+
+        for (const QByteArray &format : formats) {
+            filterList.append(QString("*.%1").arg(QString(format)));
+        }
+
+        QString filter = QString("Images (%1)").arg(filterList.join(" "));
+
+        // 您还可以添加一个"所有文件"的选项
+        filter += ";;All Files (*)";
+
+        return filter;
+    }
+
 signals:
 };
 
