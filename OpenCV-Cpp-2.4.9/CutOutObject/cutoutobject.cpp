@@ -39,7 +39,7 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
         }
     }
 
-    // cv::imshow("cvImage", cvImage);
+    cv::imshow("cvImage after remove blue pixel", cvImage);
 
     cv::bitwise_not(cvImage, cvImage);
     cv::Mat gray;
@@ -62,6 +62,8 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     if (contours.empty()) {
         qDebug() << "未找到任何轮廓！";
         return results;
+    } else {
+        qDebug() << "轮廓数量: " << contours.size();
     }
 
     // 对轮廓按面积进行排序[8](@ref)
@@ -73,6 +75,7 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     // 筛选符合面积阈值的轮廓[6,7](@ref)
     for (const auto& contour : contours) {
         double area = cv::contourArea(contour);
+        qDebug() << "contourArea" << area;
 
         // 应用面积阈值过滤
         if (area >= minAreaThreshold && area <= maxAreaThreshold) {
