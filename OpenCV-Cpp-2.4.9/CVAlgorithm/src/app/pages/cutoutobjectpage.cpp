@@ -4,6 +4,7 @@
 #include <QLabel>
 #include "widgets/selectfilewidget.h"
 #include "utils/imageutils.h"
+#include <widgets/selectfolderwidget.h>
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
@@ -97,4 +98,7 @@ void CutoutObjectPage::createComponents()
 
     SelectFileWidget* selectFileWidget = new SelectFileWidget(this);
 
+    SelectFolderWidget* selectFolderWidget = new SelectFolderWidget(this);
+
+    Layouting::Column{selectFileWidget, selectFolderWidget}.attachTo(this);
 }

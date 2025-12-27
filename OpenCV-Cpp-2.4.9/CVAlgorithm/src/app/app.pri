@@ -19,7 +19,8 @@ SOURCES += \
     $$PWD/pages/humomentspage.cpp \
     $$PWD/utils/fileutils.cpp \
     $$PWD/utils/messageinstaller.cpp \
-    $$PWD/utils/qtspdlogintegration.cpp
+    $$PWD/utils/qtspdlogintegration.cpp \
+    $$PWD/widgets/selectfolderwidget.cpp
 
 HEADERS += \
     $$PWD/application.h \
@@ -39,7 +40,8 @@ HEADERS += \
     $$PWD/pages/humomentspage.h \
     $$PWD/utils/fileutils.h \
     $$PWD/utils/messageinstaller.h \
-    $$PWD/utils/qtspdlogintegration.h
+    $$PWD/utils/qtspdlogintegration.h \
+    $$PWD/widgets/selectfolderwidget.h
 
 FORMS += \
 

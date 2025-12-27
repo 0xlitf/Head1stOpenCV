@@ -1,15 +1,15 @@
-﻿#include "selectfilewidget.h"
+﻿#include "selectfolderwidget.h"
 #include "utils/fileutils.h"
 
-SelectFileWidget::SelectFileWidget(QWidget *parent) : WidgetBase{parent} {
+SelectFolderWidget::SelectFolderWidget(QWidget *parent) : WidgetBase{parent} {
     this->setMinimumSize(300, 100);
     this->setMaximumSize(300, 150);
 
     this->createComponents();
 }
 
-void SelectFileWidget::createComponents() {
-    auto selectButton = new NormalButton("选择图片", this);
+void SelectFolderWidget::createComponents() {
+    auto selectButton = new NormalButton("选择目录", this);
     selectButton->setFixedWidth(100);
     auto openButton = new NormalButton("打开目录", this);
     openButton->setFixedWidth(100);
@@ -27,7 +27,7 @@ void SelectFileWidget::createComponents() {
     });
 
     connect(selectButton, &QPushButton::clicked, this, [=]() {
-        auto folderName = FileUtils::selectFileDialog();
+        auto folderName = FileUtils::selectFolderDialog();
         if (!folderName.isEmpty()) {
             textEdit->setText(folderName);
         }
