@@ -13,7 +13,7 @@ void SelectFileWidget::createComponents() {
     auto openButton = new NormalButton("打开", this);
     openButton->setFixedWidth(100);
 
-    TextEdit* textEdit = new TextEdit("", this);
+    TextEdit* textEdit = new TextEdit(this);
     textEdit->setPlaceholderText("选择图片");
 
     connect(selectButton, &QPushButton::clicked, this, [=]() {
