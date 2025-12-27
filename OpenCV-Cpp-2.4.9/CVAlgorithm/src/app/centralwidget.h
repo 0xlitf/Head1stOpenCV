@@ -32,12 +32,19 @@ class CentralWidget : public WidgetBase {
 public:
     explicit CentralWidget(QWidget* parent = nullptr);
 
+    void setDefaultPage(int i);
+
+    void createTopButton(const QString &text);
+
+    void addPage(const QString &text, QWidget* w);
+
 private:
 
     QStringList m_buttonStringList;
     void createComponents();
 
-    QStackedWidget *m_stackedWidget;
+    QStackedWidget *m_stackedWidget = nullptr;
     QList<QPushButton*> m_buttonList;
     QHBoxLayout* m_topButtonRow = nullptr;
+    QButtonGroup *m_buttonGroup = nullptr;
 };
