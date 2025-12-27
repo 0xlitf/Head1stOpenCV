@@ -164,7 +164,7 @@ void MainWindow::onLoadTemplateFolder() {
 }
 
 void MainWindow::onLoadTemplate() {
-    QString fileName = QFileDialog::getOpenFileName(this, "选择模板图片", "",
+    QString fileName = QFileDialog::getOpenFileName(this, "选择模板图片", QString(PROJECT_DIR),
                                                     "Images (*.png *.jpg *.bmp)");
     if (fileName.isEmpty())
         return;
@@ -218,7 +218,7 @@ void MainWindow::onLoadTemplate() {
 }
 
 void MainWindow::onLoadScene() {
-    m_sceneFileName = QFileDialog::getOpenFileName(this, "选择场景图片", "",
+    m_sceneFileName = QFileDialog::getOpenFileName(this, "选择场景图片", QString(PROJECT_DIR),
                                                    "Images (*.png *.jpg *.bmp)");
     if (m_sceneFileName.isEmpty())
         return;

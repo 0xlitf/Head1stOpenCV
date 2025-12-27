@@ -1,10 +1,11 @@
-#include "messageinstaller.h"
+﻿#include "messageinstaller.h"
 #include "qtspdlogintegration.h"
 #include <QDateTime>
 #include <QThread>
 #include <QDebug>
 #include <QTextStream>
 #include <QDir>
+#include <QApplication>
 #include <QProcessEnvironment>
 
 MessageInstaller* MessageInstaller::m_instance = nullptr;
@@ -49,7 +50,7 @@ void MessageInstaller::install()
     QString output;
     QTextStream ts(&output);
     if (!qEnvironmentVariableIsEmpty("VisualStudioEdition")) { // start direct in vs
-		this->setProperty("RunEvn", "vs");
+        qApp->setProperty("RunEvn", "vs");
 		qSetMessagePattern("%{file}(%{line}): "
 			"[%{type}]:"
 			" [%{function}]:\n"
@@ -58,7 +59,7 @@ void MessageInstaller::install()
 		ts << "run in vs: " << qgetenv("VisualStudioEdition");
 	}
     else if (auto debugInQtCreator6 = !qEnvironmentVariableIsEmpty("_QTC_Path")) { // start direct in QtCreator 6
-        this->setProperty("RunEvn", "qc6");
+        qApp->setProperty("RunEvn", "qc6");
         qSetMessagePattern("\033[1;37m [file://%{file}:%{line}]:\033[0m"
                            "[\033[1;35m%{threadid}\033[0m]"
                            "%{if-debug}\033[1;36m%{endif}"
@@ -72,7 +73,7 @@ void MessageInstaller::install()
         ts << "run in QtCreator6: " << debugInQtCreator6 << ", "  << qgetenv("_QTC_Path");
     }
     else if (auto debugInQtCreator5 = !qEnvironmentVariableIsEmpty("VISUALSTUDIOVERSION")) { // start direct in QtCreator 5
-        this->setProperty("RunEvn", "qc5");
+        qApp->setProperty("RunEvn", "qc5");
         qSetMessagePattern("\033[1;37m [file://%{file}:%{line}]:\033[0m"
                            "[\033[1;35m%{threadid}\033[0m]"
                            "%{if-debug}\033[1;36m%{endif}"
@@ -85,7 +86,7 @@ void MessageInstaller::install()
                            "\033[1;91m %{message}\033[0m");
         ts << "run in QtCreator5: " << debugInQtCreator5 << ", " << qgetenv("VISUALSTUDIOVERSION");
     } else if (!qEnvironmentVariableIsEmpty("VSCODE_PID")) { // start direct in VSCode
-        this->setProperty("RunEvn", "vsc");
+        qApp->setProperty("RunEvn", "vsc");
         qSetMessagePattern("\033[1;37m [%{file}:%{line}]:\033[0m"
                            "[\033[1;35m%{threadid}\033[0m]"
                            "%{if-debug}\033[1;36m%{endif}"
@@ -98,7 +99,7 @@ void MessageInstaller::install()
                            "\033[1;91m %{message}\033[0m");
         ts << "run in VSCode: " << qgetenv("VSCODE_PID");
     } else {
-        this->setProperty("RunEvn", "exe");
+        qApp->setProperty("RunEvn", "exe");
         // qInstallMessageHandler(MessageInstaller::messageHandler); // run by .exe
 
         QtSpdlogIntegration::install();
