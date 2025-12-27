@@ -12,6 +12,8 @@ SOURCES += \
     $$PWD/controls/pagetabbutton.cpp \
     $$PWD/controls/widgetbase.cpp \
     $$PWD/main.cpp \
+    $$PWD/pages/cutoutobjectpage.cpp \
+    $$PWD/pages/humomentspage.cpp \
     $$PWD/utils/fileutils.cpp \
     $$PWD/utils/messageinstaller.cpp \
     $$PWD/utils/qtspdlogintegration.cpp
@@ -27,6 +29,8 @@ HEADERS += \
     $$PWD/controls/normalbutton.h \
     $$PWD/controls/pagetabbutton.h \
     $$PWD/controls/widgetbase.h \
+    $$PWD/pages/cutoutobjectpage.h \
+    $$PWD/pages/humomentspage.h \
     $$PWD/utils/fileutils.h \
     $$PWD/utils/messageinstaller.h \
     $$PWD/utils/qtspdlogintegration.h

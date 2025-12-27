@@ -25,6 +25,7 @@
 #include <QTime>
 #include <QWidget>
 #include "controls/widgetbase.h"
+#include "controls/layoutbuilder.h"
 
 class CentralWidget : public WidgetBase {
     Q_OBJECT
@@ -38,4 +39,5 @@ private:
 
     QStackedWidget *m_stackedWidget;
     QList<QPushButton*> m_buttonList;
+    QHBoxLayout* m_topButtonRow = nullptr;
 };

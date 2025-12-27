@@ -18,33 +18,29 @@
 #include "controls/controls.h"
 #include "controls/pagetabbutton.h"
 #include "utils/fileutils.h"
+#include "pages/cutoutobjectpage.h"
+#include "pages/humomentspage.h"
 
 CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
     this->setRandomColor();
     this->createComponents();
+
+    CutoutObjectPage *cutoutPage = new CutoutObjectPage();
+    HuMomentsPage *huPage = new HuMomentsPage();
+
+    m_stackedWidget->addWidget(cutoutPage);
+    m_stackedWidget->addWidget(huPage);
 }
 
 void CentralWidget::createComponents() {
-    m_buttonStringList = QStringList()
-                         << tr("1")
-        ;
-    auto stack = Layouting::Stack{
-        [this]() {
-            WidgetBase *w = new WidgetBase();
-            // w->setBackgroundColor();
+    m_buttonStringList << tr("1") << tr("2");
 
-            w->setContentsMargins(5, 5, 5, 5);
-
-            return w;
-        }(),
-    }.emerge();
-    m_stackedWidget = static_cast<QStackedWidget*>(stack);
+    m_stackedWidget = new QStackedWidget(this);
     m_stackedWidget->setContentsMargins(5, 5, 5, 5);
 
     auto createButton =
-        [this](const QString &text, QWidget *parent,
-                              QStackedWidget *stacked, QButtonGroup *group,
-                              int index) {
+        [this](const QString &text, QWidget *parent, QStackedWidget *stacked,
+               QButtonGroup *group, int index) {
         auto w = new PageTabButton(parent);
         w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         w->setText(text);
@@ -65,10 +61,17 @@ void CentralWidget::createComponents() {
         centralTop->setContentsMargins(0, 0, 0, 0);
         QButtonGroup *group = new QButtonGroup(centralTop);
 
-        auto row = Layouting::Row{};
+        auto m_topContainer = new QHBoxLayout(centralTop);
+        m_topContainer->setContentsMargins(0, 0, 0, 0);
+        m_topContainer->setSpacing(0);
+        m_topButtonRow = new QHBoxLayout();
+        m_topButtonRow->setContentsMargins(0, 0, 0, 0);
+        m_topButtonRow->setSpacing(0);
+
+        m_topContainer->addLayout(m_topButtonRow);
 
         for (int i = 0; i < m_buttonStringList.length(); ++i) {
-            row.addItem([&]() {
+            m_topButtonRow->addWidget([&]() {
                 auto button = createButton(QString(m_buttonStringList[i]), centralTop,
                                            m_stackedWidget, group, i);
                 m_buttonList.append(button);
@@ -76,26 +79,7 @@ void CentralWidget::createComponents() {
                 return button;
             }());
         }
-        row.addItem(Layouting::Stretch());
-        // row.addItem([&, this]() {
-        //     auto settingsButton = new QPushButton();
-        //     settingsButton->setIcon(QIcon("://image/icons8-settings.svg"));
-        //     settingsButton->setIconSize(QSize(30, 30));
-        //     settingsButton->setFixedSize(40, 40);
-        //     settingsButton->setCheckable(false);
-        //     settingsButton->setContentsMargins(0, 0, 0, 0);
-        //     group->addButton(settingsButton);
-        //     connect(settingsButton, &QAbstractButton::clicked, this, [&]() {
-        //         // QMessageBox::information(nullptr, "Settings",
-        //         QString("Settings")); qDebug() << "settingsButton clicked";
-
-        //         SettingDialog dialog;
-        //         dialog.exec();
-        //     });
-        //     return settingsButton;
-        // }());
-
-        row.attachTo(centralTop);
+        m_topContainer->addStretch();
         return centralTop;
     }();
 
