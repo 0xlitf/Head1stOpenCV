@@ -15,6 +15,11 @@ include(app.pri)
 include(compile.pri)
 include($$PWD/SingleApplication/singleapplication.pri)
 
+DEFINES += QT_MESSAGELOGCONTEXT
+DEFINES += PROJECT_DIR=\\\"$$PWD\\\"
+
+INCLUDEPATH += $$PWD/../cva
+
 INCLUDEPATH += $$PWD/spdlog-1.2.1/include
 
 LIB_OPENCV_PATH = $$LIB_SHARE_PATH/opencv-2.4.9/build
@@ -24,6 +29,7 @@ LIB_HALCON_PATH = $$LIB_SHARE_PATH/MVTec-24.05.0.0/HALCON-24.05-Progress
 INCLUDEPATH += $$LIB_HALCON_PATH/include/
 
 CONFIG(debug, debug|release) {
+    LIBS += -L$$BUILD_DIR/ -lcvad
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249d \
                                              -lopencv_highgui249d \
                                              -lopencv_imgproc249d
@@ -31,6 +37,7 @@ CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_OPENCV_PATH/x64/vc12/bin/opencv_highgui249d.dll\" \"$${PROJECT_BIN_DIR}\"
     QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$LIB_OPENCV_PATH/x64/vc12/bin/opencv_imgproc249d.dll\" \"$${PROJECT_BIN_DIR}\"
 } else {
+    LIBS += -L$$BUILD_DIR/ -lcva
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249 \
                                              -lopencv_highgui249 \
                                              -lopencv_imgproc249

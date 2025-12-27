@@ -23,6 +23,9 @@ class CVASHARED_EXPORT CutOutObject {
 public:
     CutOutObject();
 
+    cv::Mat eraseBlueBackground(cv::Mat inputImage, int colorThreshold,
+                                int blueThreshold);
+
     // 修改：检测单个最大轮廓（保持向后兼容）
     bool extractLargestContour(const cv::Mat& inputImage,
                                std::vector<cv::Point>& contour,

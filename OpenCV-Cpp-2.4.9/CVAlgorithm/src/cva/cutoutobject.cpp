@@ -4,6 +4,54 @@
 
 CutOutObject::CutOutObject() {}
 
+cv::Mat CutOutObject::eraseBlueBackground(cv::Mat inputImage,
+                                          int colorThreshold,
+                                          int blueThreshold) {
+    // 图像预处理（与原有逻辑相同）
+    cv::Mat cvImage = inputImage.clone();
+    int rows = cvImage.rows;
+    int cols = cvImage.cols;
+
+    if (auto useBatch = true) {
+        for (int i = 0; i < rows; ++i) {
+            // 获取第i行的行首指针
+            cv::Vec3b *ptr = cvImage.ptr<cv::Vec3b>(i);
+            for (int j = 0; j < cols; ++j) {
+                cv::Vec3b &pixel = ptr[j]; // 通过指针快速访问像素
+                uchar blue = pixel[0];
+                uchar green = pixel[1];
+                uchar red = pixel[2];
+
+                if ((blue - green > colorThreshold) && (blue - red > colorThreshold) &&
+                    (blue > blueThreshold)) {
+                    pixel = cv::Vec3b(255, 255, 255);
+                } else {
+                    pixel = cv::Vec3b(0, 0, 0);
+                }
+            }
+        }
+    } else {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
+                if ((pixel[0] - pixel[1] > colorThreshold) &&
+                    (pixel[0] - pixel[2] > colorThreshold) &&
+                    (pixel[0] > blueThreshold)) {
+                    pixel[0] = 0;
+                    pixel[1] = 0;
+                    pixel[2] = 0;
+                } else {
+                    pixel[0] = 255;
+                    pixel[1] = 255;
+                    pixel[2] = 255;
+                }
+            }
+        }
+    }
+
+    return cvImage;
+}
+
 // 新增：提取多个物体的核心函数
 std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     const cv::Mat& inputImage,
@@ -21,27 +69,13 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     }
 
     // 图像预处理（与原有逻辑相同）
-    cv::Mat cvImage = inputImage.clone();
-    for (int i = 0; i < cvImage.rows; ++i) {
-        for (int j = 0; j < cvImage.cols; ++j) {
-            cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
-            if ((pixel[0] - pixel[1] > colorThreshold) &&
-                (pixel[0] - pixel[2] > colorThreshold) &&
-                (pixel[0] > blueThreshold)) {
-                pixel[0] = 255;
-                pixel[1] = 255;
-                pixel[2] = 255;
-            } else {
-                pixel[0] = 0;
-                pixel[1] = 0;
-                pixel[2] = 0;
-            }
-        }
-    }
+    cv::Mat cvImage = eraseBlueBackground(inputImage, colorThreshold, blueThreshold);
+    cv::imshow("cvImage after remove blue pixel", cvImage);
 
-    // cv::imshow("cvImage", cvImage);
+    // cv::bitwise_not(cvImage, cvImage);
 
-    cv::bitwise_not(cvImage, cvImage);
+    cv::imshow("cvImage after fillWhiteBorder", cvImage);
+
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
 
@@ -62,6 +96,8 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     if (contours.empty()) {
         qDebug() << "未找到任何轮廓！";
         return results;
+    } else {
+        qDebug() << "轮廓数量: " << contours.size();
     }
 
     // 对轮廓按面积进行排序[8](@ref)
@@ -73,6 +109,7 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     // 筛选符合面积阈值的轮廓[6,7](@ref)
     for (const auto& contour : contours) {
         double area = cv::contourArea(contour);
+        qDebug() << "contourArea" << area;
 
         // 应用面积阈值过滤
         if (area >= minAreaThreshold && area <= maxAreaThreshold) {
@@ -135,7 +172,7 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
 
     auto results =
         extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                                          kernelSize, minAreaThreshold, maxAreaThreshold);
+                               kernelSize, minAreaThreshold, maxAreaThreshold);
 
     qDebug() << "extractMultipleObjects elapsed:" << timer.elapsed();
 
@@ -173,7 +210,7 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
 
     auto results =
         extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                                          kernelSize, minAreaThreshold, maxAreaThreshold);
+                               kernelSize, minAreaThreshold, maxAreaThreshold);
 
     cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 

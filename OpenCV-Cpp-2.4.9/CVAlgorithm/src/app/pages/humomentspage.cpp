@@ -1,4 +1,4 @@
-#include "humomentspage.h"
+﻿#include "humomentspage.h"
 #include <QLabel>
 
 HuMomentsPage::HuMomentsPage(QWidget *parent)
