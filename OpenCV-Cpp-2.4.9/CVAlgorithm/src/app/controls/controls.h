@@ -1,5 +1,6 @@
-#include "layoutbuilder.h"
+﻿#include "layoutbuilder.h"
 #include "widgetbase.h"
 #include "checkbox.h"
 #include "lineedit.h"
+#include "textedit.h"
 #include "normalbutton.h"

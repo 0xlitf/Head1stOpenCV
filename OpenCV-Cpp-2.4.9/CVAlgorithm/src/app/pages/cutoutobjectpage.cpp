@@ -2,6 +2,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
+#include "widgets/selectfilewidget.h"
 
 QString getImageFormatBySignature(const QString &filePath) {
     QFile file(filePath);
@@ -28,7 +29,9 @@ QString getImageFormatBySignature(const QString &filePath) {
 }
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
-    QLabel *label = new QLabel("CutoutObjectPage", this);
+    // QLabel *label = new QLabel("CutoutObjectPage", this);
+
+    SelectFileWidget* selectFileWidget = new SelectFileWidget(this);
 
     CutOutObject cutout;
     // cutout.testExtractLargestContour(imageName.toStdString());

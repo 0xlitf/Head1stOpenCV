@@ -10,7 +10,9 @@ SOURCES += \
     $$PWD/controls/lineedit.cpp \
     $$PWD/controls/normalbutton.cpp \
     $$PWD/controls/pagetabbutton.cpp \
+    $$PWD/controls/textedit.cpp \
     $$PWD/controls/widgetbase.cpp \
+    $$PWD/widgets/selectfilewidget.cpp \
     $$PWD/main.cpp \
     $$PWD/pages/cutoutobjectpage.cpp \
     $$PWD/pages/humomentspage.cpp \
@@ -28,7 +30,9 @@ HEADERS += \
     $$PWD/controls/lineedit.h \
     $$PWD/controls/normalbutton.h \
     $$PWD/controls/pagetabbutton.h \
+    $$PWD/controls/textedit.h \
     $$PWD/controls/widgetbase.h \
+    $$PWD/widgets/selectfilewidget.h \
     $$PWD/pages/cutoutobjectpage.h \
     $$PWD/pages/humomentspage.h \
     $$PWD/utils/fileutils.h \

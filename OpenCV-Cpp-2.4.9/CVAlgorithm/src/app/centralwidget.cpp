@@ -32,7 +32,7 @@ CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
     }());
 
     // 默认选中界面
-    this->setDefaultPageIndex(1);
+    this->setDefaultPageIndex(0);
 }
 
 void CentralWidget::setDefaultPageIndex(int i) {
