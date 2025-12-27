@@ -4,22 +4,9 @@
 
 CutOutObject::CutOutObject() {}
 
-// 新增：提取多个物体的核心函数
-std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
-    const cv::Mat& inputImage,
-    int colorThreshold,
-    int blueThreshold,
-    int kernelSize,
-    double minAreaThreshold,
-    double maxAreaThreshold) {
-
-    std::vector<ObjectDetectionResult> results;
-
-    if (inputImage.empty()) {
-        qWarning() << "错误, 输入图像为空";
-        return results;
-    }
-
+cv::Mat CutOutObject::eraseBlueBackground(cv::Mat inputImage,
+                                          int colorThreshold,
+                                          int blueThreshold) {
     // 图像预处理（与原有逻辑相同）
     cv::Mat cvImage = inputImage.clone();
     int rows = cvImage.rows;
@@ -28,15 +15,14 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     if (auto useBatch = true) {
         for (int i = 0; i < rows; ++i) {
             // 获取第i行的行首指针
-            cv::Vec3b* ptr = cvImage.ptr<cv::Vec3b>(i);
+            cv::Vec3b *ptr = cvImage.ptr<cv::Vec3b>(i);
             for (int j = 0; j < cols; ++j) {
-                cv::Vec3b& pixel = ptr[j]; // 通过指针快速访问像素
+                cv::Vec3b &pixel = ptr[j]; // 通过指针快速访问像素
                 uchar blue = pixel[0];
                 uchar green = pixel[1];
                 uchar red = pixel[2];
 
-                if ((blue - green > colorThreshold) &&
-                    (blue - red > colorThreshold) &&
+                if ((blue - green > colorThreshold) && (blue - red > colorThreshold) &&
                     (blue > blueThreshold)) {
                     pixel = cv::Vec3b(255, 255, 255);
                 } else {
@@ -63,6 +49,27 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
         }
     }
 
+    return cvImage;
+}
+
+// 新增：提取多个物体的核心函数
+std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
+    const cv::Mat& inputImage,
+    int colorThreshold,
+    int blueThreshold,
+    int kernelSize,
+    double minAreaThreshold,
+    double maxAreaThreshold) {
+
+    std::vector<ObjectDetectionResult> results;
+
+    if (inputImage.empty()) {
+        qWarning() << "错误, 输入图像为空";
+        return results;
+    }
+
+    // 图像预处理（与原有逻辑相同）
+    cv::Mat cvImage = eraseBlueBackground(inputImage, colorThreshold, blueThreshold);
     cv::imshow("cvImage after remove blue pixel", cvImage);
 
     // cv::bitwise_not(cvImage, cvImage);
