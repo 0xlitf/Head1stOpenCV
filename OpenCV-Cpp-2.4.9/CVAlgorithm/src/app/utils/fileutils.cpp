@@ -1,5 +1,8 @@
 ﻿#include "fileutils.h"
 
+#include <QProcess>
+#include <QDesktopServices>
+
 FileUtils::FileUtils(QObject *parent)
     : QObject{parent} {}
 
@@ -156,4 +159,42 @@ QStringList FileUtils::findDepth1Folder(const QString &directory) {
     result = dir.entryList();
 
     return result;
+}
+
+QString FileUtils::getImageFileFilter() {
+    QList<QByteArray> formats = QImageReader::supportedImageFormats();
+
+    QStringList filterList;
+
+    for (const QByteArray &format : formats) {
+        filterList.append(QString("*.%1").arg(QString(format)));
+    }
+
+    QString filter = QString("Images (%1)").arg(filterList.join(" "));
+
+    // 您还可以添加一个"所有文件"的选项
+    filter += ";;All Files (*)";
+
+    return filter;
+}
+
+void FileUtils::showInFolder(const QString &filePath)
+{
+    QFileInfo info(filePath);
+    if (!info.exists()) {
+        return;
+    }
+
+#if defined(Q_OS_WIN)
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(info.absoluteFilePath());
+    QProcess::startDetached("explorer", args);
+#elif defined(Q_OS_MAC)
+    QStringList args;
+    args << "-R" << info.absoluteFilePath();
+    QProcess::startDetached("open", args);
+#else
+    // Linux 或其他类Unix系统
+    QDesktopServices::openUrl(QUrl::fromLocalFile(info.absolutePath()));
+#endif
 }

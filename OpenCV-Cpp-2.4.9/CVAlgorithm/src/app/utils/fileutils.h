@@ -34,24 +34,10 @@ public:
         return baseDir.relativeFilePath(absolutePath);
     }
 
-    static QString getImageFileFilter() {
-        QList<QByteArray> formats = QImageReader::supportedImageFormats();
+    static QString getImageFileFilter();
 
-        QStringList filterList;
+    static void showInFolder(const QString &filePath);
 
-        for (const QByteArray &format : formats) {
-            filterList.append(QString("*.%1").arg(QString(format)));
-        }
-
-        QString filter = QString("Images (%1)").arg(filterList.join(" "));
-
-        // 您还可以添加一个"所有文件"的选项
-        filter += ";;All Files (*)";
-
-        return filter;
-    }
-
-signals:
 };
 
 #endif // FILEUTILS_H

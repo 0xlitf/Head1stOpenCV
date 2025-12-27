@@ -9,19 +9,23 @@ SelectFileWidget::SelectFileWidget(QWidget *parent) : WidgetBase{parent} {
 }
 
 void SelectFileWidget::createComponents() {
-    auto selectButton = new NormalButton("选择文件", this);
+    auto selectButton = new NormalButton("选择图片", this);
     selectButton->setFixedWidth(100);
-    auto openButton = new NormalButton("打开", this);
+    auto openButton = new NormalButton("打开目录", this);
     openButton->setFixedWidth(100);
 
     TextEdit* textEdit = new TextEdit(this);
-    textEdit->setPlaceholderText("选择图片");
+    textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
 
     connect(selectButton, &QPushButton::clicked, this, [=]() {
         auto folderName = FileUtils::selectFileDialog();
         if (!folderName.isEmpty()) {
             textEdit->setText(folderName);
         }
+    });
+    connect(openButton, &QPushButton::clicked, this, [=]() {
+        QString filePath = textEdit->toPlainText().trimmed();
+        FileUtils::showInFolder(filePath);
     });
 
     Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{textEdit}}.attachTo(this);
