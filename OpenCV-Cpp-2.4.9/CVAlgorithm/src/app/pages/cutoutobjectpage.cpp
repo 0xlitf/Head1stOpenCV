@@ -103,6 +103,9 @@ void CutoutObjectPage::createComponents()
     connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString& folderPath){
         imageListWidget->loadImagesFromFolder(folderPath);
     });
+    connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString& imageFilePath){
+        qDebug() << "imageSelected:" << imageFilePath;
+    });
     auto leftSelectColumn = Layouting::Column{selectFileWidget, Layouting::Space{5}, selectFolderWidget, Layouting::Space{5}, imageListWidget};
 
 

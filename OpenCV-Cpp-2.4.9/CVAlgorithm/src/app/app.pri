@@ -13,6 +13,7 @@ SOURCES += \
     $$PWD/controls/textedit.cpp \
     $$PWD/controls/widgetbase.cpp \
     $$PWD/utils/imageutils.cpp \
+    $$PWD/widgets/imageinfowidget.cpp \
     $$PWD/widgets/imagelistitem.cpp \
     $$PWD/widgets/imagelistwidget.cpp \
     $$PWD/widgets/selectfilewidget.cpp \
@@ -37,6 +38,7 @@ HEADERS += \
     $$PWD/controls/textedit.h \
     $$PWD/controls/widgetbase.h \
     $$PWD/utils/imageutils.h \
+    $$PWD/widgets/imageinfowidget.h \
     $$PWD/widgets/imagelistitem.h \
     $$PWD/widgets/imagelistwidget.h \
     $$PWD/widgets/selectfilewidget.h \

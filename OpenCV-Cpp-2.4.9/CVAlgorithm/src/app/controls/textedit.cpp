@@ -63,6 +63,8 @@ void TextEdit::resizeEvent(QResizeEvent* event) {
 }
 
 void TextEdit::paintEvent(QPaintEvent* event) {
+    QTextEdit::paintEvent(event);
+    return;
     // 【注意】不要调用 QTextEdit::paintEvent(event);
     // 因为我们要完全接管背景绘制，而且我们已经 setFrameShape(NoFrame) 了。
     // 如果你调用它，它可能会画出系统的方形背景覆盖掉你的圆角。
@@ -126,7 +128,6 @@ void TextEdit::paintEvent(QPaintEvent* event) {
     // 【关于文字显示】
     // 文字不是由 QTextEdit::paintEvent 画的，而是由 viewport 的 paintEvent 画的。
     // 只要 viewport 是透明的，并且我们上面画好了背景，文字就会自然浮现在上面。
-    QTextEdit::paintEvent(event);
 }
 
 void TextEdit::focusInEvent(QFocusEvent* event) {
