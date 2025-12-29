@@ -141,29 +141,29 @@ int main(int argc, char *argv[]) {
     double minArea = 1000.0;   // 最小面积阈值
     double maxArea = 1000000.0; // 最大面积阈值
 
-    // QElapsedTimer timer;
-    // timer.start();
+    QElapsedTimer timer;
+    timer.start();
 
-    // std::vector<cv::Mat> boundings;
-    // for (int t = 0; t < 1; ++t) {
-    //     boundings = cutout.getMultipleObjectsInBoundingRect(eraseBlueBackground, minArea, maxArea);
-    // }
+    std::vector<cv::Mat> boundings;
+    for (int t = 0; t < 1; ++t) {
+        boundings = cutout.getMultipleObjectsInBoundingRect(singleChannelZeroImage, minArea, maxArea);
+    }
 
-    // qDebug() << "boundings.size:" << boundings.size();
-    // int i = 0;
-    // for (auto &mat : boundings) {
-    //     cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
-    //     ++i;
-    // }
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    qDebug() << "boundings.size:" << boundings.size();
+    int i = 0;
+    for (auto &mat : boundings) {
+        cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
+        ++i;
+    }
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
-    // timer.restart();
-    // cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(eraseBlueBackground, minArea, maxArea);
-    // cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    timer.restart();
+    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(singleChannelZeroImage, minArea, maxArea);
+    cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
 
-    cutout.testExtractMultipleObjects(eraseBlueBackground, minArea, maxArea);
+    cutout.testExtractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
 
 
     cv::waitKey(0);

@@ -27,25 +27,25 @@ std::tuple<cv::Mat, cv::Mat> CutOutObject::eraseBlueBackground(cv::Mat inputImag
 
                     singleChannelZeroImage.at<uchar>(i, j) = 255;
                 } else {
-                    pixel = cv::Vec3b(0, 0, 0);
+                    // pixel = cv::Vec3b(0, 0, 0);
                 }
             }
         }
     } else {
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
-                if ((pixel[0] - pixel[1] > colorThreshold) && (pixel[0] - pixel[2] > colorThreshold) && (pixel[0] > blueThreshold)) {
-                    pixel[0] = 0;
-                    pixel[1] = 0;
-                    pixel[2] = 0;
-                } else {
-                    pixel[0] = 255;
-                    pixel[1] = 255;
-                    pixel[2] = 255;
-                }
-            }
-        }
+        // for (int i = 0; i < rows; ++i) {
+        //     for (int j = 0; j < cols; ++j) {
+        //         cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
+        //         if ((pixel[0] - pixel[1] > colorThreshold) && (pixel[0] - pixel[2] > colorThreshold) && (pixel[0] > blueThreshold)) {
+        //             pixel[0] = 0;
+        //             pixel[1] = 0;
+        //             pixel[2] = 0;
+        //         } else {
+        //             pixel[0] = 255;
+        //             pixel[1] = 255;
+        //             pixel[2] = 255;
+        //         }
+        //     }
+        // }
     }
 
     return std::make_tuple(cvImage, singleChannelZeroImage);
@@ -60,9 +60,9 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
         return results;
     }
 
-    cv::Mat gray;
-    cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
-    qDebug() << "extractMultipleObjects";
+    cv::Mat gray = inputImage.clone();
+    // cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
+    // qDebug() << "extractMultipleObjects";
     cv::imshow("extractMultipleObjects", gray);
 
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
@@ -95,14 +95,15 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
 
     // 筛选符合面积阈值的轮廓
     for (const auto &contour : contours) {
-        double area = cv::contourArea(contour);
-        qDebug() << "contourArea" << area;
+        double contourArea = cv::contourArea(contour);
+
+        // qDebug() << "contourArea" << area;
 
         // 应用面积阈值过滤
-        if (area >= minAreaThreshold && area <= maxAreaThreshold) {
+        if (contourArea >= minAreaThreshold && contourArea <= maxAreaThreshold) {
             ObjectDetectionResult result;
             result.contour = contour;
-            result.area = area;
+            result.area = contourArea;
             result.boundingRect = cv::boundingRect(contour);
 
             if (contour.size() >= 5) {
