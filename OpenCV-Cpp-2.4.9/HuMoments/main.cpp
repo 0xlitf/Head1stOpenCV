@@ -1,14 +1,14 @@
 ﻿
 #pragma execution_character_set("utf-8")
 
-#include "humomentsmatcher.h"
 #include "mainwindow.h"
 #include "messageinstaller.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFontDatabase>
 #include <opencv2/opencv.hpp>
-#include "../CutOutObject/cutoutobject.h"
+#include "cutoutobject.h"
+#include "humomentsmatcher.h"
 
 int testHuMoments(int argc, char *argv[]) {
     QApplication a(argc, argv);

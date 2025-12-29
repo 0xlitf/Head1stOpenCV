@@ -17,6 +17,8 @@ INCLUDEPATH += $$absolute_path($$PWD/../share)
 LIB_OPENCV_PATH = C:/opencv-2.4.9/build
 INCLUDEPATH += $$LIB_OPENCV_PATH/include/
 
+INCLUDEPATH += $$PWD/../CVAlgorithm/src/cva/
+
 CONFIG(debug, debug|release) {
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249d \
                                              -lopencv_highgui249d \
@@ -40,12 +42,12 @@ RC_ICONS = $$PWD/opencv.ico
 RESOURCES += \
 
 HEADERS += \
-    cutoutobject.h \
+    $$PWD/../CVAlgorithm/src/cva/cutoutobject.h \
     cva_global.h \
     mainwindow.h
 
 SOURCES += \
-    cutoutobject.cpp \
+    $$PWD/../CVAlgorithm/src/cva/cutoutobject.cpp \
     main.cpp \
     mainwindow.cpp
 

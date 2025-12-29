@@ -6,6 +6,7 @@ greaterThan(QT_MAJOR_VERSION, 6): QT += core5compat
 
 CONFIG += c++11
 
+DEFINES += CVA_LIBRARY
 DEFINES += QT_MESSAGELOGCONTEXT
 DEFINES += PROJECT_DIR=\\\"$$PWD\\\"
 
@@ -17,7 +18,7 @@ INCLUDEPATH += $$absolute_path($$PWD/../share)
 LIB_OPENCV_PATH = C:/opencv-2.4.9/build
 INCLUDEPATH += $$LIB_OPENCV_PATH/include/
 
-# INCLUDEPATH += $$PWD/../CutOutObject
+INCLUDEPATH += $$PWD/../CVAlgorithm/src/cva/
 
 CONFIG(debug, debug|release) {
     LIBS += -L$$LIB_OPENCV_PATH/x64/vc12/lib -lopencv_core249d \
@@ -44,18 +45,17 @@ RESOURCES += \
 HEADERS += \
     $$PWD/../share/layoutbuilder.h \
     $$PWD/../share/messageinstaller.h \
-    $$PWD/../CutOutObject/cutoutobject.h \
-    cva_global.h \
+    $$PWD/../CVAlgorithm/src/cva/cutoutobject.h \
     fileutils.h \
-    humomentsmatcher.h \
+    $$PWD/../CVAlgorithm/src/cva/humomentsmatcher.h \
     mainwindow.h
 
 SOURCES += \
     $$PWD/../share/layoutbuilder.cpp \
     $$PWD/../share/messageinstaller.cpp \
-    $$PWD/../CutOutObject/cutoutobject.cpp \
+    $$PWD/../CVAlgorithm/src/cva/cutoutobject.cpp \
     fileutils.cpp \
-    humomentsmatcher.cpp \
+    $$PWD/../CVAlgorithm/src/cva/humomentsmatcher.cpp \
     main.cpp \
     mainwindow.cpp
 
