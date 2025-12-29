@@ -8,9 +8,11 @@
 #include <QVBoxLayout>
 
 ImageInfoWidget::ImageInfoWidget(QWidget *parent)
-    : QWidget(parent), m_thumbnailLabel(new QLabel), m_nameLabel(new QLabel),
+    : WidgetBase(parent), m_thumbnailLabel(new QLabel), m_nameLabel(new QLabel),
     m_infoLabel(new QLabel), m_mainLayout(new QHBoxLayout(this)),
     m_infoLayout(new QVBoxLayout), m_fileSizeBytes(0) {
+    this->setRandomColor();
+
     setupUI();
 }
 
@@ -36,6 +38,8 @@ void ImageInfoWidget::setupUI() {
     m_infoLayout->setContentsMargins(0, 0, 0, 0);
     // m_infoLayout->setSpacing(4);
 
+    m_infoLayout->addStretch();
+
     // 文件名样式
     m_nameLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
     m_nameLabel->setWordWrap(true);
@@ -46,12 +50,18 @@ void ImageInfoWidget::setupUI() {
     m_infoLabel->setWordWrap(true);
     m_infoLayout->addWidget(m_infoLabel);
 
+    m_infoLayout->addStretch();
+
     // m_infoLayout->addStretch();
     m_mainLayout->addLayout(m_infoLayout);
     // m_mainLayout->addStretch();
 }
 
 void ImageInfoWidget::setFileInfo(const QFileInfo &fileInfo) {
+    setThumbnail(QPixmap());
+    m_fileName = fileInfo.fileName();
+    m_fileSizeBytes = fileInfo.size();
+
     m_fileName = fileInfo.fileName();
     m_fileSizeBytes = fileInfo.size();
 

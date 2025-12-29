@@ -7,11 +7,12 @@ ImageListWidget::ImageListWidget(QWidget *parent)
     this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     this->setMinimumWidth(300);
-    this->setMaximumWidth(500);
+    this->setMaximumWidth(300);
+
 
     // 设置窗口标题和大小
     setWindowTitle("图片列表浏览器");
-    resize(600, 500);
+    // resize(600, 500);
 
     // 创建主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -19,6 +20,8 @@ ImageListWidget::ImageListWidget(QWidget *parent)
 
     // 图片列表控件
     m_listWidget->setSelectionMode(QAbstractItemView::SingleSelection); // 单行选择
+    m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainLayout->addWidget(m_listWidget);
 
     connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=](){

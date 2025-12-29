@@ -3,6 +3,7 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "controls/controls.h"
 #include <QWidget>
 #include <QFileInfo>
 
@@ -11,7 +12,7 @@ class QLabel;
 class QVBoxLayout;
 class QHBoxLayout;
 
-class ImageInfoWidget : public QWidget
+class ImageInfoWidget : public WidgetBase
 {
     Q_OBJECT
 signals:

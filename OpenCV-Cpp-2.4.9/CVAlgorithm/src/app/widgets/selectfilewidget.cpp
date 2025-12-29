@@ -24,8 +24,8 @@ void SelectFileWidget::createComponents() {
             openButton->setEnabled(false);
         } else {
             openButton->setEnabled(true);
-            emit this->fileChanged(filePath);
         }
+        emit this->fileChanged(filePath);
     });
 
     connect(selectButton, &QPushButton::clicked, this, [=]() {
