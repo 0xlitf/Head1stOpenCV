@@ -74,10 +74,11 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
 
     // cv::bitwise_not(cvImage, cvImage);
 
-    cv::imshow("cvImage after fillWhiteBorder", cvImage);
+    // cv::imshow("cvImage after fillWhiteBorder", cvImage);
 
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
+    cv::imshow("gray", gray);
 
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
     //                                            cv::Size(kernelSize, kernelSize));
@@ -90,6 +91,10 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     // 查找所有轮廓
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
+
+    // 白底黑物需要转化为黑底白物
+    cv::bitwise_not(gray, gray);
+
     cv::findContours(gray, contours, hierarchy, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
 
@@ -172,7 +177,7 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
 
     auto results =
         extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                               kernelSize, minAreaThreshold, maxAreaThreshold);
+                                          kernelSize, minAreaThreshold, maxAreaThreshold);
 
     qDebug() << "extractMultipleObjects elapsed:" << timer.elapsed();
 
@@ -210,7 +215,7 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
 
     auto results =
         extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                               kernelSize, minAreaThreshold, maxAreaThreshold);
+                                          kernelSize, minAreaThreshold, maxAreaThreshold);
 
     cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 
