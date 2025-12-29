@@ -41,6 +41,7 @@ RESOURCES += \
 
 HEADERS += \
     cutoutobject.h \
+    cva_global.h \
     mainwindow.h
 
 SOURCES += \

@@ -24,9 +24,9 @@ cv::Mat CutOutObject::eraseBlueBackground(cv::Mat inputImage,
 
                 if ((blue - green > colorThreshold) && (blue - red > colorThreshold) &&
                     (blue > blueThreshold)) {
-                    pixel = cv::Vec3b(0, 0, 0);
-                } else {
                     pixel = cv::Vec3b(255, 255, 255);
+                } else {
+                    pixel = cv::Vec3b(0, 0, 0);
                 }
             }
         }
@@ -91,6 +91,10 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     // 查找所有轮廓
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
+
+    // 白底黑物需要转化为黑底白物
+    cv::bitwise_not(gray, gray);
+
     cv::findContours(gray, contours, hierarchy, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
 

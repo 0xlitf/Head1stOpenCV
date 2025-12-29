@@ -8,7 +8,7 @@
 #include <QElapsedTimer>
 #include <QFontDatabase>
 #include <opencv2/opencv.hpp>
-#include "cutoutobject.h"
+#include "../CutOutObject/cutoutobject.h"
 
 int testHuMoments(int argc, char *argv[]) {
     QApplication a(argc, argv);
