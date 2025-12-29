@@ -38,35 +38,24 @@ public:
     // 新增：检测多个轮廓，基于面积阈值
     std::vector<ObjectDetectionResult> extractMultipleObjects(
         const cv::Mat& inputImage,
-        int colorThreshold = 30,
-        int blueThreshold = 50,
-        int kernelSize = 3,
         double minAreaThreshold = 1000.0,    // 最小面积阈值
         double maxAreaThreshold = 1000000.0); // 最大面积阈值
 
     // 新增：获取多个物体的边界框结果
     std::vector<cv::Mat> getMultipleObjectsInBoundingRect(
         const cv::Mat& inputImage,
-        int colorThreshold = 30,
-        int blueThreshold = 50,
-        int kernelSize = 3,
         double minAreaThreshold = 1000.0,
         double maxAreaThreshold = 1000000.0);
 
     // 新增：获取多个物体的原图尺寸掩码
     cv::Mat getMultipleObjectsInOriginalSize(
         const cv::Mat& inputImage,
-        int colorThreshold = 30,
-        int blueThreshold = 50,
-        int kernelSize = 3,
         double minAreaThreshold = 1000.0,
         double maxAreaThreshold = 1000000.0);
 
-    void testExtractMultipleObjects(const QString& imageFilename,
+    void testExtractMultipleObjects(const cv::Mat& inputImage,
                                     double minAreaThreshold = 1000.0,
                                     double maxAreaThreshold = 1000000.0);
-
-    void testExtractLargestContour(const QString& imageFilename);
 };
 
 #endif // CUTOUTOBJECT_H

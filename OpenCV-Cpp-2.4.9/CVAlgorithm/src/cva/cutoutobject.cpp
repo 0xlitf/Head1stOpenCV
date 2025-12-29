@@ -55,9 +55,6 @@ cv::Mat CutOutObject::eraseBlueBackground(cv::Mat inputImage,
 // 新增：提取多个物体的核心函数
 std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
     const cv::Mat& inputImage,
-    int colorThreshold,
-    int blueThreshold,
-    int kernelSize,
     double minAreaThreshold,
     double maxAreaThreshold) {
 
@@ -68,16 +65,12 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
         return results;
     }
 
-    // 图像预处理（与原有逻辑相同）
-    cv::Mat cvImage = eraseBlueBackground(inputImage, colorThreshold, blueThreshold);
-    cv::imshow("cvImage after remove blue pixel", cvImage);
-
     // cv::bitwise_not(cvImage, cvImage);
 
     // cv::imshow("cvImage after fillWhiteBorder", cvImage);
 
     cv::Mat gray;
-    cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
     cv::imshow("gray", gray);
 
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
@@ -144,8 +137,7 @@ bool CutOutObject::extractLargestContour(const cv::Mat& inputImage,
                                          int colorThreshold, int blueThreshold,
                                          int kernelSize) {
 
-    auto results = extractMultipleObjects(inputImage, 0, 1000000,
-                                          colorThreshold, blueThreshold, kernelSize);
+    auto results = extractMultipleObjects(inputImage, 0, 1000000);
 
     if (results.empty()) {
         return false;
@@ -162,9 +154,6 @@ bool CutOutObject::extractLargestContour(const cv::Mat& inputImage,
 // 新增：获取多个物体的边界框结果
 std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
     const cv::Mat& inputImage,
-    int colorThreshold,
-    int blueThreshold,
-    int kernelSize,
     double minAreaThreshold,
     double maxAreaThreshold) {
 
@@ -176,8 +165,7 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
     timer.start();
 
     auto results =
-        extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                                          kernelSize, minAreaThreshold, maxAreaThreshold);
+        extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
 
     qDebug() << "extractMultipleObjects elapsed:" << timer.elapsed();
 
@@ -207,15 +195,11 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(
 // 新增：获取多个物体的原图尺寸掩码
 cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
     const cv::Mat& inputImage,
-    int colorThreshold,
-    int blueThreshold,
-    int kernelSize,
     double minAreaThreshold,
     double maxAreaThreshold) {
 
     auto results =
-        extractMultipleObjects(inputImage, colorThreshold, blueThreshold,
-                                          kernelSize, minAreaThreshold, maxAreaThreshold);
+        extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
 
     cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 
@@ -231,25 +215,17 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(
 }
 
 // 新增：测试多物体检测功能
-void CutOutObject::testExtractMultipleObjects(const QString& imageFilename,
+void CutOutObject::testExtractMultipleObjects(const cv::Mat& inputImage,
                                               double minAreaThreshold,
                                               double maxAreaThreshold) {
-    cv::Mat image = cv::imread(imageFilename.toStdString());
-    if (image.empty()) {
-        qDebug() << "无法读取图像";
-        return;
-    }
-
-    auto results = extractMultipleObjects(image, minAreaThreshold, maxAreaThreshold);
+    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
 
     if (results.empty()) {
         qDebug() << "未找到符合面积阈值的物体！";
         return;
     }
 
-    // cv::imshow("results", results);
-
-    cv::Mat resultImage = image.clone();
+    cv::Mat resultImage = inputImage.clone();
 
     // 用不同颜色绘制每个检测到的物体
     std::vector<cv::Scalar> colors = {
@@ -288,10 +264,5 @@ void CutOutObject::testExtractMultipleObjects(const QString& imageFilename,
                  << "," << result.minRect.center.y << ")";
     }
 
-    // cv::imshow("Multiple Objects Detection", resultImage);
-}
-
-// 保持原有的测试函数
-void CutOutObject::testExtractLargestContour(const QString& imageFilename) {
-    testExtractMultipleObjects(imageFilename, 0, 1000000);
+    cv::imshow("Multiple Objects Detection", resultImage);
 }

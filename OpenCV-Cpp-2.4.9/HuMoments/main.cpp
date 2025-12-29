@@ -209,7 +209,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
         cv::Mat mask;
         for (int t = 0; t < 1; ++t) {
-            mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea, maxArea);
+            mask = cutout.getMultipleObjectsInOriginalSize(image, minArea, maxArea);
         }
         cv::imshow("mask", mask);
 
