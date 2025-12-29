@@ -23,17 +23,8 @@ class CVASHARED_EXPORT CutOutObject {
 public:
     CutOutObject();
 
-    cv::Mat eraseBlueBackground(cv::Mat inputImage, int colorThreshold,
+    std::tuple<cv::Mat, cv::Mat> eraseBlueBackground(cv::Mat inputImage, int colorThreshold,
                                 int blueThreshold);
-
-    // 修改：检测单个最大轮廓（保持向后兼容）
-    bool extractLargestContour(const cv::Mat& inputImage,
-                               std::vector<cv::Point>& contour,
-                               double& area,
-                               cv::RotatedRect &minRect,
-                               int colorThreshold = 30,
-                               int blueThreshold = 50,
-                               int kernelSize = 3);
 
     // 新增：检测多个轮廓，基于面积阈值
     std::vector<ObjectDetectionResult> extractMultipleObjects(

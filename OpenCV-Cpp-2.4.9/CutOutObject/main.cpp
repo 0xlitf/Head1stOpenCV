@@ -133,7 +133,9 @@ int main(int argc, char *argv[]) {
     }
     cv::imshow("image", image);
 
-    auto eraseBlueBackground = cutout.eraseBlueBackground(image, 30, 50);
+    cv::Mat eraseBlueBackground;
+    cv::Mat singleChannelZeroImage;
+    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(image, 30, 50);
     cv::imshow("eraseBlueBackground", eraseBlueBackground);
 
     double minArea = 1000.0;   // 最小面积阈值

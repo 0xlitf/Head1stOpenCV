@@ -1,10 +1,11 @@
 ﻿#ifndef IMAGEUTILS_H
 #define IMAGEUTILS_H
 
+#include "cva_global.h"
 #include <QString>
 #include <QFile>
 
-class ImageUtils {
+class CVASHARED_EXPORT ImageUtils {
 public:
     ImageUtils();
 
