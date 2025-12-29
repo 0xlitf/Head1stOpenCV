@@ -1,6 +1,8 @@
 ﻿#ifndef IMAGEGRIDITEM_H
 #define IMAGEGRIDITEM_H
 
+#pragma execution_character_set("utf-8")
+
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>

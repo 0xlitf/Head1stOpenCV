@@ -40,17 +40,18 @@ RC_ICONS = $$PWD/opencv.ico
 RESOURCES += \
 
 HEADERS += \
-    ../share/layoutbuilder.h \
-    ../share/messageinstaller.h \
-    cutoutobject.h \
+    $$PWD/../share/layoutbuilder.h \
+    $$PWD/../share/messageinstaller.h \
+    $$PWD/../CutOutObject/cutoutobject.h \
+    cva_global.h \
     fileutils.h \
     humomentsmatcher.h \
     mainwindow.h
 
 SOURCES += \
-    ../share/layoutbuilder.cpp \
-    ../share/messageinstaller.cpp \
-    cutoutobject.cpp \
+    $$PWD/../share/layoutbuilder.cpp \
+    $$PWD/../share/messageinstaller.cpp \
+    $$PWD/../CutOutObject/cutoutobject.cpp \
     fileutils.cpp \
     humomentsmatcher.cpp \
     main.cpp \

@@ -95,9 +95,12 @@ int main(int argc, char *argv[]) {
     // QString imageName = QString(PROJECT_DIR) + "/dataset/bg.png"; // 纯背景
     // QString imageName = QString(PROJECT_DIR) + "/dataset/1.png"; // 1个物体
     // QString imageName = QString(PROJECT_DIR) + "/dataset/2.png"; // 2个物体
-    QString imageName = QString(PROJECT_DIR) + "/cannotdetectobject.png";
+    // QString imageName = QString(PROJECT_DIR) + "/cannotdetectobject.png";
     // QString imageName = QString(PROJECT_DIR) + "/CutOutObjectd_Z6YHwZteAM.png";
     // QString imageName = QString(PROJECT_DIR) + "/Cam1_18-32-25-052.png";
+
+    QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CVAlgorithm/dataset_blueconveyor/14-30-00-395.png";
+
     qDebug() << "imageName:" << imageName;
 
     QString trueFormat = getImageFormatBySignature(imageName);
@@ -131,7 +134,7 @@ int main(int argc, char *argv[]) {
     cv::imshow("image", image);
 
     double minArea = 1000.0;   // 最小面积阈值
-    double maxArea = 100000.0; // 最大面积阈值
+    double maxArea = 1000000.0; // 最大面积阈值
 
     cutout.testExtractMultipleObjects(imageName, minArea, maxArea);
 
@@ -142,14 +145,6 @@ int main(int argc, char *argv[]) {
     for (int t = 0; t < 1; ++t) {
         boundings = cutout.getMultipleObjectsInBoundingRect(image, 30, 50, 3, minArea, maxArea);
     }
-    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
-
-    timer.restart();
-    cv::Mat mask;
-    for (int t = 0; t < 1; ++t) {
-        mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea, maxArea);
-    }
-    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
     qDebug() << "boundings.size:" << boundings.size();
     int i = 0;
@@ -158,7 +153,16 @@ int main(int argc, char *argv[]) {
         ++i;
     }
 
-    cv::imshow(QString("mask %1").arg(i).toStdString(), mask);
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+
+    timer.restart();
+
+    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(image, 30, 50, 3, minArea, maxArea);
+
+    cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
+
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+
 
     cv::waitKey(0);
     cv::destroyAllWindows();

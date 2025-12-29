@@ -1,11 +1,13 @@
 ﻿#include "cutoutobjectpage.h"
+#include "utils/imageutils.h"
+#include "widgets/imagelistwidget.h"
+#include "widgets/selectfilewidget.h"
+#include "widgets/selectfolderwidget.h"
+#include "widgets/imagegridwidget.h"
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
-#include "widgets/selectfilewidget.h"
-#include "utils/imageutils.h"
-#include "widgets/selectfolderwidget.h"
-#include "widgets/imagelistwidget.h"
+#include "cutoutobject.h"
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
@@ -94,26 +96,53 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     cv::destroyAllWindows();
 }
 
-void CutoutObjectPage::createComponents()
-{
-
-    SelectFileWidget* selectFileWidget = new SelectFileWidget(this);
-    ImageInfoWidget* imageInfoWidget = new ImageInfoWidget(this);
+void CutoutObjectPage::createComponents() {
+    SelectFileWidget *selectFileWidget = new SelectFileWidget(this);
+    ImageInfoWidget *imageInfoWidget = new ImageInfoWidget(this);
     imageInfoWidget->setFixedSize(300, 100);
     // imageInfoWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    SelectFolderWidget* selectFolderWidget = new SelectFolderWidget(this);
-    ImageListWidget* imageListWidget = new ImageListWidget(this);
-    connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString& filePath){
-        imageInfoWidget->setFileInfo(QFileInfo(filePath));
-    });
-    connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString& folderPath){
-        imageListWidget->loadImagesFromFolder(folderPath);
-    });
-    connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString& imageFilePath){
-        qDebug() << "imageSelected:" << imageFilePath;
-    });
-    auto leftSelectColumn = Layouting::Column{selectFileWidget, imageInfoWidget, Layouting::Space{5}, selectFolderWidget, Layouting::Space{5}, imageListWidget};
+    SelectFolderWidget *selectFolderWidget = new SelectFolderWidget(this);
+    ImageListWidget *imageListWidget = new ImageListWidget(this);
+
+    ImageGridWidget* imageGridWidget = new ImageGridWidget;
 
 
-    Layouting::ColumnWithMargin{leftSelectColumn}.attachTo(this);
+    connect(selectFileWidget, &SelectFileWidget::fileChanged, this,
+            [=](const QString &filePath) {
+                imageInfoWidget->setFileInfo(QFileInfo(filePath));
+
+                cv::Mat myImage = cv::imread(filePath.toStdString());
+                if (!myImage.empty()) {
+                    // 获取一个唯一的标识名，这里使用文件名示例
+                    QString imageName = filePath;
+                    // 将图像添加到网格中
+                    imageGridWidget->addImage(imageName, myImage); // 假设通过ui对象访问
+
+                    CutOutObject cutout;
+
+                    double minArea = 1000.0;   // 最小面积阈值
+                    double maxArea = 100000.0; // 最大面积阈值
+
+                    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(myImage, 30, 50, 3, minArea, maxArea);
+
+                    imageGridWidget->addImage("mask", mask); // 假设通过ui对象访问
+
+                }
+            });
+    connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this,
+            [=](const QString &folderPath) {
+                imageListWidget->loadImagesFromFolder(folderPath);
+            });
+    connect(imageListWidget, &ImageListWidget::imageSelected, this,
+            [=](const QString &imageFilePath) {
+                qDebug() << "imageSelected:" << imageFilePath;
+            });
+    auto leftSelectColumn = Layouting::Column{
+                                              selectFileWidget,   imageInfoWidget,     Layouting::Space{5},
+        selectFolderWidget, Layouting::Space{5}, imageListWidget};
+
+    auto rightSelectColumn = Layouting::Column{Layouting::Space{5}, Layouting::Space{5}, imageGridWidget};
+
+
+    Layouting::RowWithMargin{leftSelectColumn, Layouting::Space{5}, rightSelectColumn}.attachTo(this);
 }

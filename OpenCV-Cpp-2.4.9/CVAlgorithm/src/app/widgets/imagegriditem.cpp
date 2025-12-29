@@ -16,7 +16,7 @@ void ImageGridItem::setupUI()
     // 1. 显示图像缩略图
     QPixmap pixmap = matToPixmap(m_imageData);
     // 缩放缩略图到合适大小
-    QPixmap scaledPixmap = pixmap.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPixmap scaledPixmap = pixmap.scaled(640, 500, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     m_imageLabel->setPixmap(scaledPixmap);
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
@@ -35,7 +35,7 @@ void ImageGridItem::setupUI()
     mainLayout->addWidget(m_infoLabel);
 
     // 可选：设置固定大小或大小策略，使每个Item看起来整齐
-    setFixedSize(150, 200);
+    setFixedSize(640, 500);
 }
 
 QPixmap ImageGridItem::matToPixmap(const cv::Mat& mat)

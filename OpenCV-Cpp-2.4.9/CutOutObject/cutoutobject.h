@@ -3,6 +3,7 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "cva_global.h"
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
@@ -17,7 +18,7 @@ struct ObjectDetectionResult {
     cv::Rect boundingRect;           // 轴对称矩形
 };
 
-class CutOutObject {
+class CVASHARED_EXPORT CutOutObject {
 
 public:
     CutOutObject();

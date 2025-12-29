@@ -24,9 +24,9 @@ cv::Mat CutOutObject::eraseBlueBackground(cv::Mat inputImage,
 
                 if ((blue - green > colorThreshold) && (blue - red > colorThreshold) &&
                     (blue > blueThreshold)) {
-                    pixel = cv::Vec3b(255, 255, 255);
-                } else {
                     pixel = cv::Vec3b(0, 0, 0);
+                } else {
+                    pixel = cv::Vec3b(255, 255, 255);
                 }
             }
         }
@@ -74,10 +74,11 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(
 
     // cv::bitwise_not(cvImage, cvImage);
 
-    cv::imshow("cvImage after fillWhiteBorder", cvImage);
+    // cv::imshow("cvImage after fillWhiteBorder", cvImage);
 
     cv::Mat gray;
     cv::cvtColor(cvImage, gray, cv::COLOR_BGR2GRAY);
+    cv::imshow("gray", gray);
 
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
     //                                            cv::Size(kernelSize, kernelSize));
