@@ -15,17 +15,12 @@ ImageListWidget::ImageListWidget(QWidget *parent)
     setWindowTitle("图片列表浏览器");
     // resize(600, 500);
 
-    // 创建主布局
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setMargin(0);
-
     // 图片列表控件
     m_listWidget->setSelectionMode(QAbstractItemView::SingleSelection); // 单行选择
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mainLayout->addWidget(m_listWidget);
 
-    // Layouting::Column{m_listWidget}.attachTo(this);
+    Layouting::Column{m_listWidget}.attachTo(this);
 
     connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=](){
         qDebug() << "itemSelectionChanged:";

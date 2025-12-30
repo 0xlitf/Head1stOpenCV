@@ -34,10 +34,14 @@ void ImageInfoWidget::setupUI() {
     m_nameLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
     m_nameLabel->setWordWrap(true);
 
+
     // 图片信息样式
     m_infoLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_infoLabel->setStyleSheet("color: #666666; font-size: 10pt;");
     m_infoLabel->setWordWrap(true);
+
+    m_nameLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    m_infoLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
     Layouting::RowWithMargin{m_thumbnailLabel, Layouting::ColumnWithMargin{m_nameLabel, m_infoLabel, }}.attachTo(this);
 }
