@@ -26,9 +26,8 @@ void ImageInfoWidget::setupUI() {
     m_thumbnailLabel->setAlignment(Qt::AlignCenter);
     m_thumbnailLabel->setScaledContents(false);
 
-    // 允许缩略图接收鼠标点击事件
-    m_thumbnailLabel->setCursor(Qt::PointingHandCursor);
-    m_thumbnailLabel->installEventFilter(this); // 或者重写widget的mousePressEvent
+    // m_thumbnailLabel->setCursor(Qt::PointingHandCursor);
+    // m_thumbnailLabel->installEventFilter(this);
 
     // 文件名样式
     m_nameLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -129,9 +128,9 @@ void ImageInfoWidget::setFileSize(qint64 bytes) {
 }
 
 // 如果需要处理缩略图点击事件
-void ImageInfoWidget::mousePressEvent(QMouseEvent *event) {
-    if (m_thumbnailLabel->geometry().contains(event->pos())) {
-        emit thumbnailClicked(); // 需要先在头文件中声明这个信号
-    }
-    QWidget::mousePressEvent(event);
-}
+// void ImageInfoWidget::mousePressEvent(QMouseEvent *event) {
+//     if (m_thumbnailLabel->geometry().contains(event->pos())) {
+//         emit thumbnailClicked(); // 需要先在头文件中声明这个信号
+//     }
+//     QWidget::mousePressEvent(event);
+// }

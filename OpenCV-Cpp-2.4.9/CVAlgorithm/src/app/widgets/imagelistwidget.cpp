@@ -25,6 +25,8 @@ ImageListWidget::ImageListWidget(QWidget *parent)
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainLayout->addWidget(m_listWidget);
 
+    // Layouting::Column{m_listWidget}.attachTo(this);
+
     connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=](){
         qDebug() << "itemSelectionChanged:";
         this->onListItemSelectionChanged();

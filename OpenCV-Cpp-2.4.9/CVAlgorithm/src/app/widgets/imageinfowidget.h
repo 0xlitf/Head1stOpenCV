@@ -30,8 +30,8 @@ public:
     void setImageSize(const QSize &size);
     void setFileSize(qint64 bytes);
 
-protected:
-    void mousePressEvent(QMouseEvent *event);
+// protected:
+//     void mousePressEvent(QMouseEvent *event);
 
 private:
     void setupUI();
