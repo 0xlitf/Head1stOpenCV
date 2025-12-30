@@ -15,6 +15,11 @@ public:
     explicit ImageGridItem(const QString& imageName, const cv::Mat& imageData, QWidget *parent = nullptr);
     QString getImageName() const { return m_imageName; }
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+    void updatePixmap();
+
 private:
     void setupUI();
 
@@ -23,6 +28,8 @@ private:
 
     QLabel* m_imageLabel;
     QLabel* m_infoLabel;
+
+    QPixmap m_originalPixmap;
 };
 
 #endif // IMAGEGRIDITEM_H
