@@ -34,18 +34,18 @@ QPixmap ImageUtils::cvMatToQPixmap(const cv::Mat &inMat) {
         return QPixmap();
 
     // 转换颜色空间 BGR -> RGB
-    cv::Mat temp;
+    cv::Mat rgbMat;
     if (inMat.channels() == 3) {
-        cv::cvtColor(inMat, temp, cv::COLOR_BGR2RGB);
+        cv::cvtColor(inMat, rgbMat, cv::COLOR_BGR2RGB);
     } else if (inMat.channels() == 1) {
-        cv::cvtColor(inMat, temp, cv::COLOR_GRAY2RGB);
+        cv::cvtColor(inMat, rgbMat, cv::COLOR_GRAY2RGB);
     } else {
-        return QPixmap();
+        rgbMat = inMat.clone();
     }
 
-    QImage img((const uchar *)temp.data, temp.cols, temp.rows, temp.step,
+    QImage img((const uchar *)rgbMat.data, rgbMat.cols, rgbMat.rows, rgbMat.step,
                QImage::Format_RGB888);
     // bits() 只是浅拷贝，必须 deep copy 才能让 QPixmap 在 cv::Mat 释放后继续存在
-    img.bits();
+    // img.bits();
     return QPixmap::fromImage(img.copy());
 }

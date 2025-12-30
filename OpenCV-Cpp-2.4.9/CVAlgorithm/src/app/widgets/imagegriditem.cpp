@@ -1,4 +1,5 @@
 ﻿#include "imagegriditem.h"
+#include "imageutils.h"
 
 ImageGridItem::ImageGridItem(const QString& imageName, const cv::Mat& imageData, QWidget *parent)
     : QWidget(parent), m_imageName(imageName), m_imageData(imageData), m_imageLabel(new QLabel), m_infoLabel(new QLabel)
@@ -14,7 +15,7 @@ void ImageGridItem::setupUI()
     mainLayout->setSpacing(5);
 
     // 1. 显示图像缩略图
-    QPixmap pixmap = matToPixmap(m_imageData);
+    QPixmap pixmap = ImageUtils::cvMatToQPixmap(m_imageData);
     // 缩放缩略图到合适大小
     QPixmap scaledPixmap = pixmap.scaled(640, 500, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     m_imageLabel->setPixmap(scaledPixmap);
@@ -36,21 +37,4 @@ void ImageGridItem::setupUI()
 
     // 可选：设置固定大小或大小策略，使每个Item看起来整齐
     setFixedSize(640, 500);
-}
-
-QPixmap ImageGridItem::matToPixmap(const cv::Mat& mat)
-{
-    // 注意颜色空间转换：OpenCV默认是BGR，Qt默认是RGB
-    cv::Mat rgbMat;
-    if (mat.channels() == 3) {
-        cv::cvtColor(mat, rgbMat, cv::COLOR_BGR2RGB);
-    } else if (mat.channels() == 1) {
-        cv::cvtColor(mat, rgbMat, cv::COLOR_GRAY2RGB);
-    } else {
-        rgbMat = mat.clone(); // 其他情况直接复制，可能需要额外处理
-    }
-
-    // 将Mat转换为QImage，进而转换为QPixmap
-    QImage img(rgbMat.data, rgbMat.cols, rgbMat.rows, rgbMat.step, QImage::Format_RGB888);
-    return QPixmap::fromImage(img);
 }

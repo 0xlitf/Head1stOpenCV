@@ -17,7 +17,6 @@ public:
 
 private:
     void setupUI();
-    QPixmap matToPixmap(const cv::Mat& mat); // 转换函数
 
     QString m_imageName;
     cv::Mat m_imageData;

@@ -24,6 +24,8 @@ protected:
 
 private:
     int calculateIdealItemWidth(int parentWidth);
+    int calculateIdealItemHeight(int parentHeight);
+    void removeAll();
 
 private:
     QWidget *m_containerWidget; // 滚动区域的容器部件

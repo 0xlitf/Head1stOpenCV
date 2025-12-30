@@ -11,7 +11,7 @@ ImageInfoWidget::ImageInfoWidget(QWidget *parent)
     : WidgetBase(parent), m_thumbnailLabel(new QLabel), m_nameLabel(new QLabel),
     m_infoLabel(new QLabel), m_mainLayout(new QHBoxLayout(this)),
     m_infoLayout(new QVBoxLayout), m_fileSizeBytes(0) {
-    this->setRandomColor();
+    // this->setRandomColor();
 
     setupUI();
 }

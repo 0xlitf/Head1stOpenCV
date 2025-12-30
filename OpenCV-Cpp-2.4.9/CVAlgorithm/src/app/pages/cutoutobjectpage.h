@@ -12,7 +12,12 @@ public:
     explicit CutoutObjectPage(QWidget *parent = nullptr);
 
     void createComponents();
+
+    void runCutoutAlgo(const QString &filePath);
 signals:
+
+private:
+    class ImageGridWidget *m_imageGridWidget = nullptr;
 };
 
 #endif // CUTOUTOBJECTPAGE_H

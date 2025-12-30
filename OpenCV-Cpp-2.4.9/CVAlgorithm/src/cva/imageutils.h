@@ -13,7 +13,7 @@ public:
     static QString getImageFormatBySignature(const QString &filePath);
 
     // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
-    QPixmap cvMatToQPixmap(const cv::Mat &inMat);
+    static QPixmap cvMatToQPixmap(const cv::Mat &inMat);
 
 };
 

@@ -63,7 +63,7 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
     cv::Mat gray = inputImage.clone();
     // cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
     // qDebug() << "extractMultipleObjects";
-    cv::imshow("extractMultipleObjects", gray);
+    // cv::imshow("extractMultipleObjects", gray);
 
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
     //                                            cv::Size(kernelSize,
