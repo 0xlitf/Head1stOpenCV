@@ -33,8 +33,8 @@ private:
     int m_maxColumns;
 
     QTimer* m_resizeTimer = new QTimer(this);
-    int idealItemWidth{-1};
-    int idealItemHeight{-1};
+    double idealItemWidth{-1};
+    double idealItemHeight{-1};
 };
 
 #endif // IMAGEGRIDWIDGET_H

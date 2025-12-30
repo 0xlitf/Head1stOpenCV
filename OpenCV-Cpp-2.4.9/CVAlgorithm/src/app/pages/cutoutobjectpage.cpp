@@ -68,5 +68,13 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         m_imageGridWidget->addImage("mask", mask);
         m_imageGridWidget->addImage("objsInfo", objsInfo);
+
+        std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
+
+        int i = 0;
+        for (auto &mat : boundings) {
+            m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
+            ++i;
+        }
     }
 }

@@ -49,13 +49,20 @@ void ImageGridItem::updatePixmap() {
     if (m_imageData.empty() || !m_imageLabel) {
         return;
     }
+    auto imageWidth = m_imageData.cols;
+    auto imageHeight = m_imageData.rows;
+
     QSize labelSize = m_imageLabel->size();
 
     if (labelSize.width() <= 0 || labelSize.height() <= 0) {
         return;
     }
 
-    QPixmap scaledPixmap = m_originalPixmap.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (imageWidth < labelSize.width() && imageHeight < labelSize.height()) {
+        m_imageLabel->setPixmap(m_originalPixmap);
+    } else {
+        QPixmap scaledPixmap = m_originalPixmap.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    m_imageLabel->setPixmap(scaledPixmap);
+        m_imageLabel->setPixmap(scaledPixmap);
+    }
 }

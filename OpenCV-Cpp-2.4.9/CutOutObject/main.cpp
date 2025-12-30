@@ -148,10 +148,7 @@ int main(int argc, char *argv[]) {
     QElapsedTimer timer;
     timer.start();
 
-    std::vector<cv::Mat> boundings;
-    for (int t = 0; t < 1; ++t) {
-        boundings = cutout.getMultipleObjectsInBoundingRect(results);
-    }
+    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
 
     qDebug() << "boundings.size:" << boundings.size();
     int i = 0;
