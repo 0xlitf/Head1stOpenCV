@@ -93,7 +93,7 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
     qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
-    cutout.testExtractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+    cutout.drawObjectsInfo(singleChannelZeroImage, minArea, maxArea);
 
     cv::waitKey(0);
     cv::destroyAllWindows();

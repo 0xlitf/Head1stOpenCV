@@ -121,17 +121,11 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
 }
 
 // 新增：获取多个物体的边界框结果
-std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(const cv::Mat &inputImage, double minAreaThreshold, double maxAreaThreshold) {
-    if (inputImage.channels() != 1) {
-        qFatal("eraseBlueBackground: inputImage should be 1 channel");
-    }
-
+std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(std::vector<ObjectDetectionResult> results) {
     std::vector<cv::Mat> resultImages;
 
     QElapsedTimer timer;
     timer.start();
-
-    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
 
     qDebug() << "extractMultipleObjects elapsed:" << timer.elapsed();
 
@@ -156,19 +150,12 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(const cv::Ma
 }
 
 // 新增：获取多个物体的原图尺寸掩码
-cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(const cv::Mat &inputImage, double minAreaThreshold, double maxAreaThreshold) {
-    if (inputImage.channels() != 1) {
-        qFatal("eraseBlueBackground: inputImage should be 1 channel");
-    }
-
-    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
-
-    cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& resultImg) {
 
     for (const auto &result : results) {
         if (!result.contour.empty()) {
             std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
-            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 0, 0), CV_FILLED);
+            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // CV_FILLED CV_AA
         }
     }
 
@@ -176,25 +163,19 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(const cv::Mat &inputImage
 }
 
 // 新增：测试多物体检测功能
-void CutOutObject::testExtractMultipleObjects(const cv::Mat &inputImage,
-                                              double minAreaThreshold,
-                                              double maxAreaThreshold) {
-    auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
+cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage) {
+    cv::Mat resultImage = inputImage;
+
+    if (resultImage.channels() == 1) {
+        cv::cvtColor(resultImage, resultImage, cv::COLOR_GRAY2BGR);
+    }
 
     if (results.empty()) {
         qDebug() << "未找到符合面积阈值的物体！";
-        return;
+        return cv::Mat();
     }
 
     // cv::Mat resultImage(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-
-    cv::Mat resultImage;
-    if (bool useCvt = true) {
-        cv::cvtColor(inputImage, resultImage, cv::COLOR_GRAY2BGR);
-    } else {
-        resultImage = inputImage.clone();
-        cv::cvtColor(resultImage, resultImage, cv::COLOR_GRAY2BGR);
-    }
 
     // 用不同颜色绘制每个检测到的物体
     std::vector<cv::Scalar> colors = {
@@ -228,5 +209,5 @@ void CutOutObject::testExtractMultipleObjects(const cv::Mat &inputImage,
         qDebug() << "物体" << i + 1 << ": 面积=" << result.area << ", 中心点=(" << result.minRect.center.x << "," << result.minRect.center.y << ")";
     }
 
-    cv::imshow("Multiple Objects Detection", resultImage);
+    return resultImage;
 }

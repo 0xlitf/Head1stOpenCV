@@ -33,20 +33,12 @@ public:
         double maxAreaThreshold = 1000000.0); // 最大面积阈值
 
     // 新增：获取多个物体的边界框结果
-    std::vector<cv::Mat> getMultipleObjectsInBoundingRect(
-        const cv::Mat& inputImage,
-        double minAreaThreshold = 1000.0,
-        double maxAreaThreshold = 1000000.0);
+    std::vector<cv::Mat> getMultipleObjectsInBoundingRect(std::vector<ObjectDetectionResult> results);
 
     // 新增：获取多个物体的原图尺寸掩码
-    cv::Mat getMultipleObjectsInOriginalSize(
-        const cv::Mat& inputImage,
-        double minAreaThreshold = 1000.0,
-        double maxAreaThreshold = 1000000.0);
+    cv::Mat getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& resultImg);
 
-    void testExtractMultipleObjects(const cv::Mat& inputImage,
-                                    double minAreaThreshold = 1000.0,
-                                    double maxAreaThreshold = 1000000.0);
+    cv::Mat drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
 };
 
 #endif // CUTOUTOBJECT_H
