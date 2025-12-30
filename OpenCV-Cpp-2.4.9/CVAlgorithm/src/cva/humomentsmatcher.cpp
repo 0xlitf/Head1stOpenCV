@@ -179,27 +179,6 @@ void HuMomentsMatcher::addTemplateIntoMap(const QString &desc,
     m_huMomentsList.append(tuple);
 }
 
-QPixmap HuMomentsMatcher::cvMatToQPixmap(const cv::Mat &inMat) {
-    if (inMat.empty())
-        return QPixmap();
-
-    // 转换颜色空间 BGR -> RGB
-    cv::Mat temp;
-    if (inMat.channels() == 3) {
-        cv::cvtColor(inMat, temp, cv::COLOR_BGR2RGB);
-    } else if (inMat.channels() == 1) {
-        cv::cvtColor(inMat, temp, cv::COLOR_GRAY2RGB);
-    } else {
-        return QPixmap();
-    }
-
-    QImage img((const uchar *)temp.data, temp.cols, temp.rows, temp.step,
-               QImage::Format_RGB888);
-    // bits() 只是浅拷贝，必须 deep copy 才能让 QPixmap 在 cv::Mat 释放后继续存在
-    img.bits();
-    return QPixmap::fromImage(img.copy());
-}
-
 // 核心：寻找最大轮廓
 std::vector<cv::Point> HuMomentsMatcher::findLargestContour(const cv::Mat &src,
                                                             bool isTemplate) {

@@ -122,7 +122,9 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
 
 // 新增：获取多个物体的边界框结果
 std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(const cv::Mat &inputImage, double minAreaThreshold, double maxAreaThreshold) {
-    // cv::imshow("inputImage", inputImage);
+    if (inputImage.channels() != 1) {
+        qFatal("eraseBlueBackground: inputImage should be 1 channel");
+    }
 
     std::vector<cv::Mat> resultImages;
 
@@ -155,6 +157,10 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(const cv::Ma
 
 // 新增：获取多个物体的原图尺寸掩码
 cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(const cv::Mat &inputImage, double minAreaThreshold, double maxAreaThreshold) {
+    if (inputImage.channels() != 1) {
+        qFatal("eraseBlueBackground: inputImage should be 1 channel");
+    }
+
     auto results = extractMultipleObjects(inputImage, minAreaThreshold, maxAreaThreshold);
 
     cv::Mat resultImg(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
@@ -180,7 +186,15 @@ void CutOutObject::testExtractMultipleObjects(const cv::Mat &inputImage,
         return;
     }
 
-    cv::Mat resultImage = inputImage.clone();
+    // cv::Mat resultImage(inputImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+
+    cv::Mat resultImage;
+    if (bool useCvt = true) {
+        cv::cvtColor(inputImage, resultImage, cv::COLOR_GRAY2BGR);
+    } else {
+        resultImage = inputImage.clone();
+        cv::cvtColor(resultImage, resultImage, cv::COLOR_GRAY2BGR);
+    }
 
     // 用不同颜色绘制每个检测到的物体
     std::vector<cv::Scalar> colors = {

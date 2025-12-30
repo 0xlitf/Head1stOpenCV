@@ -12,6 +12,7 @@
 #include <QPixmap>
 #include <QString>
 #include <opencv2/opencv.hpp>
+#include "imageutils.h"
 
 using MatchResult =
     std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double, double>;
@@ -67,9 +68,6 @@ public:
 public:
     void addTemplateIntoMap(const QString &desc, const QString &fileName,
                             const QString &huStr, std::vector<cv::Point> contour);
-
-    // 辅助函数：将 cv::Mat 转换为 QPixmap 用于显示
-    QPixmap cvMatToQPixmap(const cv::Mat &inMat);
 
     QString calcHuMoments(std::vector<cv::Point> contour);
 

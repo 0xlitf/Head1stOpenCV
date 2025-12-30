@@ -58,35 +58,37 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     }
     cv::imshow("image", image);
 
-    auto eraseBlueBackground = cutout.eraseBlueBackground(image, 30, 50);
+    cv::Mat eraseBlueBackground;
+    cv::Mat singleChannelZeroImage;
+    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(image, 30, 50);
     cv::imshow("eraseBlueBackground", eraseBlueBackground);
 
     double minArea = 1000.0;   // 最小面积阈值
     double maxArea = 1000000.0; // 最大面积阈值
 
-    // QElapsedTimer timer;
-    // timer.start();
+    QElapsedTimer timer;
+    timer.start();
 
-    // std::vector<cv::Mat> boundings;
-    // for (int t = 0; t < 1; ++t) {
-    //     boundings = cutout.getMultipleObjectsInBoundingRect(eraseBlueBackground, minArea, maxArea);
-    // }
+    std::vector<cv::Mat> boundings;
+    for (int t = 0; t < 1; ++t) {
+        boundings = cutout.getMultipleObjectsInBoundingRect(singleChannelZeroImage, minArea, maxArea);
+    }
 
-    // qDebug() << "boundings.size:" << boundings.size();
-    // int i = 0;
-    // for (auto &mat : boundings) {
-    //     cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
-    //     ++i;
-    // }
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    qDebug() << "boundings.size:" << boundings.size();
+    int i = 0;
+    for (auto &mat : boundings) {
+        cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
+        ++i;
+    }
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
-    // timer.restart();
-    // cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(eraseBlueBackground, minArea, maxArea);
-    // cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    timer.restart();
+    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(singleChannelZeroImage, minArea, maxArea);
+    cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
 
-    cutout.testExtractMultipleObjects(eraseBlueBackground, minArea, maxArea);
+    cutout.testExtractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
 
 
     cv::waitKey(0);
@@ -108,23 +110,29 @@ void CutoutObjectPage::createComponents() {
             [=](const QString &filePath) {
                 imageInfoWidget->setFileInfo(QFileInfo(filePath));
 
-                cv::Mat myImage = cv::imread(filePath.toStdString());
-                if (!myImage.empty()) {
+                cv::Mat imageMat = cv::imread(filePath.toStdString());
+                if (!imageMat.empty()) {
                     // 获取一个唯一的标识名，这里使用文件名示例
                     QString imageName = filePath;
                     // 将图像添加到网格中
-                    imageGridWidget->addImage(imageName, myImage); // 假设通过ui对象访问
+                    imageGridWidget->addImage(imageName, imageMat); // 假设通过ui对象访问
 
                     CutOutObject cutout;
 
                     double minArea = 1000.0;   // 最小面积阈值
                     double maxArea = 100000.0; // 最大面积阈值
 
-                    auto eraseBlueBackground = cutout.eraseBlueBackground(myImage, 30, 50);
-                    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(eraseBlueBackground, minArea, maxArea);
+                    cv::Mat eraseBlueBackground;
+                    cv::Mat singleChannelZeroImage;
+                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, 30, 50);
 
-                    imageGridWidget->addImage("mask", mask); // 假设通过ui对象访问
+                    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(singleChannelZeroImage, minArea, maxArea);
+                    cv::imshow("eraseBlueBackground", eraseBlueBackground);
+                    cv::imshow("singleChannelZeroImage", singleChannelZeroImage);
 
+                    imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
+
+                    imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
                 }
             });
     connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this,
