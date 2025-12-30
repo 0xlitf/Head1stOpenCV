@@ -1,24 +1,26 @@
 ﻿#include "imagegridwidget.h"
 
 ImageGridWidget::ImageGridWidget(QWidget *parent)
-    : QScrollArea(parent), m_containerWidget(new QWidget), m_gridLayout(new QGridLayout(m_containerWidget)), m_maxColumns(2) // 默认每行4列
+    : QScrollArea(parent)
+    , m_containerWidget(new QWidget)
+    , m_gridLayout(new QGridLayout(m_containerWidget))
+    , m_maxColumns(2) // 默认每行4列
 {
     setWidget(m_containerWidget);
     setWidgetResizable(true); // 允许容器随布局调整大小
     m_containerWidget->setLayout(m_gridLayout);
-    m_gridLayout->setSpacing(10); // 设置网格项之间的间距
+    m_gridLayout->setSpacing(10);             // 设置网格项之间的间距
     m_gridLayout->setAlignment(Qt::AlignTop); // 对齐方式
 }
 
-void ImageGridWidget::addImage(const QString& name, const cv::Mat& image)
-{
+void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     // 如果已存在同名项，先移除
     if (m_imageItems.contains(name)) {
         removeImage(name);
     }
 
     // 创建新的网格项
-    ImageGridItem* newItem = new ImageGridItem(name, image, m_containerWidget);
+    ImageGridItem *newItem = new ImageGridItem(name, image, m_containerWidget);
     m_imageItems[name] = newItem;
 
     // 计算新项应放置的位置
@@ -30,10 +32,9 @@ void ImageGridWidget::addImage(const QString& name, const cv::Mat& image)
     m_gridLayout->addWidget(newItem, row, column);
 }
 
-void ImageGridWidget::removeImage(const QString& name)
-{
+void ImageGridWidget::removeImage(const QString &name) {
     if (m_imageItems.contains(name)) {
-        ImageGridItem* itemToRemove = m_imageItems.value(name);
+        ImageGridItem *itemToRemove = m_imageItems.value(name);
         // 从布局中移除控件
         m_gridLayout->removeWidget(itemToRemove);
         // 从管理Map中移除
@@ -46,14 +47,43 @@ void ImageGridWidget::removeImage(const QString& name)
     }
 }
 
-void ImageGridWidget::clearAllImages()
-{
+void ImageGridWidget::clearAllImages() {
     // 移除所有项
-    QMapIterator<QString, ImageGridItem*> i(m_imageItems);
+    QMapIterator<QString, ImageGridItem *> i(m_imageItems);
     while (i.hasNext()) {
         i.next();
         m_gridLayout->removeWidget(i.value());
         i.value()->deleteLater();
     }
     m_imageItems.clear();
+}
+
+void ImageGridWidget::resizeEvent(QResizeEvent *event) {
+    QScrollArea::resizeEvent(event);
+
+    // 获取滚动区域视口（viewport）的新尺寸
+    QSize newSize = viewport()->size();
+
+    // 在这里实现你的子控件尺寸更新逻辑
+    // 例如，根据新的宽度计算每个网格项的理想大小
+    int idealItemWidth = calculateIdealItemWidth(newSize.width());
+    int idealItemHeight = calculateIdealItemWidth(newSize.height());
+
+    // 遍历所有子控件并更新其大小
+    for (ImageGridItem *item : m_imageItems) {
+        item->setFixedWidth(idealItemWidth);
+        // 如果高度也需要按比例变化，可以在这里一起设置
+        item->setFixedHeight(idealItemHeight);
+    }
+}
+
+int ImageGridWidget::calculateIdealItemWidth(int parentWidth) {
+    int spacing = 10;
+    int totalSpacing = (m_maxColumns - 1) * spacing;
+
+    int availableWidth = parentWidth - totalSpacing - 20;
+    int idealWidth = availableWidth / m_maxColumns;
+
+    idealWidth = std::max(100, idealWidth); // 设置一个最小宽度限制
+    return idealWidth;
 }

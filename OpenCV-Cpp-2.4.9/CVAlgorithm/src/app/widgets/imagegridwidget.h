@@ -19,11 +19,16 @@ public:
     void removeImage(const QString &name);
     void clearAllImages();
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    int calculateIdealItemWidth(int parentWidth);
+
 private:
     QWidget *m_containerWidget; // 滚动区域的容器部件
     QGridLayout *m_gridLayout;
-    QMap<QString, ImageGridItem *>
-        m_imageItems; // 用于管理项，键可以是图片名或唯一标识
+    QMap<QString, ImageGridItem *> m_imageItems;
     int m_maxColumns;
 };
 
