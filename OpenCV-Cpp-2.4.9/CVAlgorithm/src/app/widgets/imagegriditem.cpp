@@ -1,33 +1,35 @@
 ﻿#include "imagegriditem.h"
-#include "imageutils.h"
 #include "controls/layoutbuilder.h"
+#include "imageutils.h"
 #include <QDebug>
 
-ImageGridItem::ImageGridItem(const QString& imageName, const cv::Mat& imageData, QWidget *parent)
-    : QWidget(parent), m_imageName(imageName), m_imageData(imageData), m_imageLabel(new QLabel), m_infoLabel(new QLabel)
-{
+ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData, QWidget *parent)
+    : QWidget(parent)
+    , m_imageName(imageName)
+    , m_imageData(imageData)
+    , m_imageLabel(new QLabel)
+    , m_infoLabel(new QLabel) {
+    m_resizeTimer->setSingleShot(true); // 设置为单次触发
+
+    // 连接定时器超时信号到你的更新函数
+    connect(m_resizeTimer, &QTimer::timeout, this, &ImageGridItem::updatePixmap);
+
     setupUI();
 }
 
-void ImageGridItem::setupUI()
-{
-    // 1. 显示图像缩略图
-    // 获取当前label的尺寸（去边框影响）
-    QSize labelSize = m_imageLabel->size();
-    QPixmap pixmap = ImageUtils::cvMatToQPixmap(m_imageData);
-    QPixmap scaledPixmap = pixmap.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+void ImageGridItem::setupUI() {
+    if (!m_imageData.empty()) {
+        m_originalPixmap = ImageUtils::cvMatToQPixmap(m_imageData);
+    }
 
-    m_imageLabel->setPixmap(scaledPixmap);
+    updatePixmap();
 
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
+    m_imageLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // 2. 显示图像信息
-    QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4")
-                           .arg(m_imageName)
-                           .arg(m_imageData.cols)
-                           .arg(m_imageData.rows)
-                           .arg(m_imageData.channels());
+    QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4").arg(m_imageName).arg(m_imageData.cols).arg(m_imageData.rows).arg(m_imageData.channels());
     m_infoLabel->setText(infoText);
     m_infoLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_infoLabel->setStyleSheet("font-size: 9pt; color: #666666;");
@@ -35,18 +37,30 @@ void ImageGridItem::setupUI()
 
     Layouting::ColumnWithMargin{m_imageLabel, m_infoLabel}.attachTo(this);
 
-    // 可选：设置固定大小或大小策略，使每个Item看起来整齐
-    // setFixedSize(640, 500);
 }
 
 void ImageGridItem::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
-    updatePixmap();
+    m_resizeTimer->start(100);
 }
 
-void ImageGridItem::updatePixmap()
-{
-    if (m_imageData.empty()) return;
+void ImageGridItem::updatePixmap() {
+    qDebug() << "updatePixmap";
+    if (m_imageData.empty() || !m_imageLabel) {
+        return;
+    }
     QSize labelSize = m_imageLabel->size();
-    qDebug() << "labelSize" << labelSize;
+    // qDebug() << "labelSize" << labelSize;
+    // 防止窗口刚初始化时 size 为 0 导致的警告
+    if (labelSize.width() <= 0 || labelSize.height() <= 0) {
+        return;
+    }
+
+    // return;
+    // 【关键点2】：基于 label 的当前大小缩放原始图片
+    // Qt::KeepAspectRatio: 保持长宽比，不会变形
+    // Qt::SmoothTransformation: 高质量缩放（抗锯齿），虽然慢一点点但效果好
+    QPixmap scaledPixmap = m_originalPixmap.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    m_imageLabel->setPixmap(scaledPixmap);
 }

@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QTimer>
 #include <opencv2/opencv.hpp>
 
 class ImageGridItem : public QWidget
@@ -30,6 +31,7 @@ private:
     QLabel* m_infoLabel;
 
     QPixmap m_originalPixmap;
+    QTimer* m_resizeTimer = new QTimer(this);
 };
 
 #endif // IMAGEGRIDITEM_H

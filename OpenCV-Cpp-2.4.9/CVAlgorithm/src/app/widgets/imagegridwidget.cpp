@@ -1,4 +1,5 @@
 ﻿#include "imagegridwidget.h"
+#include <QDebug>
 
 ImageGridWidget::ImageGridWidget(QWidget *parent)
     : QScrollArea(parent)
@@ -68,6 +69,8 @@ void ImageGridWidget::resizeEvent(QResizeEvent *event) {
     // 例如，根据新的宽度计算每个网格项的理想大小
     int idealItemWidth = calculateIdealItemWidth(newSize.width());
     int idealItemHeight = calculateIdealItemHeight(newSize.height());
+
+    qDebug() << "idealItemWidth Height" << idealItemWidth << idealItemHeight;
 
     // 遍历所有子控件并更新其大小
     for (ImageGridItem *item : m_imageItems) {
