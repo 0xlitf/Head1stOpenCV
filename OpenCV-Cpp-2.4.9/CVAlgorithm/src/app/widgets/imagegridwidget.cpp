@@ -1,7 +1,7 @@
 ﻿#include "imagegridwidget.h"
 
 ImageGridWidget::ImageGridWidget(QWidget *parent)
-    : QScrollArea(parent), m_containerWidget(new QWidget), m_gridLayout(new QGridLayout(m_containerWidget)), m_maxColumns(4) // 默认每行4列
+    : QScrollArea(parent), m_containerWidget(new QWidget), m_gridLayout(new QGridLayout(m_containerWidget)), m_maxColumns(2) // 默认每行4列
 {
     setWidget(m_containerWidget);
     setWidgetResizable(true); // 允许容器随布局调整大小
