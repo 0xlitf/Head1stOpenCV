@@ -12,7 +12,7 @@ ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData,
     m_resizeTimer->setSingleShot(true);
 
     connect(m_resizeTimer, &QTimer::timeout, this, [=]{
-        qDebug() << "ImageGridItem::updatePixmap";
+        // qDebug() << "ImageGridItem::updatePixmap";
         this->updatePixmap();
     });
 

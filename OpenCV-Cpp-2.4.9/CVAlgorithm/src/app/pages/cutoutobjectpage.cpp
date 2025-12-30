@@ -47,7 +47,7 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
         // 获取一个唯一的标识名，这里使用文件名示例
         QString imageName = filePath;
         // 将图像添加到网格中
-        m_imageGridWidget->addImage(imageName, imageMat); // 假设通过ui对象访问
+        m_imageGridWidget->addImage("原图", imageMat); // 假设通过ui对象访问
 
         CutOutObject cutout;
 
