@@ -10,12 +10,16 @@
 ImageInfoWidget::ImageInfoWidget(QWidget *parent)
     : WidgetBase(parent), m_thumbnailLabel(new QLabel), m_nameLabel(new QLabel),
     m_infoLabel(new QLabel), m_fileSizeBytes(0) {
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    this->setBackgroundColor(QColor(233, 233, 233));
     // this->setRandomColor();
 
     setupUI();
 }
 
 void ImageInfoWidget::setupUI() {
+    m_thumbnailLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_thumbnailLabel->setFixedSize(80, 60); // 固定缩略图大小
     m_thumbnailLabel->setStyleSheet(
         "border: 1px solid #cccccc; background-color: #f0f0f0;");
@@ -27,14 +31,16 @@ void ImageInfoWidget::setupUI() {
     m_thumbnailLabel->installEventFilter(this); // 或者重写widget的mousePressEvent
 
     // 文件名样式
+    m_nameLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_nameLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
     m_nameLabel->setWordWrap(true);
 
     // 图片信息样式
+    m_infoLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_infoLabel->setStyleSheet("color: #666666; font-size: 10pt;");
     m_infoLabel->setWordWrap(true);
 
-    Layouting::RowWithMargin{m_thumbnailLabel, Layouting::ColumnWithMargin{Layouting::Stretch{}, m_nameLabel, m_infoLabel, Layouting::Stretch{}, }}.attachTo(this);
+    Layouting::RowWithMargin{m_thumbnailLabel, Layouting::ColumnWithMargin{m_nameLabel, m_infoLabel, }}.attachTo(this);
 }
 
 void ImageInfoWidget::setFileInfo(const QFileInfo &fileInfo) {

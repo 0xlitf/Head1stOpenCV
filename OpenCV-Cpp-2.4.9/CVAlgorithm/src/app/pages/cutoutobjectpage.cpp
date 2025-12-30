@@ -1,4 +1,5 @@
 ﻿#include "cutoutobjectpage.h"
+#include "controls/groupbox.h"
 #include "cutoutobject.h"
 #include "imageutils.h"
 #include "widgets/imagegridwidget.h"
@@ -14,14 +15,23 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
 }
 
 void CutoutObjectPage::createComponents() {
-    SelectFileWidget *selectFileWidget = new SelectFileWidget(this);
-    ImageInfoWidget *imageInfoWidget = new ImageInfoWidget(this);
+    GroupBox *fileGroupBox = new GroupBox("单张");
+    fileGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    GroupBox *folderGroupBox = new GroupBox("目录");
+    folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    SelectFileWidget *selectFileWidget = new SelectFileWidget();
+
+    ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
     imageInfoWidget->setFixedSize(300, 100);
-    // imageInfoWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    SelectFolderWidget *selectFolderWidget = new SelectFolderWidget(this);
-    ImageListWidget *imageListWidget = new ImageListWidget(this);
+
+    SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
+
+    ImageListWidget *imageListWidget = new ImageListWidget();
 
     m_imageGridWidget = new ImageGridWidget;
+    m_imageGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
         imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
@@ -34,25 +44,30 @@ void CutoutObjectPage::createComponents() {
         m_imageGridWidget->clearAllImages();
         this->runCutoutAlgo(imageFilePath);
     });
-    auto leftSelectColumn = Layouting::Column{selectFileWidget, imageInfoWidget, Layouting::Space{5}, selectFolderWidget, Layouting::Space{5}, imageListWidget};
 
-    auto rightSelectColumn = Layouting::Column{Layouting::Space{5}, Layouting::Space{5}, m_imageGridWidget};
+    Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, imageInfoWidget}.attachTo(fileGroupBox);
+    Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
+    auto leftSelectColumn = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
-    Layouting::RowWithMargin{leftSelectColumn, Layouting::Space{5}, rightSelectColumn}.attachTo(this);
+    Layouting::RowWithMargin{
+        leftSelectColumn,
+        Layouting::Space{5},
+        m_imageGridWidget,
+    }
+        .attachTo(this);
 }
 
 void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
     cv::Mat imageMat = cv::imread(filePath.toStdString());
     if (!imageMat.empty()) {
-        // 获取一个唯一的标识名，这里使用文件名示例
+        // 获取一个唯一的标识名
         QString imageName = filePath;
-        // 将图像添加到网格中
-        m_imageGridWidget->addImage("原图", imageMat); // 假设通过ui对象访问
+        m_imageGridWidget->addImage("原图", imageMat);
 
         CutOutObject cutout;
 
-        double minArea = 1000.0;   // 最小面积阈值
-        double maxArea = 100000.0; // 最大面积阈值
+        double minArea = 1000.0;
+        double maxArea = 100000.0;
 
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;

@@ -6,6 +6,7 @@ SOURCES += \
     $$PWD/appmainwindow.cpp \
     $$PWD/centralwidget.cpp \
     $$PWD/controls/checkbox.cpp \
+    $$PWD/controls/groupbox.cpp \
     $$PWD/controls/layoutbuilder.cpp \
     $$PWD/controls/lineedit.cpp \
     $$PWD/controls/normalbutton.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     $$PWD/centralwidget.h \
     $$PWD/controls/checkbox.h \
     $$PWD/controls/controls.h \
+    $$PWD/controls/groupbox.h \
     $$PWD/controls/layoutbuilder.h \
     $$PWD/controls/lineedit.h \
     $$PWD/controls/normalbutton.h \

@@ -2,6 +2,9 @@
 #include "utils/fileutils.h"
 
 SelectFileWidget::SelectFileWidget(QWidget *parent) : WidgetBase{parent} {
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    this->setBackgroundColor(QColor(233, 233, 233));
     this->setMinimumSize(300, 100);
     this->setMaximumSize(300, 150);
 
@@ -16,6 +19,7 @@ void SelectFileWidget::createComponents() {
     openButton->setEnabled(false);
 
     TextEdit* textEdit = new TextEdit(this);
+    textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
     connect(textEdit, &QTextEdit::textChanged, this, [=](){
         auto filePath = textEdit->toPlainText().trimmed();
@@ -41,4 +45,14 @@ void SelectFileWidget::createComponents() {
 
     Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{textEdit}}.attachTo(this);
 
+    // QVBoxLayout* v = new QVBoxLayout(this);
+    // QHBoxLayout* h1 = new QHBoxLayout;
+    // QHBoxLayout* h2 = new QHBoxLayout;
+
+    // v->addLayout(h1);
+    // v->addLayout(h2);
+
+    // h1->addWidget(selectButton);
+    // h1->addWidget(openButton);
+    // h2->addWidget(textEdit);
 }

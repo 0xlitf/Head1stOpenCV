@@ -2,6 +2,8 @@
 #include "utils/fileutils.h"
 
 SelectFolderWidget::SelectFolderWidget(QWidget *parent) : WidgetBase{parent} {
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
     this->setMinimumSize(300, 100);
     this->setMaximumSize(300, 150);
 
@@ -16,6 +18,7 @@ void SelectFolderWidget::createComponents() {
     openButton->setEnabled(false);
 
     TextEdit* textEdit = new TextEdit(this);
+    textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
     connect(textEdit, &QTextEdit::textChanged, this, [=](){
         auto folderPath = textEdit->toPlainText().trimmed();
