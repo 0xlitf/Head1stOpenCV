@@ -11,7 +11,10 @@ ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData,
     , m_infoLabel(new QLabel) {
     m_resizeTimer->setSingleShot(true);
 
-    connect(m_resizeTimer, &QTimer::timeout, this, &ImageGridItem::updatePixmap);
+    connect(m_resizeTimer, &QTimer::timeout, this, [=]{
+        qDebug() << "ImageGridItem::updatePixmap";
+        this->updatePixmap();
+    });
 
     setupUI();
 }
@@ -21,7 +24,7 @@ void ImageGridItem::setupUI() {
         m_originalPixmap = ImageUtils::cvMatToQPixmap(m_imageData);
     }
 
-    updatePixmap();
+    // updatePixmap();
 
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
@@ -39,11 +42,10 @@ void ImageGridItem::setupUI() {
 
 void ImageGridItem::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
-    m_resizeTimer->start(100);
+    m_resizeTimer->start(200);
 }
 
 void ImageGridItem::updatePixmap() {
-    qDebug() << "updatePixmap";
     if (m_imageData.empty() || !m_imageLabel) {
         return;
     }

@@ -12,6 +12,14 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
     m_containerWidget->setLayout(m_gridLayout);
     m_gridLayout->setSpacing(10);             // 设置网格项之间的间距
     m_gridLayout->setAlignment(Qt::AlignTop); // 对齐方式
+
+    m_resizeTimer->setSingleShot(true);
+
+    connect(m_resizeTimer, &QTimer::timeout, this, [=](){
+        qDebug() << "ImageGridWidget::updateChildren";
+        this->updateChildren();
+    });
+
 }
 
 void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
@@ -20,6 +28,8 @@ void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     }
 
     ImageGridItem *newItem = new ImageGridItem(name, image, m_containerWidget);
+    newItem->setFixedWidth(idealItemWidth);
+    newItem->setFixedHeight(idealItemHeight);
     m_imageItems[name] = newItem;
 
     int totalItems = m_imageItems.size() - 1; // 新项插入前的总数，即新索引
@@ -55,10 +65,15 @@ void ImageGridWidget::clearAllImages() {
 void ImageGridWidget::resizeEvent(QResizeEvent *event) {
     QScrollArea::resizeEvent(event);
 
+    qDebug() << "ImageGridWidget::resizeEvent";
+    m_resizeTimer->start(100);
+}
+
+void ImageGridWidget::updateChildren() {
     QSize newSize = viewport()->size();
 
-    int idealItemWidth = calculateIdealItemWidth(newSize.width());
-    int idealItemHeight = calculateIdealItemHeight(newSize.height());
+    idealItemWidth = calculateIdealItemWidth(newSize.width());
+    idealItemHeight = calculateIdealItemHeight(newSize.height());
 
     qDebug() << "idealItemWidth Height" << idealItemWidth << idealItemHeight;
 

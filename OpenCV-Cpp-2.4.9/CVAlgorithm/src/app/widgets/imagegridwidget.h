@@ -20,6 +20,8 @@ public:
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
+    void updateChildren();
+
 private:
     int calculateIdealItemWidth(int parentWidth);
     int calculateIdealItemHeight(int parentHeight);
@@ -29,6 +31,10 @@ private:
     QGridLayout *m_gridLayout;
     QMap<QString, ImageGridItem *> m_imageItems;
     int m_maxColumns;
+
+    QTimer* m_resizeTimer = new QTimer(this);
+    int idealItemWidth{-1};
+    int idealItemHeight{-1};
 };
 
 #endif // IMAGEGRIDWIDGET_H
