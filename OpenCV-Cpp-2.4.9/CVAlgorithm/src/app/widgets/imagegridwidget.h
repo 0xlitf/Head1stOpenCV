@@ -9,9 +9,7 @@
 #include <QScrollArea>
 #include <QWidget>
 
-class ImageGridWidget
-    : public QScrollArea // 使用QScrollArea以支持大量图片的滚动浏览
-{
+class ImageGridWidget : public QScrollArea {
     Q_OBJECT
 public:
     explicit ImageGridWidget(QWidget *parent = nullptr);
@@ -25,10 +23,9 @@ protected:
 private:
     int calculateIdealItemWidth(int parentWidth);
     int calculateIdealItemHeight(int parentHeight);
-    void removeAll();
 
 private:
-    QWidget *m_containerWidget; // 滚动区域的容器部件
+    QWidget *m_containerWidget;
     QGridLayout *m_gridLayout;
     QMap<QString, ImageGridItem *> m_imageItems;
     int m_maxColumns;

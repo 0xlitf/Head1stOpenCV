@@ -7,7 +7,6 @@
 #include <QFileInfo>
 #include <QWidget>
 
-// 前向声明
 class QLabel;
 class QVBoxLayout;
 class QHBoxLayout;
@@ -44,10 +43,6 @@ private:
     // 信息显示标签
     QLabel *m_nameLabel;
     QLabel *m_infoLabel;
-
-    // 布局
-    QHBoxLayout *m_mainLayout;
-    QVBoxLayout *m_infoLayout;
 
     // 存储数据
     QString m_fileName;

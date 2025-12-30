@@ -62,20 +62,15 @@ void ImageGridWidget::clearAllImages() {
 void ImageGridWidget::resizeEvent(QResizeEvent *event) {
     QScrollArea::resizeEvent(event);
 
-    // 获取滚动区域视口（viewport）的新尺寸
     QSize newSize = viewport()->size();
 
-    // 在这里实现你的子控件尺寸更新逻辑
-    // 例如，根据新的宽度计算每个网格项的理想大小
     int idealItemWidth = calculateIdealItemWidth(newSize.width());
     int idealItemHeight = calculateIdealItemHeight(newSize.height());
 
     qDebug() << "idealItemWidth Height" << idealItemWidth << idealItemHeight;
 
-    // 遍历所有子控件并更新其大小
     for (ImageGridItem *item : m_imageItems) {
         item->setFixedWidth(idealItemWidth);
-        // 如果高度也需要按比例变化，可以在这里一起设置
         item->setFixedHeight(idealItemHeight);
     }
 }
@@ -87,7 +82,7 @@ int ImageGridWidget::calculateIdealItemWidth(int parentWidth) {
     int availableWidth = parentWidth - totalSpacing - 20;
     int idealWidth = availableWidth / m_maxColumns;
 
-    idealWidth = std::max(100, idealWidth); // 设置一个最小宽度限制
+    idealWidth = std::max(100, idealWidth);
     return idealWidth;
 }
 
@@ -97,10 +92,6 @@ int ImageGridWidget::calculateIdealItemHeight(int parentHeight) {
     int availableHeight = parentHeight - 30;
     int idealHeight = availableHeight / m_maxColumns;
 
-    idealHeight = std::max(100, idealHeight); // 设置一个最小宽度限制
+    idealHeight = std::max(100, idealHeight);
     return idealHeight;
-}
-
-void ImageGridWidget::removeAll() {
-
 }

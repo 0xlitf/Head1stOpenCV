@@ -9,19 +9,13 @@
 
 ImageInfoWidget::ImageInfoWidget(QWidget *parent)
     : WidgetBase(parent), m_thumbnailLabel(new QLabel), m_nameLabel(new QLabel),
-    m_infoLabel(new QLabel), m_mainLayout(new QHBoxLayout(this)),
-    m_infoLayout(new QVBoxLayout), m_fileSizeBytes(0) {
+    m_infoLabel(new QLabel), m_fileSizeBytes(0) {
     // this->setRandomColor();
 
     setupUI();
 }
 
 void ImageInfoWidget::setupUI() {
-    // 设置主布局为水平布局
-    m_mainLayout->setContentsMargins(5, 5, 5, 5);
-    m_mainLayout->setSpacing(10);
-
-    // 1. 左侧：缩略图部分
     m_thumbnailLabel->setFixedSize(80, 60); // 固定缩略图大小
     m_thumbnailLabel->setStyleSheet(
         "border: 1px solid #cccccc; background-color: #f0f0f0;");
@@ -32,29 +26,15 @@ void ImageInfoWidget::setupUI() {
     m_thumbnailLabel->setCursor(Qt::PointingHandCursor);
     m_thumbnailLabel->installEventFilter(this); // 或者重写widget的mousePressEvent
 
-    m_mainLayout->addWidget(m_thumbnailLabel);
-
-    // 2. 右侧：信息部分（垂直布局）
-    m_infoLayout->setContentsMargins(0, 0, 0, 0);
-    // m_infoLayout->setSpacing(4);
-
-    m_infoLayout->addStretch();
-
     // 文件名样式
     m_nameLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
     m_nameLabel->setWordWrap(true);
-    m_infoLayout->addWidget(m_nameLabel);
 
     // 图片信息样式
     m_infoLabel->setStyleSheet("color: #666666; font-size: 10pt;");
     m_infoLabel->setWordWrap(true);
-    m_infoLayout->addWidget(m_infoLabel);
 
-    m_infoLayout->addStretch();
-
-    // m_infoLayout->addStretch();
-    m_mainLayout->addLayout(m_infoLayout);
-    // m_mainLayout->addStretch();
+    Layouting::RowWithMargin{m_thumbnailLabel, Layouting::ColumnWithMargin{Layouting::Stretch{}, m_nameLabel, m_infoLabel, Layouting::Stretch{}, }}.attachTo(this);
 }
 
 void ImageInfoWidget::setFileInfo(const QFileInfo &fileInfo) {
