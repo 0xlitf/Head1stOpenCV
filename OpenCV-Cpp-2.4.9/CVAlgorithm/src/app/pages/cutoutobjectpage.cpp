@@ -42,8 +42,14 @@ void CutoutObjectPage::createComponents() {
     GroupBox *gridGroupBox = new GroupBox("算法处理");
     gridGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    GroupBox *paramGroupBox = new GroupBox("参数调整");
+    paramGroupBox->setFixedHeight(150);
+
     m_imageGridWidget = new ImageGridWidget;
     m_imageGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    GroupBox *resultGroupBox = new GroupBox("处理结果");
+    Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(resultGroupBox);
 
     connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
         imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
@@ -59,7 +65,7 @@ void CutoutObjectPage::createComponents() {
 
     Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
     Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
-    Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(gridGroupBox);
+    Layouting::ColumnWithMargin{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(gridGroupBox);
     auto leftSelectColumn = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
     Layouting::RowWithMargin{
