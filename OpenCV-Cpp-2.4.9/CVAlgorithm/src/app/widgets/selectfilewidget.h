@@ -10,9 +10,13 @@ signals:
 
 public:
     explicit SelectFileWidget(QWidget *parent = nullptr);
+    QString getSelectFile() {
+        return m_textEdit->toPlainText();
+    }
 
 private:
     void createComponents();
+    TextEdit* m_textEdit = nullptr;
 };
 
 #endif // SELECTFILEWIDGET_H

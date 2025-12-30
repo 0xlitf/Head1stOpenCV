@@ -9,6 +9,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
+#include "controls/roundedwidget.h"
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
@@ -23,12 +24,23 @@ void CutoutObjectPage::createComponents() {
 
     SelectFileWidget *selectFileWidget = new SelectFileWidget();
 
+    RoundedWidget* roundWidget = new RoundedWidget;
+    roundWidget->setFixedSize(300, 100);
     ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
-    imageInfoWidget->setFixedSize(300, 100);
+    Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
+
+    connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
+        qDebug() << "selectFileWidget->getSelectFile()" << selectFileWidget->getSelectFile();
+        m_imageGridWidget->clearAllImages();
+        this->runCutoutAlgo(selectFileWidget->getSelectFile());
+    });
 
     SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
 
     ImageListWidget *imageListWidget = new ImageListWidget();
+
+    GroupBox *gridGroupBox = new GroupBox("算法处理");
+    gridGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     m_imageGridWidget = new ImageGridWidget;
     m_imageGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -45,14 +57,15 @@ void CutoutObjectPage::createComponents() {
         this->runCutoutAlgo(imageFilePath);
     });
 
-    Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, imageInfoWidget}.attachTo(fileGroupBox);
+    Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
     Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
+    Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(gridGroupBox);
     auto leftSelectColumn = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
     Layouting::RowWithMargin{
         leftSelectColumn,
         Layouting::Space{5},
-        m_imageGridWidget,
+        gridGroupBox,
     }
         .attachTo(this);
 }

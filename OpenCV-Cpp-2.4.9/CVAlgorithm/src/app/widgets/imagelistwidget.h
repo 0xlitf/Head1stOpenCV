@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QImageReader>
 #include "imagelistitem.h"
+#include "controls/listwidget.h"
 
 class ImageListWidget : public QWidget
 {
@@ -33,7 +34,7 @@ public:
 private:
     QLineEdit* m_pathEdit;
     QPushButton* m_browseButton;
-    QListWidget* m_listWidget;
+    ListWidget* m_listWidget;
 };
 
 #endif // IMAGELISTWIDGET_H

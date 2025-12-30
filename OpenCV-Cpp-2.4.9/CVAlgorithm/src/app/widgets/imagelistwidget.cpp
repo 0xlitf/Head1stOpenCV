@@ -2,9 +2,10 @@
 #include <QDebug>
 
 ImageListWidget::ImageListWidget(QWidget *parent)
-    : QWidget(parent), m_pathEdit(new QLineEdit), m_browseButton(new QPushButton("浏览文件夹")), m_listWidget(new QListWidget)
+    : QWidget(parent), m_pathEdit(new QLineEdit), m_browseButton(new QPushButton("浏览文件夹")), m_listWidget(new ListWidget)
 {
     m_listWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_listWidget->setFrameShape(QFrame::NoFrame);
     this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     this->setMinimumWidth(300);

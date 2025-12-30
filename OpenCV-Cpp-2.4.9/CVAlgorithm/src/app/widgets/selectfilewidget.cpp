@@ -18,11 +18,11 @@ void SelectFileWidget::createComponents() {
     openButton->setFixedWidth(100);
     openButton->setEnabled(false);
 
-    TextEdit* textEdit = new TextEdit(this);
-    textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
-    connect(textEdit, &QTextEdit::textChanged, this, [=](){
-        auto filePath = textEdit->toPlainText().trimmed();
+    m_textEdit = new TextEdit(this);
+    m_textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    m_textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
+    connect(m_textEdit, &QTextEdit::textChanged, this, [=](){
+        auto filePath = m_textEdit->toPlainText().trimmed();
         QFileInfo info(filePath);
         if (!info.exists()) {
             openButton->setEnabled(false);
@@ -35,15 +35,15 @@ void SelectFileWidget::createComponents() {
     connect(selectButton, &QPushButton::clicked, this, [=]() {
         auto folderName = FileUtils::selectFileDialog();
         if (!folderName.isEmpty()) {
-            textEdit->setText(folderName);
+            m_textEdit->setText(folderName);
         }
     });
     connect(openButton, &QPushButton::clicked, this, [=]() {
-        QString filePath = textEdit->toPlainText().trimmed();
+        QString filePath = m_textEdit->toPlainText().trimmed();
         FileUtils::showInFolder(filePath);
     });
 
-    Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{textEdit}}.attachTo(this);
+    Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{m_textEdit}}.attachTo(this);
 
     // QVBoxLayout* v = new QVBoxLayout(this);
     // QHBoxLayout* h1 = new QHBoxLayout;
