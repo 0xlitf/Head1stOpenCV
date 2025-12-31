@@ -117,7 +117,7 @@ FileUtils::gatherCopyFilesTo(const QString &sourceDir,
     return map;
 }
 
-QStringList FileUtils::findAllImageFiles(const QString &directory) {
+QStringList FileUtils::findAllImageFiles(const QString &directory, bool recursive) {
     QStringList imageFiles;
     QDir dir(directory);
 
@@ -135,9 +135,11 @@ QStringList FileUtils::findAllImageFiles(const QString &directory) {
         imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
     }
 
-    QStringList subDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    foreach (const QString &subDir, subDirs) {
-        imageFiles.append(findAllImageFiles(dir.absoluteFilePath(subDir)));
+    if (recursive) {
+        QStringList subDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        foreach (const QString &subDir, subDirs) {
+            imageFiles.append(findAllImageFiles(dir.absoluteFilePath(subDir)));
+        }
     }
 
     return imageFiles;

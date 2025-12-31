@@ -25,7 +25,7 @@ public:
 
     static QMap<QString, QString> gatherCopyFilesTo(const QString& sourceDir, const QString& destinationDir);
 
-    static QStringList findAllImageFiles(const QString& directory);
+    static QStringList findAllImageFiles(const QString& directory, bool recursive = true);
 
     static QStringList findDepth1Folder(const QString& directory);
 

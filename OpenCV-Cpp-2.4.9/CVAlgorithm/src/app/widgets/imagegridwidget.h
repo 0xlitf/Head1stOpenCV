@@ -30,7 +30,7 @@ private:
     QWidget *m_containerWidget;
     QGridLayout *m_gridLayout;
     QMap<QString, ImageGridItem *> m_imageItems;
-    int m_maxColumns;
+    int m_maxColumns{3};
 
     QTimer* m_resizeTimer = new QTimer(this);
     double idealItemWidth{-1};

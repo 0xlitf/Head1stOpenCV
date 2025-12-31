@@ -4,9 +4,7 @@
 ImageGridWidget::ImageGridWidget(QWidget *parent)
     : QScrollArea(parent)
     , m_containerWidget(new QWidget)
-    , m_gridLayout(new QGridLayout(m_containerWidget))
-    , m_maxColumns(2)
-{
+    , m_gridLayout(new QGridLayout(m_containerWidget)) {
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
@@ -18,7 +16,7 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
 
     m_resizeTimer->setSingleShot(true);
 
-    connect(m_resizeTimer, &QTimer::timeout, this, [=](){
+    connect(m_resizeTimer, &QTimer::timeout, this, [=]() {
         qDebug() << "ImageGridWidget::updateChildren";
         this->updateChildren();
     });
@@ -98,7 +96,7 @@ int ImageGridWidget::calculateIdealItemWidth(int parentWidth) {
 
 int ImageGridWidget::calculateIdealItemHeight(int parentHeight) {
     int availableHeight = parentHeight - 30;
-    int idealHeight = availableHeight / m_maxColumns;
+    int idealHeight = availableHeight / 2;
 
     idealHeight = std::max(100, idealHeight);
     return idealHeight;
