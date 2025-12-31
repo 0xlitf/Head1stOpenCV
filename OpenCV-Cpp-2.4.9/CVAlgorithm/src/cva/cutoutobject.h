@@ -39,6 +39,7 @@ public:
     cv::Mat getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& resultImg);
 
     cv::Mat drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
+    cv::Mat drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
 };
 
 #endif // CUTOUTOBJECT_H

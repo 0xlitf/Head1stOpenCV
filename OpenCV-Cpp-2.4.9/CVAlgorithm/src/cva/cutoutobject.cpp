@@ -193,7 +193,8 @@ cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results
 
         // 绘制轮廓
         std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
-        cv::drawContours(resultImage, contoursToDraw, 0, color, 3);
+        // cv::drawContours(resultImage, contoursToDraw, 0, color, CV_FILLED);
+        cv::drawContours(resultImage, contoursToDraw, 0, color, 2);
 
         // 绘制最小外接矩形
         cv::Point2f rectPoints[4];
@@ -207,6 +208,31 @@ cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results
         cv::putText(resultImage, areaText, cv::Point(result.boundingRect.x, result.boundingRect.y - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 2);
 
         qDebug() << "物体" << i + 1 << ": 面积=" << result.area << ", 中心点=(" << result.minRect.center.x << "," << result.minRect.center.y << ")";
+    }
+
+    return resultImage;
+}
+
+// 新增：测试多物体检测功能
+cv::Mat CutOutObject::drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage) {
+    cv::Mat resultImage = inputImage;
+
+    if (resultImage.channels() == 1) {
+        cv::cvtColor(resultImage, resultImage, cv::COLOR_GRAY2BGR);
+    }
+
+    if (results.empty()) {
+        qDebug() << "未找到符合面积阈值的物体！";
+        return cv::Mat();
+    }
+
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto &result = results[i];
+        cv::Scalar color(0, 0, 0);
+
+        std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
+        // cv::drawContours(resultImage, contoursToDraw, 0, color, 2);
+        cv::drawContours(resultImage, contoursToDraw, 0, color, CV_FILLED);
     }
 
     return resultImage;

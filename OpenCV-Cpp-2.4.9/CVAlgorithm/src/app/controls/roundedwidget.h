@@ -39,8 +39,8 @@ protected:
 
 private:
     // 外观属性
-    int m_borderRadius = 10;
-    int m_borderWidth = 2;
+    int m_borderRadius = 5;
+    int m_borderWidth = 1;
     QColor m_normalColor = QColor(100, 100, 100);    // 默认灰色边框
     QColor m_hoverColor = QColor(66, 133, 244);      // 默认蓝色悬浮
     QColor m_pressedColor = QColor(49, 105, 198);    // 默认深蓝点击

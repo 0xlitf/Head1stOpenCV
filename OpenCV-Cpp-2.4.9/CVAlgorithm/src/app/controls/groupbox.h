@@ -14,6 +14,9 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+    int m_borderWidth = 1;
+    int m_cornerRadius = 5;
 };
 
 #endif // GROUPBOX_H

@@ -39,8 +39,8 @@ void CutoutObjectPage::createComponents() {
 
     ImageListWidget *imageListWidget = new ImageListWidget();
 
-    GroupBox *gridGroupBox = new GroupBox("算法处理");
-    gridGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    WidgetBase *gridWidget = new WidgetBase();
+    gridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     GroupBox *paramGroupBox = new GroupBox("参数调整");
     paramGroupBox->setFixedHeight(150);
@@ -65,13 +65,13 @@ void CutoutObjectPage::createComponents() {
 
     Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
     Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
-    Layouting::ColumnWithMargin{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(gridGroupBox);
+    Layouting::Column{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(gridWidget);
     auto leftSelectColumn = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
     Layouting::RowWithMargin{
         leftSelectColumn,
         Layouting::Space{5},
-        gridGroupBox,
+        gridWidget,
     }
         .attachTo(this);
 }
@@ -102,6 +102,10 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         m_imageGridWidget->addImage("mask", mask);
         m_imageGridWidget->addImage("objsInfo", objsInfo);
+
+        cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+        cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
+        m_imageGridWidget->addImage("closeContour", closeContour);
 
         std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
 

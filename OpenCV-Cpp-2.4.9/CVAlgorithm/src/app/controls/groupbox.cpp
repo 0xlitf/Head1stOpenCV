@@ -28,8 +28,6 @@ void GroupBox::paintEvent(QPaintEvent *event) {
 
     // 3. 设置绘制属性
     QColor borderColor("#005a9e"); // 蓝色
-    int borderWidth = 2;
-    int cornerRadius = 6;
 
     // 4. 关键：处理遮罩 (Clipping)
     // 我们不希望边框线横穿文字，所以要在绘制边框前，把文字区域从绘制区域中扣除
@@ -43,13 +41,13 @@ void GroupBox::paintEvent(QPaintEvent *event) {
 
     // 5. 绘制蓝色圆角边框
     QPen pen(borderColor);
-    pen.setWidth(borderWidth);
+    pen.setWidth(m_borderWidth);
     painter.setPen(pen);
     painter.setBrush(Qt::NoBrush);
 
     // 由于画笔宽度占空间，rect 需要向内缩半个画笔宽，否则边缘会被切掉
-    QRectF drawRect = QRectF(frameRect).adjusted(borderWidth / 2.0, borderWidth / 2.0, -borderWidth / 2.0, -borderWidth / 2.0);
-    painter.drawRoundedRect(drawRect, cornerRadius, cornerRadius);
+    QRectF drawRect = QRectF(frameRect).adjusted(m_borderWidth / 2.0, m_borderWidth / 2.0, -m_borderWidth / 2.0, -m_borderWidth / 2.0);
+    painter.drawRoundedRect(drawRect, m_cornerRadius, m_cornerRadius);
 
     // 6. 恢复 Clipping，准备画文字
     painter.restore();
