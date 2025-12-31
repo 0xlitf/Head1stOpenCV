@@ -16,31 +16,54 @@ CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
 }
 
 void CutoutObjectPage::createComponents() {
-    GroupBox *fileGroupBox = new GroupBox("单张");
-    fileGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    GroupBox *fileGroupBox = [=](){
+        GroupBox *fileGroupBox = new GroupBox("单张");
+        fileGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-    GroupBox *folderGroupBox = new GroupBox("目录");
-    folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+        SelectFileWidget *selectFileWidget = new SelectFileWidget();
 
-    SelectFileWidget *selectFileWidget = new SelectFileWidget();
+        RoundedWidget* roundWidget = new RoundedWidget;
+        roundWidget->setFixedSize(300, 100);
+        ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
+        Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
 
-    RoundedWidget* roundWidget = new RoundedWidget;
-    roundWidget->setFixedSize(300, 100);
-    ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
-    Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
+        connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
+            imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
+            m_imageGridWidget->clearAllImages();
+            this->runCutoutAlgo(imageFilePath);
+        });
+        connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
+            qDebug() << "selectFileWidget->getSelectFile()" << selectFileWidget->getSelectFile();
+            m_imageGridWidget->clearAllImages();
+            this->runCutoutAlgo(selectFileWidget->getSelectFile());
+        });
 
-    connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
-        qDebug() << "selectFileWidget->getSelectFile()" << selectFileWidget->getSelectFile();
-        m_imageGridWidget->clearAllImages();
-        this->runCutoutAlgo(selectFileWidget->getSelectFile());
-    });
+        Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
 
-    SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
+        return fileGroupBox;
+    }();
 
-    ImageListWidget *imageListWidget = new ImageListWidget();
+    GroupBox *folderGroupBox = [=](){
+        GroupBox *folderGroupBox = new GroupBox("目录");
+        folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    WidgetBase *gridWidget = new WidgetBase();
-    gridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
+        ImageListWidget *imageListWidget = new ImageListWidget();
+
+        connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) { imageListWidget->loadImagesFromFolder(folderPath); });
+        connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString &imageFilePath) {
+            qDebug() << "imageSelected:" << imageFilePath;
+            m_imageGridWidget->clearAllImages();
+            this->runCutoutAlgo(imageFilePath);
+        });
+
+        Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
+
+        return folderGroupBox;
+    }();
+
+    WidgetBase *rightPart = new WidgetBase();
+    rightPart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     GroupBox *paramGroupBox = new GroupBox("参数调整");
     paramGroupBox->setFixedHeight(150);
@@ -51,27 +74,13 @@ void CutoutObjectPage::createComponents() {
     GroupBox *resultGroupBox = new GroupBox("处理结果");
     Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(resultGroupBox);
 
-    connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
-        imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
-        m_imageGridWidget->clearAllImages();
-        this->runCutoutAlgo(imageFilePath);
-    });
-    connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) { imageListWidget->loadImagesFromFolder(folderPath); });
-    connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString &imageFilePath) {
-        qDebug() << "imageSelected:" << imageFilePath;
-        m_imageGridWidget->clearAllImages();
-        this->runCutoutAlgo(imageFilePath);
-    });
-
-    Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
-    Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
-    Layouting::Column{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(gridWidget);
-    auto leftSelectColumn = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
+    Layouting::Column{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(rightPart);
+    auto leftPart = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
     Layouting::RowWithMargin{
-        leftSelectColumn,
+        leftPart,
         Layouting::Space{5},
-        gridWidget,
+        rightPart,
     }
         .attachTo(this);
 }
