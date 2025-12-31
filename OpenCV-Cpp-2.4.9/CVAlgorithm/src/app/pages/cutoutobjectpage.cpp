@@ -15,6 +15,7 @@
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
+    this->createConnections();
 }
 
 void CutoutObjectPage::createComponents() {
@@ -101,6 +102,9 @@ void CutoutObjectPage::createComponents() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
         paramGroupBox->setFixedHeight(150);
 
+        int m_relativeThresholdValue = 30;
+        int m_blueThresholdValue = 50;
+
         auto colorThresLayout = [=](){
             QLabel* colorLabel = new QLabel("相对阈值");
             colorLabel->setAlignment(Qt::AlignCenter);
@@ -115,16 +119,20 @@ void CutoutObjectPage::createComponents() {
             colorSlider->setTickPosition(QSlider::NoTicks);
             colorSlider->setTickInterval(50);
 
-            QSpinBox *colorSpinBox = new QSpinBox(this);
+            colorSpinBox = new QSpinBox();
             colorSpinBox->setRange(0, 255);
             colorSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [colorSpinBox](int value) {
+            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [=](int value) {
                 colorSpinBox->setValue(value);
             });
-            connect(colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [colorSlider](int value) {
+            connect(colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [=](int value) {
                 colorSlider->setValue(value);
+
+                emit this->paramChanged();
             });
+
+            colorSpinBox->setValue(m_relativeThresholdValue);
 
             return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, colorSpinBox, Layouting::Stretch{}};
         }();
@@ -143,16 +151,20 @@ void CutoutObjectPage::createComponents() {
             blueSlider->setTickPosition(QSlider::NoTicks);
             blueSlider->setTickInterval(50);
 
-            QSpinBox *blueSpinBox = new QSpinBox(this);
+            blueSpinBox = new QSpinBox(this);
             blueSpinBox->setRange(0, 255);
             blueSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [blueSpinBox](int value) {
+            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [=](int value) {
                 blueSpinBox->setValue(value);
             });
-            connect(blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [blueSlider](int value) {
+            connect(blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [=](int value) {
                 blueSlider->setValue(value);
+
+                emit this->paramChanged();
             });
+
+            blueSpinBox->setValue(m_blueThresholdValue);
 
             return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, blueSpinBox, Layouting::Stretch{}};
         }();
@@ -179,6 +191,12 @@ void CutoutObjectPage::createComponents() {
         .attachTo(this);
 }
 
+void CutoutObjectPage::createConnections() {
+    connect(this, &CutoutObjectPage::paramChanged, this, [=](){
+        qDebug() << "paramChanged" << colorSpinBox->value() << blueSpinBox->value();
+    });
+}
+
 void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
     cv::Mat imageMat = cv::imread(filePath.toStdString());
     if (!imageMat.empty()) {
@@ -193,7 +211,7 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;
-        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, 30, 50);
+        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, colorSpinBox->value(), blueSpinBox->value());
 
         m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
         m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
