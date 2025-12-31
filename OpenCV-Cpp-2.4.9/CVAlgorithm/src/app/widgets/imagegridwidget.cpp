@@ -24,7 +24,12 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
 
 void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     if (m_imageItems.contains(name)) {
-        removeImage(name);
+        // removeImage(name);
+
+        qDebug() << "m_imageItems.contains" << name;
+        ImageGridItem* item = m_imageItems[name];
+        item->setImageMat(image);
+        return;
     }
 
     ImageGridItem *newItem = new ImageGridItem(name, image, m_containerWidget);

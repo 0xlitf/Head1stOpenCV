@@ -15,6 +15,7 @@ class ImageGridItem : public QWidget
 public:
     explicit ImageGridItem(const QString& imageName, const cv::Mat& imageData, QWidget *parent = nullptr);
     QString getImageName() const { return m_imageName; }
+    void setImageMat(const cv::Mat& imageData);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

@@ -23,6 +23,8 @@ signals:
 private:
     class ImageGridWidget *m_imageGridWidget = nullptr;
 
+    QString m_currentProcessImageFile{};
+
     QSpinBox *colorSpinBox = nullptr;
     QSpinBox *blueSpinBox = nullptr;
 };

@@ -19,6 +19,12 @@ ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData,
     setupUI();
 }
 
+void ImageGridItem::setImageMat(const cv::Mat &imageData) {
+    m_imageData = imageData.clone();
+    m_originalPixmap = ImageUtils::cvMatToQPixmap(imageData);
+    this->updatePixmap();
+}
+
 void ImageGridItem::setupUI() {
     if (!m_imageData.empty()) {
         m_originalPixmap = ImageUtils::cvMatToQPixmap(m_imageData);

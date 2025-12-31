@@ -32,11 +32,17 @@ void CutoutObjectPage::createComponents() {
 
         connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
             imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
+
+            m_currentProcessImageFile = imageFilePath;
+
             m_imageGridWidget->clearAllImages();
             this->runCutoutAlgo(imageFilePath);
         });
         connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
             qDebug() << "selectFileWidget->getSelectFile()" << selectFileWidget->getSelectFile();
+
+            m_currentProcessImageFile = selectFileWidget->getSelectFile();
+
             m_imageGridWidget->clearAllImages();
             this->runCutoutAlgo(selectFileWidget->getSelectFile());
         });
@@ -68,6 +74,9 @@ void CutoutObjectPage::createComponents() {
         });
         connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString &imageFilePath) {
             qDebug() << "imageSelected:" << imageFilePath;
+
+            m_currentProcessImageFile = imageFilePath;
+
             m_imageGridWidget->clearAllImages();
             this->runCutoutAlgo(imageFilePath);
         });
@@ -102,8 +111,8 @@ void CutoutObjectPage::createComponents() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
         paramGroupBox->setFixedHeight(150);
 
-        int m_relativeThresholdValue = 30;
-        int m_blueThresholdValue = 50;
+        int relativeThresholdValue = 30;
+        int blueThresholdValue = 50;
 
         auto colorThresLayout = [=](){
             QLabel* colorLabel = new QLabel("相对阈值");
@@ -132,7 +141,7 @@ void CutoutObjectPage::createComponents() {
                 emit this->paramChanged();
             });
 
-            colorSpinBox->setValue(m_relativeThresholdValue);
+            colorSpinBox->setValue(relativeThresholdValue);
 
             return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, colorSpinBox, Layouting::Stretch{}};
         }();
@@ -164,7 +173,7 @@ void CutoutObjectPage::createComponents() {
                 emit this->paramChanged();
             });
 
-            blueSpinBox->setValue(m_blueThresholdValue);
+            blueSpinBox->setValue(blueThresholdValue);
 
             return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, blueSpinBox, Layouting::Stretch{}};
         }();
@@ -193,7 +202,10 @@ void CutoutObjectPage::createComponents() {
 
 void CutoutObjectPage::createConnections() {
     connect(this, &CutoutObjectPage::paramChanged, this, [=](){
-        qDebug() << "paramChanged" << colorSpinBox->value() << blueSpinBox->value();
+        qDebug() << "paramChanged" << colorSpinBox->value() << blueSpinBox->value() << m_currentProcessImageFile;
+
+        // m_imageGridWidget->clearAllImages();
+        this->runCutoutAlgo(m_currentProcessImageFile);
     });
 }
 
