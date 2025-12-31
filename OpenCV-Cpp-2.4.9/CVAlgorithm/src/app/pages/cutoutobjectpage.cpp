@@ -9,7 +9,9 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
+#include <QSpinBox>
 #include "controls/roundedwidget.h"
+#include "utils/fileutils.h"
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
@@ -50,14 +52,44 @@ void CutoutObjectPage::createComponents() {
         SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
         ImageListWidget *imageListWidget = new ImageListWidget();
 
-        connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) { imageListWidget->loadImagesFromFolder(folderPath); });
+        auto batchProcessButton = new NormalButton("批量处理", this);
+        batchProcessButton->setFixedWidth(100);
+        batchProcessButton->setEnabled(false);
+
+        connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) {
+            QFileInfo info(folderPath);
+            if (!info.exists()) {
+                batchProcessButton->setEnabled(false);
+            } else {
+                imageListWidget->loadImagesFromFolder(folderPath);
+                batchProcessButton->setEnabled(true);
+            }
+        });
         connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString &imageFilePath) {
             qDebug() << "imageSelected:" << imageFilePath;
             m_imageGridWidget->clearAllImages();
             this->runCutoutAlgo(imageFilePath);
         });
 
-        Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget}.attachTo(folderGroupBox);
+        connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
+            QString folderPath = selectFolderWidget->getSelectFolder();
+            QDir dir(folderPath);
+            QString absolutePath = dir.absolutePath();
+
+            QString processFolder = absolutePath + QDir::separator() + "_result";
+
+            auto filesList = FileUtils::findAllImageFiles(folderPath, false);
+
+            qDebug() << "fileList.size" << filesList.size();
+
+            for (int i = 0; i < filesList.size(); ++i) {
+
+            }
+
+            FileUtils::showInFolder(processFolder);
+        });
+
+        Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget, batchProcessButton}.attachTo(folderGroupBox);
 
         return folderGroupBox;
     }();
@@ -65,8 +97,70 @@ void CutoutObjectPage::createComponents() {
     WidgetBase *rightPart = new WidgetBase();
     rightPart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    GroupBox *paramGroupBox = new GroupBox("参数调整");
-    paramGroupBox->setFixedHeight(150);
+    GroupBox *paramGroupBox = [=](){
+        GroupBox *paramGroupBox = new GroupBox("参数调整");
+        paramGroupBox->setFixedHeight(150);
+
+        auto colorThresLayout = [=](){
+            QLabel* colorLabel = new QLabel("相对阈值");
+            colorLabel->setAlignment(Qt::AlignCenter);
+
+            QSlider *colorSlider = new QSlider(Qt::Horizontal, this);
+            colorSlider->setFixedSize(QSize(200, 25));
+
+            colorSlider->setSingleStep(1);
+            colorSlider->setPageStep(10);
+            colorSlider->setRange(0, 255);
+
+            colorSlider->setTickPosition(QSlider::NoTicks);
+            colorSlider->setTickInterval(50);
+
+            QSpinBox *colorSpinBox = new QSpinBox(this);
+            colorSpinBox->setRange(0, 255);
+            colorSpinBox->setFixedSize(QSize(50, 30));
+
+            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [colorSpinBox](int value) {
+                colorSpinBox->setValue(value);
+            });
+            connect(colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [colorSlider](int value) {
+                colorSlider->setValue(value);
+            });
+
+            return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, colorSpinBox, Layouting::Stretch{}};
+        }();
+
+        auto blueThresLayout = [=](){
+            QLabel* blueLabel = new QLabel("蓝色阈值");
+            blueLabel->setAlignment(Qt::AlignCenter);
+
+            QSlider *blueSlider = new QSlider(Qt::Horizontal, this);
+            blueSlider->setFixedSize(QSize(200, 25));
+
+            blueSlider->setSingleStep(1);
+            blueSlider->setPageStep(10);
+            blueSlider->setRange(0, 255);
+
+            blueSlider->setTickPosition(QSlider::NoTicks);
+            blueSlider->setTickInterval(50);
+
+            QSpinBox *blueSpinBox = new QSpinBox(this);
+            blueSpinBox->setRange(0, 255);
+            blueSpinBox->setFixedSize(QSize(50, 30));
+
+            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [blueSpinBox](int value) {
+                blueSpinBox->setValue(value);
+            });
+            connect(blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [blueSlider](int value) {
+                blueSlider->setValue(value);
+            });
+
+            return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, blueSpinBox, Layouting::Stretch{}};
+        }();
+
+        Layouting::ColumnWithMargin{colorThresLayout, blueThresLayout}.attachTo(paramGroupBox);
+
+        return paramGroupBox;
+    }();
 
     m_imageGridWidget = new ImageGridWidget;
     m_imageGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

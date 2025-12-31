@@ -10,9 +10,13 @@ signals:
 
 public:
     explicit SelectFolderWidget(QWidget *parent = nullptr);
+    QString getSelectFolder() {
+        return m_textEdit->toPlainText();
+    }
 
 private:
     void createComponents();
+    TextEdit* m_textEdit = nullptr;
 };
 
 #endif // SELECTFOLDERWIDGET_H
