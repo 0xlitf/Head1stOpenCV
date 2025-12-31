@@ -86,14 +86,78 @@ void CutoutObjectPage::createComponents() {
             QDir dir(folderPath);
             QString absolutePath = dir.absolutePath();
 
-            QString processFolder = absolutePath + QDir::separator() + "_result";
+            QString processFolder = absolutePath + "_cutout";
+            QString templateFolder = processFolder + "_template";
+            QString binaryFolder = processFolder + "_binary";
 
-            auto filesList = FileUtils::findAllImageFiles(folderPath, false);
+            auto filesList = FileUtils::findAllImageFiles(folderPath, true);
 
-            qDebug() << "fileList.size" << filesList.size();
+            qDebug() << "fileList.size" << filesList;
+
+            CutOutObject cutout;
 
             for (int i = 0; i < filesList.size(); ++i) {
+                QString filePath = filesList[i];
+                QFileInfo fileInfo(filePath);
+                QString fileName = fileInfo.fileName();
 
+                cv::Mat imageMat = cv::imread(filePath.toStdString());
+                if (!imageMat.empty()) {
+                    // m_imageGridWidget->addImage("原图", imageMat);
+
+                    double minArea = 1000.0;
+                    double maxArea = 100000.0;
+
+                    cv::Mat eraseBlueBackground;
+                    cv::Mat singleChannelZeroImage;
+                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, colorSpinBox->value(), blueSpinBox->value());
+
+                    // m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
+                    // m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
+
+                    std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+
+                    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
+                    cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);
+
+                    // m_imageGridWidget->addImage("mask", mask);
+                    // m_imageGridWidget->addImage("objsInfo", objsInfo);
+
+                    cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+                    cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
+                    // m_imageGridWidget->addImage("closeContour", closeContour);
+
+                    QString binarySavePath = filePath;
+                    binarySavePath.replace(folderPath, binaryFolder);
+                    qDebug() << "binarySavePath" << binarySavePath;
+
+                    QDir binaryDir(QFileInfo(binarySavePath).absolutePath());
+                    if (!binaryDir.exists()) {
+                        binaryDir.mkpath(".");
+                    }
+
+                    cv::imwrite(binarySavePath.toStdString(), closeContour);
+
+                    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
+
+                    int i = 0;
+                    for (auto &mat : boundings) {
+                        // m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
+                        QString templateSavePath = filePath;
+                        templateSavePath.replace(folderPath, templateFolder);
+                        qDebug() << "templateSavePath" << templateSavePath;
+
+                        QDir templateDir(QFileInfo(templateSavePath).absolutePath());
+                        if (!templateDir.exists()) {
+                            templateDir.mkpath(".");
+                        }
+
+                        cv::imwrite(templateSavePath.toStdString(), mat);
+                        ++i;
+
+                        break;
+                    }
+                }
             }
 
             FileUtils::showInFolder(processFolder);
@@ -240,12 +304,12 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
         cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
         m_imageGridWidget->addImage("closeContour", closeContour);
 
-        std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
+        // std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
 
-        int i = 0;
-        for (auto &mat : boundings) {
-            m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
-            ++i;
-        }
+        // int i = 0;
+        // for (auto &mat : boundings) {
+        //     m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
+        //     ++i;
+        // }
     }
 }
