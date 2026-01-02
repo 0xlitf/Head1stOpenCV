@@ -129,12 +129,7 @@ void CutoutObjectPage::createComponents() {
 
                     QString binarySavePath = filePath;
                     binarySavePath.replace(folderPath, binaryFolder);
-                    qDebug() << "binarySavePath" << binarySavePath;
-
-                    QDir binaryDir(QFileInfo(binarySavePath).absolutePath());
-                    if (!binaryDir.exists()) {
-                        binaryDir.mkpath(".");
-                    }
+                    bool ok = FileUtils::makeFilePath(binarySavePath);
 
                     cv::imwrite(binarySavePath.toStdString(), closeContour);
 
@@ -145,12 +140,7 @@ void CutoutObjectPage::createComponents() {
                         // m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
                         QString templateSavePath = filePath;
                         templateSavePath.replace(folderPath, templateFolder);
-                        qDebug() << "templateSavePath" << templateSavePath;
-
-                        QDir templateDir(QFileInfo(templateSavePath).absolutePath());
-                        if (!templateDir.exists()) {
-                            templateDir.mkpath(".");
-                        }
+                        bool ok = FileUtils::makeFilePath(templateSavePath);
 
                         cv::imwrite(templateSavePath.toStdString(), mat);
                         ++i;

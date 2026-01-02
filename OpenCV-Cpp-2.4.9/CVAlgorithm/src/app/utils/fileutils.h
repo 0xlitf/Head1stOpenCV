@@ -38,6 +38,9 @@ public:
 
     static void showInFolder(const QString &filePath);
 
+    static bool makeFilePath(const QString &path);
+
+    static bool makeFolderPath(const QString &path);
 };
 
 #endif // FILEUTILS_H

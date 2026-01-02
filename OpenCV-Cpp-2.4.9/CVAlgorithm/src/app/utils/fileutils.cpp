@@ -199,3 +199,21 @@ void FileUtils::showInFolder(const QString &filePath) {
     QDesktopServices::openUrl(QUrl::fromLocalFile(info.absolutePath()));
 #endif
 }
+
+bool FileUtils::makeFilePath(const QString &path) {
+    QFileInfo fileInfo(path);
+
+    QDir dir(fileInfo.absolutePath());
+    if (!dir.exists()) {
+        return dir.mkpath(".");
+    }
+    return false;
+}
+
+bool FileUtils::makeFolderPath(const QString &path) {
+    QDir dir(path);
+    if (!dir.exists()) {
+        return dir.mkpath(".");
+    }
+    return false;
+}
