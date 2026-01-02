@@ -61,12 +61,16 @@ void ImageListWidget::loadImagesFromFolder(const QString &folderPath) {
     // QDir::Readable, QDir::Name);
 
     QStringList imageFilesList = FileUtils::findAllImageFiles(folderPath);
+    qDebug() << "imageFilesList size:" << imageFilesList.size();
 
     if (imageFilesList.isEmpty()) {
         QMessageBox::information(this, "提示", "该文件夹下未找到支持的图片文件。");
         return;
     }
 
+    m_listWidget->setUpdatesEnabled(false);
+
+    int i = 0;
     for (auto &file : imageFilesList) {
         QFileInfo fileInfo(file);
         ImageListItem *itemWidget = new ImageListItem(fileInfo);
@@ -78,8 +82,12 @@ void ImageListWidget::loadImagesFromFolder(const QString &folderPath) {
 
         listItem->setData(Qt::UserRole, QVariant(fileInfo.absoluteFilePath()));
 
+        qDebug() << "new itemWidget" << i << ", " << fileInfo.fileName();
         m_listWidget->setItemWidget(listItem, itemWidget);
+
+        ++i;
     }
+    m_listWidget->setUpdatesEnabled(true);
 }
 
 void ImageListWidget::onListItemSelectionChanged() {
