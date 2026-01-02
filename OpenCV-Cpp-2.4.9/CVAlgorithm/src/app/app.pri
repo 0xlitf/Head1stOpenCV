@@ -6,14 +6,13 @@ SOURCES += \
     $$PWD/appmainwindow.cpp \
     $$PWD/centralwidget.cpp \
     $$PWD/controls/checkbox.cpp \
-    $$PWD/controls/clickablewidget.cpp \
     $$PWD/controls/groupbox.cpp \
     $$PWD/controls/layoutbuilder.cpp \
     $$PWD/controls/lineedit.cpp \
     $$PWD/controls/listwidget.cpp \
     $$PWD/controls/normalbutton.cpp \
     $$PWD/controls/pagetabbutton.cpp \
-    $$PWD/controls/roundedwidget.cpp \
+    $$PWD/controls/clickablewidget.cpp \
     $$PWD/controls/textedit.cpp \
     $$PWD/controls/widgetbase.cpp \
     $$PWD/widgets/imagegriditem.cpp \
@@ -35,7 +34,6 @@ HEADERS += \
     $$PWD/appmainwindow.h \
     $$PWD/centralwidget.h \
     $$PWD/controls/checkbox.h \
-    $$PWD/controls/clickablewidget.h \
     $$PWD/controls/controls.h \
     $$PWD/controls/groupbox.h \
     $$PWD/controls/layoutbuilder.h \
@@ -43,7 +41,7 @@ HEADERS += \
     $$PWD/controls/listwidget.h \
     $$PWD/controls/normalbutton.h \
     $$PWD/controls/pagetabbutton.h \
-    $$PWD/controls/roundedwidget.h \
+    $$PWD/controls/clickablewidget.h \
     $$PWD/controls/textedit.h \
     $$PWD/controls/widgetbase.h \
     $$PWD/widgets/imagegriditem.h \

@@ -1,6 +1,6 @@
 ﻿#include "cutoutobjectpage.h"
 #include "controls/groupbox.h"
-#include "controls/roundedwidget.h"
+#include "controls/clickablewidget.h"
 #include "cutoutobject.h"
 #include "imageutils.h"
 #include "utils/fileutils.h"
@@ -29,7 +29,7 @@ void CutoutObjectPage::createComponents() {
 
         m_selectFileWidget = new SelectFileWidget();
 
-        RoundedWidget *roundWidget = new RoundedWidget;
+        ClickableWidget *roundWidget = new ClickableWidget;
         roundWidget->setFixedSize(300, 100);
         ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
         Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
@@ -42,7 +42,7 @@ void CutoutObjectPage::createComponents() {
             m_imageGridWidget->clearAllImages();
             this->runCutoutAlgo(imageFilePath);
         });
-        connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
+        connect(roundWidget, &ClickableWidget::clicked, this, [=]() {
             qDebug() << "selectFileWidget->getSelectFile()" << m_selectFileWidget->getSelectFile();
 
             m_currentProcessImageFile = m_selectFileWidget->getSelectFile();
