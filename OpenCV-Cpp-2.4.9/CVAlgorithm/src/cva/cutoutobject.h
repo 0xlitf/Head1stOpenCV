@@ -36,10 +36,12 @@ public:
     std::vector<cv::Mat> getMultipleObjectsInBoundingRect(std::vector<ObjectDetectionResult> results);
 
     // 新增：获取多个物体的原图尺寸掩码
-    cv::Mat getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& resultImg);
+    cv::Mat getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& inputMat);
 
     cv::Mat drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
     cv::Mat drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
+
+    cv::Mat getObjectUnderMask(const cv::Mat& originMat, const cv::Mat& mask);
 };
 
 #endif // CUTOUTOBJECT_H

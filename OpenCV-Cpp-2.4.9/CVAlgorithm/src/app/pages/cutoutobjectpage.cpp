@@ -93,9 +93,11 @@ void CutoutObjectPage::createComponents() {
             QString processFolder = absolutePath + "_cutout";
             QString templateFolder = processFolder + "_template";
             QString binaryFolder = processFolder + "_binary";
+            QString colorObjectFolder = processFolder + "_colorObject";
 
             FileUtils::removeFolder(templateFolder);
             FileUtils::removeFolder(binaryFolder);
+            FileUtils::removeFolder(colorObjectFolder);
 
             auto filesList = FileUtils::findAllImageFiles(folderPath, true);
 
@@ -138,9 +140,17 @@ void CutoutObjectPage::createComponents() {
 
                     QString binarySavePath = filePath;
                     binarySavePath.replace(folderPath, binaryFolder);
-                    bool ok = FileUtils::makeFilePath(binarySavePath);
-
+                    FileUtils::makeFilePath(binarySavePath);
                     cv::imwrite(binarySavePath.toStdString(), closeContour);
+
+
+                    cv::Mat colorObject = cutout.getObjectUnderMask(eraseBlueBackground, closeContour);
+
+                    QString colorObjectSavePath = filePath;
+                    colorObjectSavePath.replace(folderPath, colorObjectFolder);
+                    FileUtils::makeFilePath(colorObjectSavePath);
+                    cv::imwrite(colorObjectSavePath.toStdString(), colorObject);
+
 
                     std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
 

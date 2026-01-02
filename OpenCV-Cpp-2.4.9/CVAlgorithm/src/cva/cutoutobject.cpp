@@ -151,7 +151,8 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(std::vector<
 }
 
 // 新增：获取多个物体的原图尺寸掩码
-cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat &resultImg) {
+cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat &inputMat) {
+    cv::Mat resultImg = inputMat.clone();
     for (const auto &result : results) {
         if (!result.contour.empty()) {
             std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
@@ -237,4 +238,27 @@ cv::Mat CutOutObject::drawObjectsContour(std::vector<ObjectDetectionResult> resu
     }
 
     return resultImage;
+}
+
+cv::Mat CutOutObject::getObjectUnderMask(const cv::Mat& originMatInput, const cv::Mat& maskInput) {
+    cv::Mat originMat = originMatInput.clone();
+    cv::Mat mask = maskInput.clone();
+
+    int rows = originMat.rows;
+    int cols = originMat.cols;
+
+    for (int i = 0; i < rows; ++i) {
+        // 获取第i行的行首指针
+        cv::Vec3b *maskPtr = mask.ptr<cv::Vec3b>(i);
+        cv::Vec3b *ptr = originMat.ptr<cv::Vec3b>(i);
+        for (int j = 0; j < cols; ++j) {
+            cv::Vec3b &maskPixel = maskPtr[j];
+            cv::Vec3b &pixel = ptr[j];
+
+            if (maskPixel == cv::Vec3b(255, 255, 255)) {
+                pixel = cv::Vec3b(255, 255, 255);
+            }
+        }
+    }
+    return originMat;
 }
