@@ -32,7 +32,7 @@ public:
     void onListItemSelectionChanged();
 
 private:
-    QLineEdit* m_pathEdit;
+    LineEdit* m_searchLineEdit = nullptr;
     QPushButton* m_browseButton;
     ListWidget* m_listWidget;
 };

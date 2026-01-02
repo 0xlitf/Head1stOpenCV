@@ -3,7 +3,7 @@
 #include <utils/fileutils.h>
 
 ImageListWidget::ImageListWidget(QWidget *parent)
-    : QWidget(parent), m_pathEdit(new QLineEdit), m_browseButton(new QPushButton("浏览文件夹")), m_listWidget(new ListWidget)
+    : QWidget(parent), m_browseButton(new QPushButton("浏览文件夹")), m_listWidget(new ListWidget)
 {
     m_listWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_listWidget->setFrameShape(QFrame::NoFrame);
@@ -22,7 +22,27 @@ ImageListWidget::ImageListWidget(QWidget *parent)
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    Layouting::Column{m_listWidget}.attachTo(this);
+    m_searchLineEdit = new LineEdit;
+    m_searchLineEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    connect(m_searchLineEdit, &LineEdit::textChanged, this, [=](const QString &searchText){
+        QString filterText = searchText.trimmed();
+
+        // 遍历列表中的所有项
+        for (int i = 0; i < m_listWidget->count(); ++i) {
+            QListWidgetItem *item = m_listWidget->item(i);
+            QString itemText = item->text(); // 获取项的文本
+
+            // 判断：如果搜索框为空或项文本包含搜索文本，则显示该项；否则隐藏
+            // Qt::CaseInsensitive 表示不区分大小写
+            if (filterText.isEmpty() || itemText.contains(filterText, Qt::CaseInsensitive)) {
+                item->setHidden(false); // 显示项
+            } else {
+                item->setHidden(true);  // 隐藏项
+            }
+        }
+    });
+
+    Layouting::Column{m_searchLineEdit, m_listWidget}.attachTo(this);
 
     connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=](){
         qDebug() << "itemSelectionChanged:";
@@ -63,6 +83,8 @@ void ImageListWidget::loadImagesFromFolder(const QString& folderPath)
         // 创建QListWidgetItem并设置大小
         QListWidgetItem* listItem = new QListWidgetItem(m_listWidget);
         listItem->setSizeHint(itemWidget->sizeHint()); // 关键：设置项的大小以适应自定义控件
+
+        listItem->setText(fileInfo.fileName());
 
         listItem->setData(Qt::UserRole, QVariant(fileInfo.absoluteFilePath()));
 
