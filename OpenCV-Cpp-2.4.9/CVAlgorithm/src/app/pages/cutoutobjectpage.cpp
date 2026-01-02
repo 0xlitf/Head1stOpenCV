@@ -1,7 +1,9 @@
 ﻿#include "cutoutobjectpage.h"
 #include "controls/groupbox.h"
+#include "controls/roundedwidget.h"
 #include "cutoutobject.h"
 #include "imageutils.h"
+#include "utils/fileutils.h"
 #include "widgets/imagegridwidget.h"
 #include "widgets/imagelistwidget.h"
 #include "widgets/selectfilewidget.h"
@@ -10,27 +12,28 @@
 #include <QFile>
 #include <QLabel>
 #include <QSpinBox>
-#include "controls/roundedwidget.h"
-#include "utils/fileutils.h"
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
     this->createConnections();
+    this->loadConfig();
 }
 
+CutoutObjectPage::~CutoutObjectPage() { this->saveConfig(); }
+
 void CutoutObjectPage::createComponents() {
-    GroupBox *fileGroupBox = [=](){
+    GroupBox *fileGroupBox = [=]() {
         GroupBox *fileGroupBox = new GroupBox("单张");
         fileGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-        SelectFileWidget *selectFileWidget = new SelectFileWidget();
+        m_selectFileWidget = new SelectFileWidget();
 
-        RoundedWidget* roundWidget = new RoundedWidget;
+        RoundedWidget *roundWidget = new RoundedWidget;
         roundWidget->setFixedSize(300, 100);
         ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
         Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
 
-        connect(selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
+        connect(m_selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
             imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
 
             m_currentProcessImageFile = imageFilePath;
@@ -39,31 +42,31 @@ void CutoutObjectPage::createComponents() {
             this->runCutoutAlgo(imageFilePath);
         });
         connect(roundWidget, &RoundedWidget::clicked, this, [=]() {
-            qDebug() << "selectFileWidget->getSelectFile()" << selectFileWidget->getSelectFile();
+            qDebug() << "selectFileWidget->getSelectFile()" << m_selectFileWidget->getSelectFile();
 
-            m_currentProcessImageFile = selectFileWidget->getSelectFile();
+            m_currentProcessImageFile = m_selectFileWidget->getSelectFile();
 
             m_imageGridWidget->clearAllImages();
-            this->runCutoutAlgo(selectFileWidget->getSelectFile());
+            this->runCutoutAlgo(m_selectFileWidget->getSelectFile());
         });
 
-        Layouting::ColumnWithMargin{selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
+        Layouting::ColumnWithMargin{m_selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
 
         return fileGroupBox;
     }();
 
-    GroupBox *folderGroupBox = [=](){
+    GroupBox *folderGroupBox = [=]() {
         GroupBox *folderGroupBox = new GroupBox("目录");
         folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        SelectFolderWidget *selectFolderWidget = new SelectFolderWidget();
+        m_selectFolderWidget = new SelectFolderWidget();
         ImageListWidget *imageListWidget = new ImageListWidget();
 
         auto batchProcessButton = new NormalButton("批量处理", this);
         batchProcessButton->setFixedWidth(100);
         batchProcessButton->setEnabled(false);
 
-        connect(selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) {
+        connect(m_selectFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) {
             QFileInfo info(folderPath);
             if (!info.exists()) {
                 batchProcessButton->setEnabled(false);
@@ -82,7 +85,7 @@ void CutoutObjectPage::createComponents() {
         });
 
         connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
-            QString folderPath = selectFolderWidget->getSelectFolder();
+            QString folderPath = m_selectFolderWidget->getSelectFolder();
             QDir dir(folderPath);
             QString absolutePath = dir.absolutePath();
 
@@ -112,8 +115,10 @@ void CutoutObjectPage::createComponents() {
                     cv::Mat singleChannelZeroImage;
                     std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, colorSpinBox->value(), blueSpinBox->value());
 
-                    // m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
-                    // m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
+                    // m_imageGridWidget->addImage("eraseBlueBackground",
+                    // eraseBlueBackground);
+                    // m_imageGridWidget->addImage("singleChannelZeroImage",
+                    // singleChannelZeroImage);
 
                     std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
 
@@ -153,7 +158,7 @@ void CutoutObjectPage::createComponents() {
             FileUtils::showInFolder(processFolder);
         });
 
-        Layouting::ColumnWithMargin{selectFolderWidget, Layouting::Space{5}, imageListWidget, batchProcessButton}.attachTo(folderGroupBox);
+        Layouting::ColumnWithMargin{m_selectFolderWidget, Layouting::Space{5}, imageListWidget, batchProcessButton}.attachTo(folderGroupBox);
 
         return folderGroupBox;
     }();
@@ -161,15 +166,15 @@ void CutoutObjectPage::createComponents() {
     WidgetBase *rightPart = new WidgetBase();
     rightPart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    GroupBox *paramGroupBox = [=](){
+    GroupBox *paramGroupBox = [=]() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
         paramGroupBox->setFixedHeight(150);
 
         int relativeThresholdValue = 30;
         int blueThresholdValue = 50;
 
-        auto colorThresLayout = [=](){
-            QLabel* colorLabel = new QLabel("相对阈值");
+        auto colorThresLayout = [=]() {
+            QLabel *colorLabel = new QLabel("相对阈值");
             colorLabel->setAlignment(Qt::AlignCenter);
 
             QSlider *colorSlider = new QSlider(Qt::Horizontal, this);
@@ -186,9 +191,7 @@ void CutoutObjectPage::createComponents() {
             colorSpinBox->setRange(0, 255);
             colorSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [=](int value) {
-                colorSpinBox->setValue(value);
-            });
+            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [=](int value) { colorSpinBox->setValue(value); });
             connect(colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [=](int value) {
                 colorSlider->setValue(value);
 
@@ -200,8 +203,8 @@ void CutoutObjectPage::createComponents() {
             return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, colorSpinBox, Layouting::Stretch{}};
         }();
 
-        auto blueThresLayout = [=](){
-            QLabel* blueLabel = new QLabel("蓝色阈值");
+        auto blueThresLayout = [=]() {
+            QLabel *blueLabel = new QLabel("蓝色阈值");
             blueLabel->setAlignment(Qt::AlignCenter);
 
             QSlider *blueSlider = new QSlider(Qt::Horizontal, this);
@@ -218,9 +221,7 @@ void CutoutObjectPage::createComponents() {
             blueSpinBox->setRange(0, 255);
             blueSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [=](int value) {
-                blueSpinBox->setValue(value);
-            });
+            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [=](int value) { blueSpinBox->setValue(value); });
             connect(blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [=](int value) {
                 blueSlider->setValue(value);
 
@@ -255,7 +256,7 @@ void CutoutObjectPage::createComponents() {
 }
 
 void CutoutObjectPage::createConnections() {
-    connect(this, &CutoutObjectPage::paramChanged, this, [=](){
+    connect(this, &CutoutObjectPage::paramChanged, this, [=]() {
         qDebug() << "paramChanged" << colorSpinBox->value() << blueSpinBox->value() << m_currentProcessImageFile;
 
         // m_imageGridWidget->clearAllImages();
@@ -294,7 +295,8 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
         cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
         m_imageGridWidget->addImage("closeContour", closeContour);
 
-        // std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
+        // std::vector<cv::Mat> boundings =
+        // cutout.getMultipleObjectsInBoundingRect(results);
 
         // int i = 0;
         // for (auto &mat : boundings) {
@@ -302,4 +304,48 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
         //     ++i;
         // }
     }
+}
+
+void CutoutObjectPage::loadConfig() {
+    QString appDir = QCoreApplication::applicationDirPath();
+    QString configDir = appDir + "/config";
+
+    // 创建配置目录（如果不存在）
+    QDir dir(configDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    m_configPath = configDir + "/CutoutObjectPage.ini";
+    m_settings = new QSettings(m_configPath, QSettings::IniFormat, this);
+
+    // 设置配置文件编码
+    m_settings->setIniCodec("UTF-8");
+
+    if (!QFile::exists(m_configPath)) {
+        qDebug() << "配置文件不存在，创建默认配置";
+
+        // 设置默认值
+        // QString defaultPath = QCoreApplication::applicationDirPath();
+        // m_settings->setValue("Path/filePath", defaultPath);
+        // m_settings->setValue("Path/folderPath", defaultPath);
+
+        m_settings->sync();
+    } else {
+        qDebug() << "从配置文件加载:" << m_configPath;
+    }
+
+    m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
+    m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
+
+    qDebug() << "CutoutObjectPage::loadConfig()";
+}
+
+void CutoutObjectPage::saveConfig() {
+    m_settings->setValue("Path/filePath", m_selectFileWidget->getSelectFile());
+    m_settings->setValue("Path/folderPath", m_selectFolderWidget->getSelectFolder());
+
+    m_settings->sync();
+
+    qDebug() << "CutoutObjectPage::saveConfig()";
 }

@@ -13,6 +13,9 @@ public:
     QString getSelectFolder() {
         return m_textEdit->toPlainText();
     }
+    void setSelectFolder(const QString& path) {
+        m_textEdit->setText(path);
+    }
 
 private:
     void createComponents();

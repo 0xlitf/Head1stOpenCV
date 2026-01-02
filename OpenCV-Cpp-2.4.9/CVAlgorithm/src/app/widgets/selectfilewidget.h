@@ -13,6 +13,9 @@ public:
     QString getSelectFile() {
         return m_textEdit->toPlainText();
     }
+    void setSelectFile(const QString& path) {
+        m_textEdit->setText(path);
+    }
 
 private:
     void createComponents();
