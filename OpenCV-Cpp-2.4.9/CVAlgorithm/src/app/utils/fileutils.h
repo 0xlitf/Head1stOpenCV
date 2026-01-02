@@ -41,6 +41,8 @@ public:
     static bool makeFilePath(const QString &path);
 
     static bool makeFolderPath(const QString &path);
+
+    static bool removeFolder(const QString& folderPath);
 };
 
 #endif // FILEUTILS_H

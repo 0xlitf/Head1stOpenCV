@@ -6,9 +6,6 @@
 #include "controls/controls.h"
 #include "cutoutobject.h"
 
-#include <QSettings>
-#include <QSpinBox>
-
 class CutoutObjectPage : public WidgetBase {
     Q_OBJECT
 public:
@@ -30,13 +27,13 @@ private:
 
     QString m_currentProcessImageFile{};
 
-    QSpinBox *colorSpinBox = nullptr;
-    QSpinBox *blueSpinBox = nullptr;
+    class QSpinBox *colorSpinBox = nullptr;
+    class QSpinBox *blueSpinBox = nullptr;
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
 
-    QSettings* m_settings;
+    class QSettings *m_settings;
     QString m_configPath;
 };
 

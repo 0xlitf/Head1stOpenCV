@@ -217,3 +217,20 @@ bool FileUtils::makeFolderPath(const QString &path) {
     }
     return false;
 }
+
+bool FileUtils::removeFolder(const QString &folderPath) {
+    QDir dir(folderPath);
+
+    if (!dir.exists()) {
+        qDebug() << "文件夹不存在，无需删除:" << folderPath;
+        return true;
+    }
+
+    if (dir.removeRecursively()) {
+        qDebug() << "文件夹删除成功:" << folderPath;
+        return true;
+    } else {
+        qDebug() << "错误：文件夹删除失败:" << folderPath;
+        return false;
+    }
+}

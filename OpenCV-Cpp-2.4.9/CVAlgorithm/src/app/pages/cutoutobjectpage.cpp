@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QLabel>
 #include <QSpinBox>
+#include <QSettings>
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
@@ -92,6 +93,9 @@ void CutoutObjectPage::createComponents() {
             QString processFolder = absolutePath + "_cutout";
             QString templateFolder = processFolder + "_template";
             QString binaryFolder = processFolder + "_binary";
+
+            FileUtils::removeFolder(templateFolder);
+            FileUtils::removeFolder(binaryFolder);
 
             auto filesList = FileUtils::findAllImageFiles(folderPath, true);
 
