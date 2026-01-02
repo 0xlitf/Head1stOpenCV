@@ -21,7 +21,7 @@ void SelectFileWidget::createComponents() {
     m_textEdit = new TextEdit(this);
     m_textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
-    connect(m_textEdit, &QTextEdit::textChanged, this, [=](){
+    connect(m_textEdit, &QTextEdit::textChanged, this, [=]() {
         auto filePath = m_textEdit->toPlainText().trimmed();
         QFileInfo info(filePath);
         if (!info.exists()) {
@@ -44,15 +44,4 @@ void SelectFileWidget::createComponents() {
     });
 
     Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{m_textEdit}}.attachTo(this);
-
-    // QVBoxLayout* v = new QVBoxLayout(this);
-    // QHBoxLayout* h1 = new QHBoxLayout;
-    // QHBoxLayout* h2 = new QHBoxLayout;
-
-    // v->addLayout(h1);
-    // v->addLayout(h2);
-
-    // h1->addWidget(selectButton);
-    // h1->addWidget(openButton);
-    // h2->addWidget(textEdit);
 }

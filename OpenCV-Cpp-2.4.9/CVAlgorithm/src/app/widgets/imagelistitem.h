@@ -4,26 +4,25 @@
 #pragma execution_character_set("utf-8")
 
 #include "imageinfowidget.h"
-#include <QWidget>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 #include <QFileInfo>
+#include <QHBoxLayout>
 #include <QImage>
+#include <QLabel>
 #include <QPixmap>
+#include <QVBoxLayout>
+#include <QWidget>
 
-class ImageListItem : public QWidget
-{
+class ImageListItem : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ImageListItem(const QFileInfo& fileInfo, QWidget *parent = nullptr);
-    QPixmap generateThumbnail(const QString& filePath, const QSize& size);
+    explicit ImageListItem(const QFileInfo &fileInfo, QWidget *parent = nullptr);
+    QPixmap generateThumbnail(const QString &filePath, const QSize &size);
 
 private:
-    void setupUI(const QFileInfo& fileInfo);
+    void setupUI(const QFileInfo &fileInfo);
 
-    ImageInfoWidget* m_infoWidget = nullptr;
+    ImageInfoWidget *m_infoWidget = nullptr;
 };
 
 #endif // IMAGELISTITEM_H

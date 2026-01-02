@@ -1,8 +1,8 @@
 ﻿#ifndef QTSPDLOGINTEGRATION_H
 #define QTSPDLOGINTEGRATION_H
 
-#include <QObject>
 #include "spdlog/spdlog.h"
+#include <QObject>
 
 #pragma execution_character_set("utf-8")
 
@@ -17,6 +17,5 @@ public:
 private:
     static std::shared_ptr<spdlog::logger> s_logger;
 };
-
 
 #endif // QTSPDLOGINTEGRATION_H

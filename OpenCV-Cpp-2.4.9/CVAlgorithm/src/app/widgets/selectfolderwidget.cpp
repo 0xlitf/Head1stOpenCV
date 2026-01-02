@@ -21,7 +21,7 @@ void SelectFolderWidget::createComponents() {
     m_textEdit = new TextEdit(this);
     m_textEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_textEdit->setPlaceholderText(FileUtils::getImageFileFilter());
-    connect(m_textEdit, &QTextEdit::textChanged, this, [=](){
+    connect(m_textEdit, &QTextEdit::textChanged, this, [=]() {
         auto folderPath = m_textEdit->toPlainText().trimmed();
         QFileInfo info(folderPath);
         if (!info.exists()) {
@@ -44,5 +44,4 @@ void SelectFolderWidget::createComponents() {
     });
 
     Layouting::Column{Layouting::Row{selectButton, openButton}, Layouting::Row{m_textEdit}}.attachTo(this);
-
 }

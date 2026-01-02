@@ -6,10 +6,8 @@
 FileUtils::FileUtils(QObject *parent) : QObject{parent} {}
 
 QString FileUtils::selectFolderDialog(QWidget *parent) {
-    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath(): QString(PROJECT_DIR);
-    QString folder = QFileDialog::getExistingDirectory(
-        parent, "选择文件夹", defaultWorkDir,
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getExistingDirectory(parent, "选择文件夹", defaultWorkDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
@@ -21,9 +19,8 @@ QString FileUtils::selectFolderDialog(QWidget *parent) {
 }
 
 QString FileUtils::selectFileDialog(const QString &filter, QWidget *parent) {
-    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath(): QString(PROJECT_DIR);
-    QString folder = QFileDialog::getOpenFileName(parent, "选择文件夹",
-                                                  defaultWorkDir, filter);
+    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getOpenFileName(parent, "选择文件夹", defaultWorkDir, filter);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
@@ -157,7 +154,6 @@ QStringList FileUtils::findDepth1Folder(const QString &directory) {
     // 设置过滤器：只获取目录，排除 . 和 ..
     dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 
-    // 获取所有直接子目录
     result = dir.entryList();
 
     return result;
@@ -174,7 +170,6 @@ QString FileUtils::getImageFileFilter() {
 
     QString filter = QString("Images (%1)").arg(filterList.join(" "));
 
-    // 您还可以添加一个"所有文件"的选项
     filter += ";;All Files (*)";
 
     return filter;

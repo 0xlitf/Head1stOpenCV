@@ -1,29 +1,23 @@
-﻿
+﻿#include "application.h"
+#include "appmainwindow.h"
 #include <QDebug>
-#include <QString>
+#include <QFontDatabase>
+#include <QMessageBox>
 #include <QScreen>
 #include <QSettings>
-#include <QMessageBox>
-#include "application.h"
-#include <QFontDatabase>
+#include <QString>
 #include <QTranslator>
-#include "appmainwindow.h"
 
 #include "utils/messageinstaller.h"
 
 namespace App {
 
-Application::Application(int& argc, char *argv[]) :
-    SingleApplication(argc, argv,true,
-                      SingleApplication::SecondaryNotification|
-                          SingleApplication::User| 
-                          SingleApplication::System|
-                          SingleApplication::ExcludeAppPath|
-                          SingleApplication::ExcludeAppVersion) {
+Application::Application(int &argc, char *argv[])
+    : SingleApplication(argc, argv, true, SingleApplication::SecondaryNotification | SingleApplication::User | SingleApplication::System | SingleApplication::ExcludeAppPath | SingleApplication::ExcludeAppVersion) {
     qDebug() << "QT_VERSION_STR:" << QT_VERSION_STR;
     qDebug() << "qVersion():" << qVersion();
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)  // Qt6
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)  // Qt5.15+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)    // Qt6
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) // Qt5.15+
 #elif QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)  // Qt5+
 #else
 #endif
@@ -44,10 +38,7 @@ int Application::startApplication() {
         return -1;
     }
 
-    QObject::connect(this, &SingleApplication::receivedMessage, this, [=](quint32, QByteArray) {
-        qDebug()<<"other instance started.";
-    });
-
+    QObject::connect(this, &SingleApplication::receivedMessage, this, [=](quint32, QByteArray) { qDebug() << "other instance started."; });
 
     QFontDatabase fontDB;
     QStringList fonts = fontDB.families();
@@ -63,10 +54,10 @@ int Application::startApplication() {
     // mainWindow.show();
     mainWindow.showMaximized();
 
-    m_userSettings = new QSettings(organizationName(),applicationName(),this);
+    m_userSettings = new QSettings(organizationName(), applicationName(), this);
 
     connect(this, &QCoreApplication::aboutToQuit, this, [=]() {
-        qDebug() << "QCoreApplication::aboutToQuit" ;
+        qDebug() << "QCoreApplication::aboutToQuit";
 
         this->closeApplication();
 
@@ -78,18 +69,15 @@ int Application::startApplication() {
     return result;
 }
 
-QVariant Application::getUserSetting(const QString &key, const QVariant &defaultValue)
-{
+QVariant Application::getUserSetting(const QString &key, const QVariant &defaultValue) {
     return m_userSettings->value(key, defaultValue);
 }
 
-void Application::setUserSetting(const QString &key, QVariant data)
-{
-    m_userSettings->setValue(key,data);
+void Application::setUserSetting(const QString &key, QVariant data) {
+    m_userSettings->setValue(key, data);
 }
 
-void Application::removeUserSetting(const QString &key)
-{
+void Application::removeUserSetting(const QString &key) {
     m_userSettings->remove(key);
 }
 
@@ -103,15 +91,15 @@ bool Application::event(QEvent *e) {
         break;
     case QEvent::FocusIn:
         break;
-    case QEvent::ApplicationActivate:{
+    case QEvent::ApplicationActivate: {
 #ifdef Q_OS_MAC
         emit this->applicationActivate();
 #endif
-    }break;
+    } break;
     default:
         break;
     }
     return SingleApplication::event(e);
 }
 
-}
+} // namespace App

@@ -3,8 +3,9 @@
 #include <utils/fileutils.h>
 
 ImageListWidget::ImageListWidget(QWidget *parent)
-    : QWidget(parent), m_browseButton(new QPushButton("浏览文件夹")), m_listWidget(new ListWidget)
-{
+    : QWidget(parent)
+    , m_browseButton(new QPushButton("浏览文件夹"))
+    , m_listWidget(new ListWidget) {
     m_listWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_listWidget->setFrameShape(QFrame::NoFrame);
     this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -12,47 +13,38 @@ ImageListWidget::ImageListWidget(QWidget *parent)
     this->setMinimumWidth(300);
     this->setMaximumWidth(300);
 
-
-    // 设置窗口标题和大小
     setWindowTitle("图片列表浏览器");
-    // resize(600, 500);
 
-    // 图片列表控件
     m_listWidget->setSelectionMode(QAbstractItemView::SingleSelection); // 单行选择
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     m_searchLineEdit = new LineEdit;
     m_searchLineEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    connect(m_searchLineEdit, &LineEdit::textChanged, this, [=](const QString &searchText){
+    connect(m_searchLineEdit, &LineEdit::textChanged, this, [=](const QString &searchText) {
         QString filterText = searchText.trimmed();
 
-        // 遍历列表中的所有项
         for (int i = 0; i < m_listWidget->count(); ++i) {
             QListWidgetItem *item = m_listWidget->item(i);
-            QString itemText = item->text(); // 获取项的文本
+            QString itemText = item->text();
 
-            // 判断：如果搜索框为空或项文本包含搜索文本，则显示该项；否则隐藏
-            // Qt::CaseInsensitive 表示不区分大小写
             if (filterText.isEmpty() || itemText.contains(filterText, Qt::CaseInsensitive)) {
-                item->setHidden(false); // 显示项
+                item->setHidden(false);
             } else {
-                item->setHidden(true);  // 隐藏项
+                item->setHidden(true);
             }
         }
     });
 
     Layouting::Column{m_searchLineEdit, m_listWidget}.attachTo(this);
 
-    connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=](){
+    connect(m_listWidget, &QListWidget::itemSelectionChanged, this, [=]() {
         qDebug() << "itemSelectionChanged:";
         this->onListItemSelectionChanged();
     });
 }
 
-void ImageListWidget::loadImagesFromFolder(const QString& folderPath)
-{
-    // 清空当前列表
+void ImageListWidget::loadImagesFromFolder(const QString &folderPath) {
     m_listWidget->clear();
 
     QDir dir(folderPath);
@@ -65,7 +57,8 @@ void ImageListWidget::loadImagesFromFolder(const QString& folderPath)
     // for (const QByteArray& format : QImageReader::supportedImageFormats()) {
     //     nameFilters << QString("*.") + QString(format).toLower();
     // }
-    // QFileInfoList imageFiles = dir.entryInfoList(nameFilters, QDir::Files | QDir::Readable, QDir::Name);
+    // QFileInfoList imageFiles = dir.entryInfoList(nameFilters, QDir::Files |
+    // QDir::Readable, QDir::Name);
 
     QStringList imageFilesList = FileUtils::findAllImageFiles(folderPath);
 
@@ -74,39 +67,30 @@ void ImageListWidget::loadImagesFromFolder(const QString& folderPath)
         return;
     }
 
-    // 为每个图片文件创建列表项 [6,7](@ref)
-    for (auto& file : imageFilesList) {
-        // 创建自定义的列表项控件
+    for (auto &file : imageFilesList) {
         QFileInfo fileInfo(file);
-        ImageListItem* itemWidget = new ImageListItem(fileInfo);
+        ImageListItem *itemWidget = new ImageListItem(fileInfo);
 
-        // 创建QListWidgetItem并设置大小
-        QListWidgetItem* listItem = new QListWidgetItem(m_listWidget);
-        listItem->setSizeHint(itemWidget->sizeHint()); // 关键：设置项的大小以适应自定义控件
+        QListWidgetItem *listItem = new QListWidgetItem(m_listWidget);
+        listItem->setSizeHint(itemWidget->sizeHint());
 
         listItem->setText(fileInfo.fileName());
 
         listItem->setData(Qt::UserRole, QVariant(fileInfo.absoluteFilePath()));
 
-        // 将自定义控件设置为列表项
         m_listWidget->setItemWidget(listItem, itemWidget);
     }
 }
 
-void ImageListWidget::onListItemSelectionChanged()
-{
-    // 获取当前选中的项
-    QListWidgetItem* currentItem = m_listWidget->currentItem();
+void ImageListWidget::onListItemSelectionChanged() {
+    QListWidgetItem *currentItem = m_listWidget->currentItem();
     qDebug() << "onListItemSelectionChanged currentItem:" << currentItem;
     if (currentItem) {
-        // 从项的数据中获取完整路径[8](@ref)
         QString imagePath = currentItem->data(Qt::UserRole).toString();
         qDebug() << "onListItemSelectionChanged imagePath:" << imagePath;
-        // 或者，如果使用路径映射：
         // QString imagePath = m_itemToPathMap.value(currentItem);
 
         if (!imagePath.isEmpty()) {
-            // 发射自定义信号[1,2](@ref)
             emit imageSelected(imagePath);
         }
     }

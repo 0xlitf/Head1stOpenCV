@@ -3,23 +3,19 @@
 
 #include "controls/controls.h"
 
-class SelectFolderWidget: public WidgetBase {
+class SelectFolderWidget : public WidgetBase {
     Q_OBJECT
 signals:
-    void folderChanged(const QString& folderPath);
+    void folderChanged(const QString &folderPath);
 
 public:
     explicit SelectFolderWidget(QWidget *parent = nullptr);
-    QString getSelectFolder() {
-        return m_textEdit->toPlainText();
-    }
-    void setSelectFolder(const QString& path) {
-        m_textEdit->setText(path);
-    }
+    QString getSelectFolder() { return m_textEdit->toPlainText(); }
+    void setSelectFolder(const QString &path) { m_textEdit->setText(path); }
 
 private:
     void createComponents();
-    TextEdit* m_textEdit = nullptr;
+    TextEdit *m_textEdit = nullptr;
 };
 
 #endif // SELECTFOLDERWIDGET_H

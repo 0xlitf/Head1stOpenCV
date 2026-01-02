@@ -11,8 +11,8 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
     setWidget(m_containerWidget);
     setWidgetResizable(true);
     m_containerWidget->setLayout(m_gridLayout);
-    m_gridLayout->setSpacing(10);             // 设置网格项之间的间距
-    m_gridLayout->setAlignment(Qt::AlignTop); // 对齐方式
+    m_gridLayout->setSpacing(10);
+    m_gridLayout->setAlignment(Qt::AlignTop);
 
     m_resizeTimer->setSingleShot(true);
 
@@ -27,7 +27,7 @@ void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
         // removeImage(name);
 
         qDebug() << "m_imageItems.contains" << name;
-        ImageGridItem* item = m_imageItems[name];
+        ImageGridItem *item = m_imageItems[name];
         item->setImageMat(image);
         return;
     }
@@ -52,14 +52,10 @@ void ImageGridWidget::removeImage(const QString &name) {
         m_gridLayout->removeWidget(itemToRemove);
         m_imageItems.remove(name);
         itemToRemove->deleteLater();
-
-        // 可选：重新排列剩余项以获得更紧凑的布局（此操作可能较耗时，图片多时慎用）
-        // 一个简单的思路是清空布局，然后按Map顺序重新添加所有项。
     }
 }
 
 void ImageGridWidget::clearAllImages() {
-    // 移除所有项
     QMapIterator<QString, ImageGridItem *> i(m_imageItems);
     while (i.hasNext()) {
         i.next();

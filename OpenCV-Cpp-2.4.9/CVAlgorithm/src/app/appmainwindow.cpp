@@ -1,11 +1,10 @@
 ﻿#include "appmainwindow.h"
+#include "compile.h"
+#include <QHostInfo>
 #include <QStackedLayout>
 #include <QString>
-#include <QHostInfo>
-#include "compile.h"
 
-AppMainWindow::AppMainWindow(QWidget *parent)
-    : QMainWindow{parent} {
+AppMainWindow::AppMainWindow(QWidget *parent) : QMainWindow{parent} {
     this->setMinimumSize(1280, 900);
     this->setContentsMargins(0, 0, 0, 0);
 

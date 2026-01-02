@@ -24,12 +24,8 @@
 CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();
 
-    this->addPage("CutoutObject", []{
-        return new CutoutObjectPage();
-    }());
-    this->addPage("HuMoments", []{
-        return new HuMomentsPage();
-    }());
+    this->addPage("CutoutObject", [] { return new CutoutObjectPage(); }());
+    this->addPage("HuMoments", [] { return new HuMomentsPage(); }());
 
     // 默认选中界面
     this->setDefaultPageIndex(0);
@@ -40,8 +36,7 @@ void CentralWidget::setDefaultPageIndex(int i) {
         m_buttonList[i]->setChecked(true);
         m_stackedWidget->setCurrentIndex(i);
     } else {
-        qWarning()
-            << "false: i < m_buttonList.size() && i < m_stackedWidget->count()";
+        qWarning() << "false: i < m_buttonList.size() && i < m_stackedWidget->count()";
     }
 }
 

@@ -11,7 +11,7 @@ ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData,
     , m_infoLabel(new QLabel) {
     m_resizeTimer->setSingleShot(true);
 
-    connect(m_resizeTimer, &QTimer::timeout, this, [=]{
+    connect(m_resizeTimer, &QTimer::timeout, this, [=] {
         // qDebug() << "ImageGridItem::updatePixmap";
         this->updatePixmap();
     });
@@ -43,7 +43,6 @@ void ImageGridItem::setupUI() {
     m_infoLabel->setWordWrap(true);
 
     Layouting::ColumnWithMargin{m_imageLabel, m_infoLabel}.attachTo(this);
-
 }
 
 void ImageGridItem::resizeEvent(QResizeEvent *event) {

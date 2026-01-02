@@ -11,8 +11,8 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
-#include <QSpinBox>
 #include <QSettings>
+#include <QSpinBox>
 
 CutoutObjectPage::CutoutObjectPage(QWidget *parent) : WidgetBase{parent} {
     this->createComponents();

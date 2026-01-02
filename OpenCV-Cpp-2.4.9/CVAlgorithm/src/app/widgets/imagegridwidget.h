@@ -32,7 +32,7 @@ private:
     QMap<QString, ImageGridItem *> m_imageItems;
     int m_maxColumns{3};
 
-    QTimer* m_resizeTimer = new QTimer(this);
+    QTimer *m_resizeTimer = new QTimer(this);
     double idealItemWidth{-1};
     double idealItemHeight{-1};
 };

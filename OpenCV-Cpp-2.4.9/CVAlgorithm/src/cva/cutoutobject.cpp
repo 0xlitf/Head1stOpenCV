@@ -35,7 +35,8 @@ std::tuple<cv::Mat, cv::Mat> CutOutObject::eraseBlueBackground(cv::Mat inputImag
         // for (int i = 0; i < rows; ++i) {
         //     for (int j = 0; j < cols; ++j) {
         //         cv::Vec3b &pixel = cvImage.at<cv::Vec3b>(i, j);
-        //         if ((pixel[0] - pixel[1] > colorThreshold) && (pixel[0] - pixel[2] > colorThreshold) && (pixel[0] > blueThreshold)) {
+        //         if ((pixel[0] - pixel[1] > colorThreshold) && (pixel[0] -
+        //         pixel[2] > colorThreshold) && (pixel[0] > blueThreshold)) {
         //             pixel[0] = 0;
         //             pixel[1] = 0;
         //             pixel[2] = 0;
@@ -150,12 +151,12 @@ std::vector<cv::Mat> CutOutObject::getMultipleObjectsInBoundingRect(std::vector<
 }
 
 // 新增：获取多个物体的原图尺寸掩码
-cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat& resultImg) {
-
+cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetectionResult> results, const cv::Mat &resultImg) {
     for (const auto &result : results) {
         if (!result.contour.empty()) {
             std::vector<std::vector<cv::Point>> contoursToDraw = {result.contour};
-            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 255, 0), 2); // CV_FILLED CV_AA
+            cv::drawContours(resultImg, contoursToDraw, 0, cv::Scalar(0, 255, 0),
+                             2); // CV_FILLED CV_AA
         }
     }
 
@@ -163,7 +164,7 @@ cv::Mat CutOutObject::getMultipleObjectsInOriginalSize(std::vector<ObjectDetecti
 }
 
 // 新增：测试多物体检测功能
-cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage) {
+cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results, const cv::Mat &inputImage) {
     cv::Mat resultImage = inputImage;
 
     if (resultImage.channels() == 1) {
@@ -214,7 +215,7 @@ cv::Mat CutOutObject::drawObjectsInfo(std::vector<ObjectDetectionResult> results
 }
 
 // 新增：测试多物体检测功能
-cv::Mat CutOutObject::drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage) {
+cv::Mat CutOutObject::drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat &inputImage) {
     cv::Mat resultImage = inputImage;
 
     if (resultImage.channels() == 1) {
