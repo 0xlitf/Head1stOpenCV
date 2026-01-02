@@ -33,8 +33,10 @@ void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     }
 
     ImageGridItem *newItem = new ImageGridItem(name, image, m_containerWidget);
-    newItem->setFixedWidth(idealItemWidth);
-    newItem->setFixedHeight(idealItemHeight);
+    if (idealItemWidth > 0 && idealItemHeight > 0) {
+        newItem->setFixedWidth(idealItemWidth);
+        newItem->setFixedHeight(idealItemHeight);
+    }
     m_imageItems[name] = newItem;
 
     int totalItems = m_imageItems.size() - 1; // 新项插入前的总数，即新索引

@@ -117,7 +117,7 @@ void CutoutObjectPage::createComponents() {
 
                     cv::Mat eraseBlueBackground;
                     cv::Mat singleChannelZeroImage;
-                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, colorSpinBox->value(), blueSpinBox->value());
+                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, m_colorSpinBox->value(), m_blueSpinBox->value());
 
                     // m_imageGridWidget->addImage("eraseBlueBackground",
                     // eraseBlueBackground);
@@ -191,20 +191,20 @@ void CutoutObjectPage::createComponents() {
             colorSlider->setTickPosition(QSlider::NoTicks);
             colorSlider->setTickInterval(50);
 
-            colorSpinBox = new QSpinBox();
-            colorSpinBox->setRange(0, 255);
-            colorSpinBox->setFixedSize(QSize(50, 30));
+            m_colorSpinBox = new QSpinBox();
+            m_colorSpinBox->setRange(0, 255);
+            m_colorSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(colorSlider, &QSlider::valueChanged, colorSpinBox, [=](int value) { colorSpinBox->setValue(value); });
-            connect(colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [=](int value) {
+            connect(colorSlider, &QSlider::valueChanged, m_colorSpinBox, [=](int value) { m_colorSpinBox->setValue(value); });
+            connect(m_colorSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), colorSlider, [=](int value) {
                 colorSlider->setValue(value);
 
                 emit this->paramChanged();
             });
 
-            colorSpinBox->setValue(relativeThresholdValue);
+            m_colorSpinBox->setValue(relativeThresholdValue);
 
-            return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, colorSpinBox, Layouting::Stretch{}};
+            return Layouting::RowWithMargin{colorLabel, Layouting::Space{5}, colorSlider, Layouting::Space{5}, m_colorSpinBox, Layouting::Stretch{}};
         }();
 
         auto blueThresLayout = [=]() {
@@ -221,20 +221,20 @@ void CutoutObjectPage::createComponents() {
             blueSlider->setTickPosition(QSlider::NoTicks);
             blueSlider->setTickInterval(50);
 
-            blueSpinBox = new QSpinBox(this);
-            blueSpinBox->setRange(0, 255);
-            blueSpinBox->setFixedSize(QSize(50, 30));
+            m_blueSpinBox = new QSpinBox(this);
+            m_blueSpinBox->setRange(0, 255);
+            m_blueSpinBox->setFixedSize(QSize(50, 30));
 
-            connect(blueSlider, &QSlider::valueChanged, blueSpinBox, [=](int value) { blueSpinBox->setValue(value); });
-            connect(blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [=](int value) {
+            connect(blueSlider, &QSlider::valueChanged, m_blueSpinBox, [=](int value) { m_blueSpinBox->setValue(value); });
+            connect(m_blueSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), blueSlider, [=](int value) {
                 blueSlider->setValue(value);
 
                 emit this->paramChanged();
             });
 
-            blueSpinBox->setValue(blueThresholdValue);
+            m_blueSpinBox->setValue(blueThresholdValue);
 
-            return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, blueSpinBox, Layouting::Stretch{}};
+            return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, m_blueSpinBox, Layouting::Stretch{}};
         }();
 
         Layouting::ColumnWithMargin{colorThresLayout, blueThresLayout}.attachTo(paramGroupBox);
@@ -261,7 +261,7 @@ void CutoutObjectPage::createComponents() {
 
 void CutoutObjectPage::createConnections() {
     connect(this, &CutoutObjectPage::paramChanged, this, [=]() {
-        qDebug() << "paramChanged" << colorSpinBox->value() << blueSpinBox->value() << m_currentProcessImageFile;
+        qDebug() << "paramChanged" << m_colorSpinBox->value() << m_blueSpinBox->value() << m_currentProcessImageFile;
 
         // m_imageGridWidget->clearAllImages();
         this->runCutoutAlgo(m_currentProcessImageFile);
@@ -282,7 +282,7 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;
-        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, colorSpinBox->value(), blueSpinBox->value());
+        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, m_colorSpinBox->value(), m_blueSpinBox->value());
 
         m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
         m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
@@ -330,9 +330,11 @@ void CutoutObjectPage::loadConfig() {
         qDebug() << "配置文件不存在，创建默认配置";
 
         // 设置默认值
-        // QString defaultPath = QCoreApplication::applicationDirPath();
+        QString defaultPath = QCoreApplication::applicationDirPath();
         // m_settings->setValue("Path/filePath", defaultPath);
         // m_settings->setValue("Path/folderPath", defaultPath);
+        m_settings->setValue("Parameter/relativeThreshold", 30);
+        m_settings->setValue("Parameter/blueThreshold", 50);
 
         m_settings->sync();
     } else {
@@ -341,6 +343,8 @@ void CutoutObjectPage::loadConfig() {
 
     m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
     m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
+    m_colorSpinBox->setValue(m_settings->value("Parameter/relativeThreshold", 30).toInt());
+    m_blueSpinBox->setValue(m_settings->value("Parameter/blueThreshold", 50).toInt());
 
     qDebug() << "CutoutObjectPage::loadConfig()";
 }
@@ -348,6 +352,8 @@ void CutoutObjectPage::loadConfig() {
 void CutoutObjectPage::saveConfig() {
     m_settings->setValue("Path/filePath", m_selectFileWidget->getSelectFile());
     m_settings->setValue("Path/folderPath", m_selectFolderWidget->getSelectFolder());
+    m_settings->setValue("Parameter/relativeThreshold", m_colorSpinBox->value());
+    m_settings->setValue("Parameter/blueThreshold", m_blueSpinBox->value());
 
     m_settings->sync();
 

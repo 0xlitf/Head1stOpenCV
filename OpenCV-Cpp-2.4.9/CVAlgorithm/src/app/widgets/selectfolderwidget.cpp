@@ -5,7 +5,7 @@ SelectFolderWidget::SelectFolderWidget(QWidget *parent) : WidgetBase{parent} {
     this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     this->setMinimumSize(300, 100);
-    this->setMaximumSize(300, 150);
+    this->setMaximumSize(300, 120);
 
     this->createComponents();
 }

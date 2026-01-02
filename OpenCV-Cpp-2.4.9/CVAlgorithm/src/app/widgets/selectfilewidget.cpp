@@ -6,7 +6,7 @@ SelectFileWidget::SelectFileWidget(QWidget *parent) : WidgetBase{parent} {
 
     this->setBackgroundColor(QColor(233, 233, 233));
     this->setMinimumSize(300, 100);
-    this->setMaximumSize(300, 150);
+    this->setMaximumSize(300, 120);
 
     this->createComponents();
 }

@@ -23,12 +23,12 @@ private:
     void loadConfig();
     void saveConfig();
 
-    class ImageGridWidget *m_imageGridWidget = nullptr;
-
     QString m_currentProcessImageFile{};
 
-    class QSpinBox *colorSpinBox = nullptr;
-    class QSpinBox *blueSpinBox = nullptr;
+    class ImageGridWidget *m_imageGridWidget = nullptr;
+
+    class QSpinBox *m_colorSpinBox = nullptr;
+    class QSpinBox *m_blueSpinBox = nullptr;
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
