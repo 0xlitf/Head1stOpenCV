@@ -64,13 +64,14 @@ void ImageListViewDelegate::paint(QPainter *painter,
 
     // 计算文本区域内的布局
     QRect fileNameRect = textRect;
-    fileNameRect.setHeight(option.fontMetrics.height() * 1.5); // 文件名占1.5行高
+    fileNameRect.setHeight(option.fontMetrics.height() * 1.2); // 文件名占1.5行高
 
     QRect infoRect = textRect;
     infoRect.setTop(fileNameRect.bottom());
 
     // 绘制文件名（加粗，稍大字号）
     QFont nameFont = option.font;
+    nameFont.setPixelSize(14);
     nameFont.setBold(true);
     // nameFont.setPointSize(nameFont.pointSize() + 1); // 可选：增大字号
     painter->setFont(nameFont);
@@ -83,7 +84,9 @@ void ImageListViewDelegate::paint(QPainter *painter,
     painter->drawText(fileNameRect, Qt::AlignLeft | Qt::AlignVCenter, elidedFileName);
 
     // 绘制图片信息（灰色，正常字号）
-    painter->setFont(option.font);
+    QFont infoFont = option.font;
+    infoFont.setPixelSize(12);
+    painter->setFont(infoFont);
     painter->setPen(option.state & QStyle::State_Selected ?
                         option.palette.highlightedText().color() :
                         QColor(0x66, 0x66, 0x66));

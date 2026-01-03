@@ -2,8 +2,7 @@
 
 #include <utils/fileutils.h>
 
-ImageListViewWidget::ImageListViewWidget(QWidget *parent)
-    : QWidget{parent} {
+ImageListViewWidget::ImageListViewWidget(QWidget *parent) : QWidget{parent} {
     this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     this->setMinimumWidth(300);
@@ -34,7 +33,7 @@ ImageListViewWidget::ImageListViewWidget(QWidget *parent)
 
     // 连接新的信号槽
     // 注意：QListView 的当前项变化信号是 clicked() 或 activated()
-    connect(m_listView, &QListView::clicked, this, [=](const QModelIndex &index){
+    connect(m_listView, &QListView::clicked, this, [=](const QModelIndex &index) {
         QModelIndex sourceIndex = m_filterModel->mapToSource(index);
         this->onListItemClicked(sourceIndex);
     });
@@ -42,13 +41,9 @@ ImageListViewWidget::ImageListViewWidget(QWidget *parent)
     m_searchLineEdit = new LineEdit;
     m_searchLineEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_searchLineEdit->setPlaceholderText("搜索图片...");
-    connect(m_searchLineEdit, &LineEdit::textChanged, this, [=](const QString &searchText) {
-        m_filterModel->setFilterFixedString(searchText.trimmed());
-    });
-
+    connect(m_searchLineEdit, &LineEdit::textChanged, this, [=](const QString &searchText) { m_filterModel->setFilterFixedString(searchText.trimmed()); });
 
     Layouting::Column{m_searchLineEdit, m_listView}.attachTo(this);
-
 }
 
 void ImageListViewWidget::loadImagesFromFolder(const QString &folderPath) {
