@@ -5,6 +5,7 @@
 #include "imageutils.h"
 #include "utils/fileutils.h"
 #include "widgets/imagegridwidget.h"
+#include "widgets/imagelistviewwidget.h"
 #include "widgets/imagelistwidget.h"
 #include "widgets/selectfilewidget.h"
 #include "widgets/selectfolderwidget.h"
@@ -61,7 +62,7 @@ void CutoutObjectPage::createComponents() {
         folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         m_selectFolderWidget = new SelectFolderWidget();
-        ImageListWidget *imageListWidget = new ImageListWidget();
+        ImageListViewWidget *imageListViewWidget = new ImageListViewWidget();
 
         auto batchProcessButton = new NormalButton("批量处理", this);
         batchProcessButton->setFixedWidth(100);
@@ -72,11 +73,11 @@ void CutoutObjectPage::createComponents() {
             if (!info.exists()) {
                 batchProcessButton->setEnabled(false);
             } else {
-                imageListWidget->loadImagesFromFolder(folderPath);
+                imageListViewWidget->loadImagesFromFolder(folderPath);
                 batchProcessButton->setEnabled(true);
             }
         });
-        connect(imageListWidget, &ImageListWidget::imageSelected, this, [=](const QString &imageFilePath) {
+        connect(imageListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
             qDebug() << "imageSelected:" << imageFilePath;
 
             m_currentProcessImageFile = imageFilePath;
@@ -172,7 +173,7 @@ void CutoutObjectPage::createComponents() {
             FileUtils::showInFolder(processFolder);
         });
 
-        Layouting::ColumnWithMargin{m_selectFolderWidget, Layouting::Space{5}, imageListWidget, batchProcessButton}.attachTo(folderGroupBox);
+        Layouting::ColumnWithMargin{m_selectFolderWidget, Layouting::Space{5}, imageListViewWidget, batchProcessButton}.attachTo(folderGroupBox);
 
         return folderGroupBox;
     }();

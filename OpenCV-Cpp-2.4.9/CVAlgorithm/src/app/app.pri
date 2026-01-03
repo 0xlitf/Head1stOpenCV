@@ -20,6 +20,7 @@ SOURCES += \
     $$PWD/widgets/imageinfowidget.cpp \
     $$PWD/widgets/imagelistview.cpp \
     $$PWD/widgets/imagelistviewdelegate.cpp \
+    $$PWD/widgets/imagelistviewfiltermodel.cpp \
     $$PWD/widgets/imagelistviewmodel.cpp \
     $$PWD/widgets/imagelistviewwidget.cpp \
     $$PWD/widgets/imagelistwidget.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     $$PWD/widgets/imageinfowidget.h \
     $$PWD/widgets/imagelistview.h \
     $$PWD/widgets/imagelistviewdelegate.h \
+    $$PWD/widgets/imagelistviewfiltermodel.h \
     $$PWD/widgets/imagelistviewmodel.h \
     $$PWD/widgets/imagelistviewwidget.h \
     $$PWD/widgets/imagelistwidget.h \

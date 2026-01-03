@@ -1,5 +1,7 @@
-#ifndef IMAGELISTVIEWDELEGATE_H
+﻿#ifndef IMAGELISTVIEWDELEGATE_H
 #define IMAGELISTVIEWDELEGATE_H
+
+#pragma execution_character_set("utf-8")
 
 #include <QStyledItemDelegate>
 
@@ -7,7 +9,7 @@ class ImageListViewDelegate : public QStyledItemDelegate {
     Q_OBJECT
 
 public:
-    ImageListViewDelegate();
+    ImageListViewDelegate(QObject *parent = 0);
 
     // 重写绘制方法
     void paint(QPainter *painter, const QStyleOptionViewItem &option,

@@ -1,6 +1,8 @@
 ﻿#ifndef IMAGELISTVIEWMODEL_H
 #define IMAGELISTVIEWMODEL_H
 
+#pragma execution_character_set("utf-8")
+
 #include <QAbstractListModel>
 
 class ImageListViewModel : public QAbstractListModel {

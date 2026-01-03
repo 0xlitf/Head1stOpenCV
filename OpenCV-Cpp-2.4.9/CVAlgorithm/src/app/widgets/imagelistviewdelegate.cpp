@@ -3,7 +3,7 @@
 #include <QFileInfo>
 #include <QPainter>
 
-ImageListViewDelegate::ImageListViewDelegate() {}
+ImageListViewDelegate::ImageListViewDelegate(QObject *parent): QStyledItemDelegate(parent) {}
 
 void ImageListViewDelegate::paint(QPainter *painter,
                               const QStyleOptionViewItem &option,

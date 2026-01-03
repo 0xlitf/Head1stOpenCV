@@ -1,3 +1,3 @@
 ﻿#include "imagelistview.h"
 
-ImageListView::ImageListView() {}
+ImageListView::ImageListView(QWidget *parent):QListView(parent) {}
