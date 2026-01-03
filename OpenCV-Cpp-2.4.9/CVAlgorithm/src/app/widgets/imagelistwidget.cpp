@@ -73,7 +73,7 @@ void ImageListWidget::loadImagesFromFolder(const QString &folderPath) {
     int i = 0;
     for (auto &file : imageFilesList) {
         QFileInfo fileInfo(file);
-        ImageListItem *itemWidget = new ImageListItem(fileInfo);
+        ImageListWidgetItem *itemWidget = new ImageListWidgetItem(fileInfo);
 
         QListWidgetItem *listItem = new QListWidgetItem(m_listWidget);
         listItem->setSizeHint(itemWidget->sizeHint());

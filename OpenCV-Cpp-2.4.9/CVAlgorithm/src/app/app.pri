@@ -18,8 +18,12 @@ SOURCES += \
     $$PWD/widgets/imagegriditem.cpp \
     $$PWD/widgets/imagegridwidget.cpp \
     $$PWD/widgets/imageinfowidget.cpp \
-    $$PWD/widgets/imagelistitem.cpp \
+    $$PWD/widgets/imagelistview.cpp \
+    $$PWD/widgets/imagelistviewdelegate.cpp \
+    $$PWD/widgets/imagelistviewmodel.cpp \
+    $$PWD/widgets/imagelistviewwidget.cpp \
     $$PWD/widgets/imagelistwidget.cpp \
+    $$PWD/widgets/imagelistwidgetitem.cpp \
     $$PWD/widgets/selectfilewidget.cpp \
     $$PWD/main.cpp \
     $$PWD/pages/cutoutobjectpage.cpp \
@@ -47,8 +51,12 @@ HEADERS += \
     $$PWD/widgets/imagegriditem.h \
     $$PWD/widgets/imagegridwidget.h \
     $$PWD/widgets/imageinfowidget.h \
-    $$PWD/widgets/imagelistitem.h \
+    $$PWD/widgets/imagelistview.h \
+    $$PWD/widgets/imagelistviewdelegate.h \
+    $$PWD/widgets/imagelistviewmodel.h \
+    $$PWD/widgets/imagelistviewwidget.h \
     $$PWD/widgets/imagelistwidget.h \
+    $$PWD/widgets/imagelistwidgetitem.h \
     $$PWD/widgets/selectfilewidget.h \
     $$PWD/pages/cutoutobjectpage.h \
     $$PWD/pages/humomentspage.h \

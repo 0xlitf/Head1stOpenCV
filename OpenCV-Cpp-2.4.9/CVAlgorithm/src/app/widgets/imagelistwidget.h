@@ -4,7 +4,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "controls/listwidget.h"
-#include "imagelistitem.h"
+#include "imagelistwidgetitem.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -32,8 +32,8 @@ public:
 
 private:
     LineEdit *m_searchLineEdit = nullptr;
-    QPushButton *m_browseButton;
-    ListWidget *m_listWidget;
+    QPushButton *m_browseButton = nullptr;
+    ListWidget *m_listWidget = nullptr;
 };
 
 #endif // IMAGELISTWIDGET_H

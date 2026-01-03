@@ -1,5 +1,5 @@
-﻿#ifndef IMAGELISTITEM_H
-#define IMAGELISTITEM_H
+﻿#ifndef IMAGELISTWIDGETITEM_H
+#define IMAGELISTWIDGETITEM_H
 
 #pragma execution_character_set("utf-8")
 
@@ -12,11 +12,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class ImageListItem : public QWidget {
+class ImageListWidgetItem : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ImageListItem(const QFileInfo &fileInfo, QWidget *parent = nullptr);
+    explicit ImageListWidgetItem(const QFileInfo &fileInfo, QWidget *parent = nullptr);
     QPixmap generateThumbnail(const QString &filePath, const QSize &size);
 
 private:
@@ -25,4 +25,4 @@ private:
     ImageInfoWidget *m_infoWidget = nullptr;
 };
 
-#endif // IMAGELISTITEM_H
+#endif // IMAGELISTWIDGETITEM_H
