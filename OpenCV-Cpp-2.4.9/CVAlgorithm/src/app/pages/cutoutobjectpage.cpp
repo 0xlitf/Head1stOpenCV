@@ -144,7 +144,7 @@ void CutoutObjectPage::createComponents() {
                     cv::imwrite(binarySavePath.toStdString(), closeContour);
 
 
-                    cv::Mat colorObject = cutout.getObjectUnderMask(eraseBlueBackground, closeContour);
+                    cv::Mat colorObject = cutout.getObjectUnderMask(imageMat, closeContour);
 
                     QString colorObjectSavePath = filePath;
                     colorObjectSavePath.replace(folderPath, colorObjectFolder);
