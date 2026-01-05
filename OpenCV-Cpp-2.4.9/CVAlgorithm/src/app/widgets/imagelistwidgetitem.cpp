@@ -4,8 +4,8 @@
 #include <QImage>
 
 ImageListWidgetItem::ImageListWidgetItem(const QFileInfo &fileInfo, QWidget *parent)
-    : QWidget(parent), m_infoWidget(new ImageInfoWidget) // 使用新的信息控件
-{
+    : QWidget(parent)
+    , m_infoWidget(new ImageInfoWidget) {
     setupUI(fileInfo);
 }
 

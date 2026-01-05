@@ -3,12 +3,10 @@
 #include <QFileInfo>
 #include <QPainter>
 
-ImageListViewDelegate::ImageListViewDelegate(QObject *parent): QStyledItemDelegate(parent) {}
+ImageListViewDelegate::ImageListViewDelegate(QObject *parent)
+    : QStyledItemDelegate(parent) {}
 
-void ImageListViewDelegate::paint(QPainter *painter,
-                              const QStyleOptionViewItem &option,
-                              const QModelIndex &index) const
-{
+void ImageListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
     // 0. 保存painter状态并设置抗锯齿
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
@@ -33,7 +31,7 @@ void ImageListViewDelegate::paint(QPainter *painter,
     const int spacing = 8;
     const QSize thumbnailSize(80, 60);
 
-    QRect rect = option.rect; // 当前项的总区域
+    QRect rect = option.rect;                      // 当前项的总区域
     rect.adjust(margin, margin, -margin, -margin); // 应用边距
 
     // 4. 绘制缩略图区域
@@ -50,7 +48,7 @@ void ImageListViewDelegate::paint(QPainter *painter,
     if (!thumbnail.isNull()) {
         // 计算居中显示的矩形
         QPixmap scaledThumb = thumbnail.scaled(thumbRect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QPoint centerPoint = thumbRect.center() - QPoint(scaledThumb.width()/2, scaledThumb.height()/2);
+        QPoint centerPoint = thumbRect.center() - QPoint(scaledThumb.width() / 2, scaledThumb.height() / 2);
         painter->drawPixmap(centerPoint, scaledThumb);
     } else {
         // 绘制错误提示
@@ -75,9 +73,7 @@ void ImageListViewDelegate::paint(QPainter *painter,
     nameFont.setBold(true);
     // nameFont.setPointSize(nameFont.pointSize() + 1); // 可选：增大字号
     painter->setFont(nameFont);
-    painter->setPen(option.state & QStyle::State_Selected ?
-                        option.palette.highlightedText().color() :
-                        Qt::black);
+    painter->setPen(option.state & QStyle::State_Selected ? option.palette.highlightedText().color() : Qt::black);
 
     QString fileName = fileInfo.fileName();
     QString elidedFileName = option.fontMetrics.elidedText(fileName, Qt::ElideRight, fileNameRect.width());
@@ -87,9 +83,7 @@ void ImageListViewDelegate::paint(QPainter *painter,
     QFont infoFont = option.font;
     infoFont.setPixelSize(12);
     painter->setFont(infoFont);
-    painter->setPen(option.state & QStyle::State_Selected ?
-                        option.palette.highlightedText().color() :
-                        QColor(0x66, 0x66, 0x66));
+    painter->setPen(option.state & QStyle::State_Selected ? option.palette.highlightedText().color() : QColor(0x66, 0x66, 0x66));
 
     // 组装信息字符串（这部分逻辑与你原Widget中的updateDisplay()类似）
     QImage image(filePath);
@@ -118,17 +112,15 @@ void ImageListViewDelegate::paint(QPainter *painter,
     painter->restore();
 }
 
-QSize ImageListViewDelegate::sizeHint(const QStyleOptionViewItem &option,
-                                  const QModelIndex &index) const
-{
-    // 返回一个固定的项大小，例如：缩略图高度60 + 上下边距各5 = 70，宽度可以设为-1（由视图决定）或一个固定值
+QSize ImageListViewDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    // 返回一个固定的项大小，例如：缩略图高度60 + 上下边距各5 =
+    // 70，宽度可以设为-1（由视图决定）或一个固定值
     Q_UNUSED(option)
     Q_UNUSED(index)
     return QSize(-1, 70); // 高度固定为70像素
 }
 
-QPixmap ImageListViewDelegate::generateThumbnail(const QString &filePath, const QSize &size) const
-{
+QPixmap ImageListViewDelegate::generateThumbnail(const QString &filePath, const QSize &size) const {
     QPixmap pixmap(filePath);
     if (pixmap.isNull()) {
         return QPixmap(); // 返回空Pixmap

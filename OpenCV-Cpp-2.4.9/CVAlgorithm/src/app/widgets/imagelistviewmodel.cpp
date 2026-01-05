@@ -2,7 +2,8 @@
 
 #include <QFileInfo>
 
-ImageListViewModel::ImageListViewModel(QObject *parent) : QAbstractListModel{parent} {}
+ImageListViewModel::ImageListViewModel(QObject *parent)
+    : QAbstractListModel{parent} {}
 
 int ImageListViewModel::rowCount(const QModelIndex &parent) const {
     return parent.isValid() ? 0 : m_imageFiles.size();
