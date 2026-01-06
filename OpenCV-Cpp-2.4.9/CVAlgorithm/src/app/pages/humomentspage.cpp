@@ -182,8 +182,8 @@ void HuMomentsPage::createComponents() {
         return folderGroupBox;
     }();
 
-    WidgetBase *rightPart = new WidgetBase();
-    rightPart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // WidgetBase *middlePart = new WidgetBase();
+    // middlePart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     GroupBox *paramGroupBox = [=]() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
@@ -282,20 +282,65 @@ void HuMomentsPage::createComponents() {
     }();
 
     m_imageGridWidget = new ImageGridWidget;
-    m_imageGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_imageGridWidget->setMaxColumns(1);
+    m_imageGridWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    GroupBox *resultGroupBox = new GroupBox("处理结果");
-    Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(resultGroupBox);
+    GroupBox *imageResultGroupBox = new GroupBox("输入图片处理结果");
+    Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(imageResultGroupBox);
 
-    Layouting::Column{paramGroupBox, Layouting::Space{5}, resultGroupBox}.attachTo(rightPart);
+    m_templateGridWidget = new ImageGridWidget;
+    m_templateGridWidget->setMaxColumns(2);
+    m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    GroupBox *templateResultGroupBox = new GroupBox("模板匹配结果");
+    Layouting::ColumnWithMargin{m_templateGridWidget}.attachTo(templateResultGroupBox);
+
+    // WidgetBase *rightPart = new WidgetBase();
+    // rightPart->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+
+    GroupBox *templateGroupBox = [=]() {
+        GroupBox *folderGroupBox = new GroupBox("模板目录");
+        folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        m_selectTemplateFolderWidget = new SelectFolderWidget();
+        ImageListViewWidget *templateListViewWidget = new ImageListViewWidget();
+
+        connect(m_selectTemplateFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) {
+            QFileInfo info(folderPath);
+            if (!info.exists()) {
+
+            } else {
+                templateListViewWidget->loadImagesFromFolder(folderPath);
+            }
+        });
+        connect(templateListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
+            qDebug() << "templateSelected:" << imageFilePath;
+            return;
+
+            // m_currentProcessImageFile = imageFilePath;
+
+            // m_imageGridWidget->clearAllImages();
+            // this->runCutoutAlgo(imageFilePath);
+        });
+
+        Layouting::ColumnWithMargin{m_selectTemplateFolderWidget, Layouting::Space{5}, templateListViewWidget}.attachTo(folderGroupBox);
+
+        return folderGroupBox;
+    }();
+
+    auto rightPart = Layouting::Column{templateGroupBox};
+
+    QHBoxLayout* resultLayout = new QHBoxLayout;
+    resultLayout->addWidget(imageResultGroupBox, 1);
+    resultLayout->addSpacing(5);
+    resultLayout->addWidget(templateResultGroupBox, 2);
+
+    auto middlePart = Layouting::Column{paramGroupBox, Layouting::Space{5}, resultLayout};
+
     auto leftPart = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
-    Layouting::RowWithMargin{
-                             leftPart,
-                             Layouting::Space{5},
-                             rightPart,
-                             }
-        .attachTo(this);
+    Layouting::RowWithMargin{leftPart, Layouting::Space{5}, middlePart, Layouting::Space{5}, rightPart}.attachTo(this);
 }
 
 void HuMomentsPage::createConnections() {
@@ -376,8 +421,8 @@ void HuMomentsPage::loadConfig() {
         QString defaultPath = QCoreApplication::applicationDirPath();
         // m_settings->setValue("Path/filePath", defaultPath);
         // m_settings->setValue("Path/folderPath", defaultPath);
-        m_settings->setValue("Parameter/relativeThreshold", 30);
-        m_settings->setValue("Parameter/blueThreshold", 50);
+        m_settings->setValue("Parameter/areaMaxValue", 100000);
+        m_settings->setValue("Parameter/areaMinValue", 2000);
 
         m_settings->sync();
     } else {
@@ -386,8 +431,9 @@ void HuMomentsPage::loadConfig() {
 
     m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
     m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
-    m_areaMaxSpinBox->setValue(m_settings->value("Parameter/relativeThreshold", 30).toInt());
-    m_areaMinSpinBox->setValue(m_settings->value("Parameter/blueThreshold", 50).toInt());
+    m_selectTemplateFolderWidget->setSelectFolder(m_settings->value("Path/templateFolderPath", "").toString());
+    m_areaMaxSpinBox->setValue(m_settings->value("Parameter/areaMaxValue", 100000).toInt());
+    m_areaMinSpinBox->setValue(m_settings->value("Parameter/areaMinValue", 2000).toInt());
 
     qDebug() << "HuMomentsPage::loadConfig()";
 }
@@ -395,8 +441,9 @@ void HuMomentsPage::loadConfig() {
 void HuMomentsPage::saveConfig() {
     m_settings->setValue("Path/filePath", m_selectFileWidget->getSelectFile());
     m_settings->setValue("Path/folderPath", m_selectFolderWidget->getSelectFolder());
-    m_settings->setValue("Parameter/relativeThreshold", m_areaMaxSpinBox->value());
-    m_settings->setValue("Parameter/blueThreshold", m_areaMinSpinBox->value());
+    m_settings->setValue("Path/templateFolderPath", m_selectTemplateFolderWidget->getSelectFolder());
+    m_settings->setValue("Parameter/areaMaxValue", m_areaMaxSpinBox->value());
+    m_settings->setValue("Parameter/areaMinValue", m_areaMinSpinBox->value());
 
     m_settings->sync();
 

@@ -17,6 +17,9 @@ public:
     void removeImage(const QString &name);
     void clearAllImages();
 
+    int maxColumns() const;
+    void setMaxColumns(int newMaxColumns);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 

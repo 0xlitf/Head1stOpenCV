@@ -25,6 +25,7 @@ private:
     QString m_currentProcessImageFile{};
 
     class ImageGridWidget *m_imageGridWidget = nullptr;
+    class ImageGridWidget *m_templateGridWidget = nullptr;
 
     class QSpinBox *m_areaMaxSpinBox = nullptr;
     class QSpinBox *m_areaMinSpinBox = nullptr;
@@ -34,6 +35,7 @@ private:
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
+    class SelectFolderWidget *m_selectTemplateFolderWidget = nullptr;
 
     class QSettings *m_settings;
     QString m_configPath;

@@ -104,3 +104,11 @@ int ImageGridWidget::calculateIdealItemHeight(int parentHeight) {
     idealHeight = std::max(100, idealHeight);
     return idealHeight;
 }
+
+int ImageGridWidget::maxColumns() const {
+    return m_maxColumns;
+}
+
+void ImageGridWidget::setMaxColumns(int newMaxColumns) {
+    m_maxColumns = newMaxColumns;
+}
