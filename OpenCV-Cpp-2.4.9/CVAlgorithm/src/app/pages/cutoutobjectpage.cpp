@@ -120,7 +120,11 @@ void CutoutObjectPage::createComponents() {
 
                     cv::Mat eraseBlueBackground;
                     cv::Mat singleChannelZeroImage;
-                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, m_colorSpinBox->value(), m_blueSpinBox->value());
+
+                    cutout.setColorThreshold(m_colorSpinBox->value());
+                    cutout.setBlueThreshold(m_blueSpinBox->value());
+
+                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat);
 
                     // m_imageGridWidget->addImage("eraseBlueBackground",
                     // eraseBlueBackground);
@@ -293,7 +297,11 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;
-        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat, m_colorSpinBox->value(), m_blueSpinBox->value());
+
+        cutout.setColorThreshold(m_colorSpinBox->value());
+        cutout.setBlueThreshold(m_blueSpinBox->value());
+
+        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat);
 
         m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
         m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);

@@ -4,7 +4,7 @@
 
 CutOutObject::CutOutObject() {}
 
-std::tuple<cv::Mat, cv::Mat> CutOutObject::eraseBlueBackground(cv::Mat inputImage, int colorThreshold, int blueThreshold) {
+std::tuple<cv::Mat, cv::Mat> CutOutObject::eraseBlueBackground(cv::Mat inputImage) {
     // 图像预处理（与原有逻辑相同）
     cv::Mat cvImage = inputImage.clone();
     cv::Mat singleChannelZeroImage = cv::Mat::zeros(inputImage.size(), CV_8UC1);
@@ -22,7 +22,7 @@ std::tuple<cv::Mat, cv::Mat> CutOutObject::eraseBlueBackground(cv::Mat inputImag
                 uchar green = pixel[1];
                 uchar red = pixel[2];
 
-                if ((blue - green > colorThreshold) && (blue - red > colorThreshold) && (blue > blueThreshold)) {
+                if ((blue - green > m_colorThreshold) && (blue - red > m_colorThreshold) && (blue > m_blueThreshold)) {
                     pixel = cv::Vec3b(255, 255, 255);
 
                     singleChannelZeroImage.at<uchar>(i, j) = 255;
@@ -261,4 +261,20 @@ cv::Mat CutOutObject::getObjectUnderMask(const cv::Mat& originMatInput, const cv
         }
     }
     return originMat;
+}
+
+int CutOutObject::colorThreshold() const {
+    return m_colorThreshold;
+}
+
+void CutOutObject::setColorThreshold(int newColorThreshold) {
+    m_colorThreshold = newColorThreshold;
+}
+
+int CutOutObject::blueThreshold() const {
+    return m_blueThreshold;
+}
+
+void CutOutObject::setBlueThreshold(int newBlueThreshold) {
+    m_blueThreshold = newBlueThreshold;
 }

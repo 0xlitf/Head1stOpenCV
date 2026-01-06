@@ -121,80 +121,83 @@ int main(int argc, char *argv[]) {
 
     // QString imageName = "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/CVAlgorithm/dataset_blueconveyor/14-30-00-395.png";
 
-    // qDebug() << "imageName:" << imageName;
+    qDebug() << "imageName:" << imageName;
 
-    // QString trueFormat = getImageFormatBySignature(imageName);
-    // qDebug() << "图像的真实格式是：" << trueFormat;
+    QString trueFormat = getImageFormatBySignature(imageName);
+    qDebug() << "图像的真实格式是：" << trueFormat;
 
-    // auto image = cv::imread(imageName.toStdString());
-    // if (image.empty()) {
-    //     qDebug() << "无法读取图像文件:" << imageName;
-    //     return -1;
-    // } else {
-    //     int width = image.cols;  // 图像宽度（像素）
-    //     int height = image.rows; // 图像高度（像素）
-    //     int channels = image.channels(); // 通道数[6](@ref)
+    auto originImage = cv::imread(imageName.toStdString());
+    if (originImage.empty()) {
+        qDebug() << "无法读取图像文件:" << imageName;
+        return -1;
+    } else {
+        int width = originImage.cols;  // 图像宽度（像素）
+        int height = originImage.rows; // 图像高度（像素）
+        int channels = originImage.channels(); // 通道数[6](@ref)
 
-    //     qDebug() << "=== 图像信息 ===";
-    //     qDebug() << "图像路径:" << imageName;
-    //     qDebug() << "宽度:" << width << "像素";
-    //     qDebug() << "高度:" << height << "像素";
-    //     qDebug() << "通道数:" << channels;
+        qDebug() << "=== 图像信息 ===";
+        qDebug() << "图像路径:" << imageName;
+        qDebug() << "宽度:" << width << "像素";
+        qDebug() << "高度:" << height << "像素";
+        qDebug() << "通道数:" << channels;
 
-    //     int depth = image.depth();
-    //     QString depthStr;
-    //     switch (depth) {
-    //     case CV_8U: depthStr = "8位无符号整数"; break;
-    //     case CV_32F: depthStr = "32位浮点数"; break;
-    //     // ... 其他深度类型
-    //     default: depthStr = "其他";
-    //     }
-    //     qDebug() << "位图深度:" << depthStr.toUtf8().constData();
-    // }
-    // cv::imshow("image", image);
+        int depth = originImage.depth();
+        QString depthStr;
+        switch (depth) {
+        case CV_8U: depthStr = "8位无符号整数"; break;
+        case CV_32F: depthStr = "32位浮点数"; break;
+        // ... 其他深度类型
+        default: depthStr = "其他";
+        }
+        qDebug() << "位图深度:" << depthStr.toUtf8().constData();
+    }
+    cv::imshow("image", originImage);
 
-    // cv::Mat eraseBlueBackground;
-    // cv::Mat singleChannelZeroImage;
-    // std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(image, 30, 50);
-    // cv::imshow("eraseBlueBackground", eraseBlueBackground);
+    cv::Mat eraseBlueBackground;
+    cv::Mat singleChannelZeroImage;
+    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(originImage);
+    cv::imshow("eraseBlueBackground", eraseBlueBackground);
 
-    // double minArea = 1000.0;   // 最小面积阈值
-    // double maxArea = 1000000.0; // 最大面积阈值
-
-
-    // std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+    double minArea = 1000.0;   // 最小面积阈值
+    double maxArea = 1000000.0; // 最大面积阈值
 
 
-    // QElapsedTimer timer;
-    // timer.start();
+    std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
 
-    // std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
 
-    // qDebug() << "boundings.size:" << boundings.size();
-    // int i = 0;
-    // for (auto &mat : boundings) {
-    //     cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
-    //     ++i;
-    // }
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    QElapsedTimer timer;
+    timer.start();
 
-    // timer.restart();
-    // cv::Mat resultImg(eraseBlueBackground.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-    // // cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, resultImg);
+    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
+
+    qDebug() << "boundings.size:" << boundings.size();
+    int i = 0;
+    for (auto &mat : boundings) {
+        cv::imshow(QString("bounding %1").arg(i).toStdString(), mat);
+        ++i;
+    }
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+
+    timer.restart();
+    cv::Mat resultImg(eraseBlueBackground.size(), CV_8UC3, cv::Scalar(255, 255, 255));
     // cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, resultImg);
-    // cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
-    // qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
+    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, resultImg);
+    cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
+    qDebug() << "getMultipleObjectsInBoundingRect elapsed:" << timer.elapsed();
 
+    cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+    cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
+    cv::imshow(QString("closeContour").toStdString(), closeContour);
 
-    // cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);
+    cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);
 
-    // cv::imshow("objsInfo", objsInfo);
+    cv::imshow("objsInfo", objsInfo);
 
-    // cv::waitKey(0);
-    // cv::destroyAllWindows();
+    cv::waitKey(0);
+    cv::destroyAllWindows();
 
     // makeFilePath(QString("C:/Work/2025-10-30 112442 视觉计数器/1/2.txt"));
-    makeFolderPath(QString("C:/Work/2025-10-30 112442 视觉计数器/1/2.txt"));
+    // makeFolderPath(QString("C:/Work/2025-10-30 112442 视觉计数器/1/2.txt"));
 
     return 0;
 }

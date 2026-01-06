@@ -197,29 +197,42 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
     qDebug() << "allImage:" << allImage.size();
     for (auto & imageName: allImage) {
 
-        auto image = cv::imread(imageName.toStdString());
-        if (image.empty()) {
+        auto originImage = cv::imread(imageName.toStdString());
+        if (originImage.empty()) {
             qDebug() << "无法读取图像文件:" << imageName;
             return -1;
         }
-        cv::imshow("image", image);
+        cv::imshow("imageName", originImage);
 
         double minArea = 2000.0;   // 最小面积阈值
         double maxArea = 10000000.0; // 最大面积阈值
 
+
+        cv::Mat eraseBlueBackground;
+        cv::Mat singleChannelZeroImage;
+        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(originImage);
+
+        std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+
+        // cv::Mat resultImg(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+
         cv::Mat mask;
-        for (int t = 0; t < 1; ++t) {
-            mask = cutout.getMultipleObjectsInOriginalSize(image, minArea, maxArea);
+        if (bool getMultipleObjectsInOriginalSize = true) {
+            mask = cutout.getMultipleObjectsInOriginalSize(results, originImage);
+            cv::imshow(QString("getMultipleObjectsInOriginalSize").toStdString(), mask);
         }
-        cv::imshow("mask", mask);
+
+        cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+        cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
+        cv::imshow(QString("closeContour").toStdString(), closeContour);
 
         QElapsedTimer timer;
         timer.start();
-        auto results = matcher.matchMat(mask);
+        auto matchResults = matcher.matchMat(closeContour);
         qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;
-        for (auto &result : results) {
+        for (auto &result : matchResults) {
             QString name = std::get<0>(result);                   // 名称
 
             if (name.isEmpty()) {
@@ -242,7 +255,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
             ++i;
         }
 
-        auto resultImage = matcher.drawResultsOnImage(mask, results);
+        auto resultImage = matcher.drawResultsOnImage(mask, matchResults);
 
         cv::imshow("resultImage detect result", resultImage);
 

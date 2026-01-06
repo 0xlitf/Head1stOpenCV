@@ -46,6 +46,7 @@ HEADERS += \
     $$PWD/../share/layoutbuilder.h \
     $$PWD/../share/messageinstaller.h \
     $$PWD/../CVAlgorithm/src/cva/cutoutobject.h \
+    ../CVAlgorithm/src/cva/imageutils.h \
     fileutils.h \
     $$PWD/../CVAlgorithm/src/cva/humomentsmatcher.h \
     mainwindow.h
@@ -54,6 +55,7 @@ SOURCES += \
     $$PWD/../share/layoutbuilder.cpp \
     $$PWD/../share/messageinstaller.cpp \
     $$PWD/../CVAlgorithm/src/cva/cutoutobject.cpp \
+    ../CVAlgorithm/src/cva/imageutils.cpp \
     fileutils.cpp \
     $$PWD/../CVAlgorithm/src/cva/humomentsmatcher.cpp \
     main.cpp \

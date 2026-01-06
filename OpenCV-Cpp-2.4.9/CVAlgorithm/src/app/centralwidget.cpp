@@ -28,7 +28,7 @@ CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
     this->addPage("HuMoments", [] { return new HuMomentsPage(); }());
 
     // 默认选中界面
-    this->setDefaultPageIndex(0);
+    this->setDefaultPageIndex(1);
 }
 
 void CentralWidget::setDefaultPageIndex(int i) {

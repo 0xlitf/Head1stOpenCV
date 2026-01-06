@@ -23,8 +23,7 @@ class CVASHARED_EXPORT CutOutObject {
 public:
     CutOutObject();
 
-    std::tuple<cv::Mat, cv::Mat> eraseBlueBackground(cv::Mat inputImage, int colorThreshold,
-                                int blueThreshold);
+    std::tuple<cv::Mat, cv::Mat> eraseBlueBackground(cv::Mat inputImage);
 
     // 新增：检测多个轮廓，基于面积阈值
     std::vector<ObjectDetectionResult> extractMultipleObjects(
@@ -42,6 +41,16 @@ public:
     cv::Mat drawObjectsContour(std::vector<ObjectDetectionResult> results, const cv::Mat& inputImage);
 
     cv::Mat getObjectUnderMask(const cv::Mat& originMat, const cv::Mat& mask);
+
+    int colorThreshold() const;
+    void setColorThreshold(int newColorThreshold);
+
+    int blueThreshold() const;
+    void setBlueThreshold(int newBlueThreshold);
+
+private:
+    int m_colorThreshold{30};
+    int m_blueThreshold{50};
 };
 
 #endif // CUTOUTOBJECT_H

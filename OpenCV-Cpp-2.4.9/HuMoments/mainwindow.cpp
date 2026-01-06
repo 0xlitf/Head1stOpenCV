@@ -4,6 +4,7 @@
 #include <QElapsedTimer>
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
+#include "imageutils.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // setWindowState(windowState() | Qt::WindowFullScreen);
@@ -176,7 +177,7 @@ void MainWindow::onLoadTemplate() {
 
     // 显示原图
     m_templateLabel->setPixmap(
-        m_matcher.cvMatToQPixmap(templateImg)
+        ImageUtils::cvMatToQPixmap(templateImg)
             .scaled(m_templateLabel->size(), Qt::KeepAspectRatio));
 
     cv::threshold(templateImg, templateImg, 240, 255, cv::THRESH_BINARY);
@@ -201,9 +202,9 @@ void MainWindow::onLoadTemplate() {
         auto cropped = m_matcher.croppedCanvas(templateImg, m_templateContour);
 
         // 6. 显示裁剪后的图像
-        // m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(),
+        // m_contourLabel->setPixmap(ImageUtils::cvMatToQPixmap(croppedCanvas).scaled(m_contourLabel->size(),
         // Qt::KeepAspectRatio));
-        m_contourLabel->setPixmap(m_matcher.cvMatToQPixmap(cropped).scaled(
+        m_contourLabel->setPixmap(ImageUtils::cvMatToQPixmap(cropped).scaled(
             m_contourLabel->size(), Qt::KeepAspectRatio));
     }
 
@@ -233,7 +234,7 @@ void MainWindow::onLoadScene() {
         return;
 
     m_sceneLabel->setPixmap(
-        m_matcher.cvMatToQPixmap(m_sceneImg)
+        ImageUtils::cvMatToQPixmap(m_sceneImg)
             .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
     m_logTextEdit->append("<b>[场景加载成功]</b> 等待识别...");
 }
@@ -270,7 +271,7 @@ void MainWindow::onRunMatching() {
     auto resultImage = m_matcher.drawResultsOnImage(sceneImg, results);
 
     m_sceneLabel->setPixmap(
-        m_matcher.cvMatToQPixmap(resultImage)
+        ImageUtils::cvMatToQPixmap(resultImage)
             .scaled(m_sceneLabel->size(), Qt::KeepAspectRatio));
     m_logTextEdit->append("--- 结束匹配 ---");
 }
