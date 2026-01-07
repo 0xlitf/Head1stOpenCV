@@ -5,6 +5,7 @@
 #include "imageutils.h"
 #include "utils/fileutils.h"
 #include "widgets/imagegridwidget.h"
+#include "widgets/templategridwidget.h"
 #include "widgets/imagelistviewwidget.h"
 #include "widgets/imagelistwidget.h"
 #include "widgets/selectfilewidget.h"
@@ -288,7 +289,7 @@ void HuMomentsPage::createComponents() {
     GroupBox *imageResultGroupBox = new GroupBox("输入图片处理结果");
     Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(imageResultGroupBox);
 
-    m_templateGridWidget = new ImageGridWidget;
+    m_templateGridWidget = new TemplateGridWidget;
     m_templateGridWidget->setMaxColumns(2);
     m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 

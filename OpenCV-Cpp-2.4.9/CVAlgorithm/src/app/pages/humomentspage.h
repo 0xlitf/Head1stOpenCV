@@ -25,7 +25,7 @@ private:
     QString m_currentProcessImageFile{};
 
     class ImageGridWidget *m_imageGridWidget = nullptr;
-    class ImageGridWidget *m_templateGridWidget = nullptr;
+    class TemplateGridWidget *m_templateGridWidget = nullptr;
 
     class QSpinBox *m_areaMaxSpinBox = nullptr;
     class QSpinBox *m_areaMinSpinBox = nullptr;

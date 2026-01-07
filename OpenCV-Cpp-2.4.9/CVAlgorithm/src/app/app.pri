@@ -32,7 +32,9 @@ SOURCES += \
     $$PWD/utils/fileutils.cpp \
     $$PWD/utils/messageinstaller.cpp \
     $$PWD/utils/qtspdlogintegration.cpp \
-    $$PWD/widgets/selectfolderwidget.cpp
+    $$PWD/widgets/selectfolderwidget.cpp \
+    $$PWD/widgets/templategriditem.cpp \
+    $$PWD/widgets/templategridwidget.cpp
 
 HEADERS += \
     $$PWD/application.h \
@@ -65,7 +67,9 @@ HEADERS += \
     $$PWD/utils/fileutils.h \
     $$PWD/utils/messageinstaller.h \
     $$PWD/utils/qtspdlogintegration.h \
-    $$PWD/widgets/selectfolderwidget.h
+    $$PWD/widgets/selectfolderwidget.h \
+    $$PWD/widgets/templategriditem.h \
+    $$PWD/widgets/templategridwidget.h
 
 FORMS += \
 
