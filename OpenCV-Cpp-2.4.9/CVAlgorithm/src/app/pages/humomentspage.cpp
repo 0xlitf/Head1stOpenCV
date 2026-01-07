@@ -253,10 +253,6 @@ void HuMomentsPage::createComponents() {
     // templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_templateGridWidget}.attachTo(templateResultGroupBox);
 
-    WidgetBase *w = new WidgetBase();
-    w->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-
     GroupBox *templateGroupBox = [=]() {
         GroupBox *folderGroupBox = new GroupBox("模板目录");
         // folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -294,7 +290,7 @@ void HuMomentsPage::createComponents() {
     resultLayout->addSpacing(5);
     resultLayout->addWidget(templateResultGroupBox, 2);
 
-    auto middlePart = Layouting::Column{w, resultLayout};
+    auto middlePart = Layouting::Column{resultLayout};
 
     auto leftPart = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
