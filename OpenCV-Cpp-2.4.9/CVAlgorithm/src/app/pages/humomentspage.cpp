@@ -1,7 +1,7 @@
 ﻿#include "humomentspage.h"
 #include "controls/groupbox.h"
 #include "controls/clickablewidget.h"
-#include "cutoutobject.h"
+#include "humomentsmatcher.h"
 #include "imageutils.h"
 #include "utils/fileutils.h"
 #include "widgets/imagegridwidget.h"
@@ -42,7 +42,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = imageFilePath;
 
             m_imageGridWidget->clearAllImages();
-            this->runCutoutAlgo(imageFilePath);
+            this->ruHuMomentsMatch(imageFilePath);
         });
         connect(roundWidget, &ClickableWidget::clicked, this, [=]() {
             qDebug() << "selectFileWidget->getSelectFile()" << m_selectFileWidget->getSelectFile();
@@ -50,7 +50,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = m_selectFileWidget->getSelectFile();
 
             m_imageGridWidget->clearAllImages();
-            this->runCutoutAlgo(m_selectFileWidget->getSelectFile());
+            this->ruHuMomentsMatch(m_selectFileWidget->getSelectFile());
         });
 
         Layouting::ColumnWithMargin{m_selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
@@ -84,7 +84,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = imageFilePath;
 
             m_imageGridWidget->clearAllImages();
-            this->runCutoutAlgo(imageFilePath);
+            this->ruHuMomentsMatch(imageFilePath);
         });
 
         connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
@@ -105,7 +105,7 @@ void HuMomentsPage::createComponents() {
 
             qDebug() << "fileList.size" << filesList;
 
-            CutOutObject cutout;
+            HuMomentsMatcher matcher;
 
             for (int i = 0; i < filesList.size(); ++i) {
                 QString filePath = filesList[i];
@@ -121,57 +121,6 @@ void HuMomentsPage::createComponents() {
 
                     cv::Mat eraseBlueBackground;
                     cv::Mat singleChannelZeroImage;
-
-                    cutout.setColorThreshold(m_areaMaxSpinBox->value());
-                    cutout.setBlueThreshold(m_areaMinSpinBox->value());
-
-                    std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat);
-
-                    // m_imageGridWidget->addImage("eraseBlueBackground",
-                    // eraseBlueBackground);
-                    // m_imageGridWidget->addImage("singleChannelZeroImage",
-                    // singleChannelZeroImage);
-
-                    std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
-
-                    cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
-                    cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);
-
-                    // m_imageGridWidget->addImage("mask", mask);
-                    // m_imageGridWidget->addImage("objsInfo", objsInfo);
-
-                    cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-                    cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
-                    // m_imageGridWidget->addImage("closeContour", closeContour);
-
-                    QString binarySavePath = filePath;
-                    binarySavePath.replace(folderPath, binaryFolder);
-                    FileUtils::makeFilePath(binarySavePath);
-                    cv::imwrite(binarySavePath.toStdString(), closeContour);
-
-
-                    cv::Mat colorObject = cutout.getObjectUnderMask(imageMat, closeContour);
-
-                    QString colorObjectSavePath = filePath;
-                    colorObjectSavePath.replace(folderPath, colorObjectFolder);
-                    FileUtils::makeFilePath(colorObjectSavePath);
-                    cv::imwrite(colorObjectSavePath.toStdString(), colorObject);
-
-
-                    std::vector<cv::Mat> boundings = cutout.getMultipleObjectsInBoundingRect(results);
-
-                    int i = 0;
-                    for (auto &mat : boundings) {
-                        // m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
-                        QString templateSavePath = filePath;
-                        templateSavePath.replace(folderPath, templateFolder);
-                        bool ok = FileUtils::makeFilePath(templateSavePath);
-
-                        cv::imwrite(templateSavePath.toStdString(), mat);
-                        ++i;
-
-                        break;
-                    }
                 }
             }
 
@@ -188,6 +137,8 @@ void HuMomentsPage::createComponents() {
 
     GroupBox *paramGroupBox = [=]() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
+        paramGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+        paramGroupBox->setFixedWidth(300);
         paramGroupBox->setFixedHeight(150);
 
         int areaMaxValue = 1000000;
@@ -198,10 +149,12 @@ void HuMomentsPage::createComponents() {
 
         auto areaMaxThresLayout = [=]() {
             QLabel *areaMaxLabel = new QLabel("面积上限");
+            areaMaxLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
             areaMaxLabel->setAlignment(Qt::AlignCenter);
 
             m_areaMaxSlider = new QSlider(Qt::Horizontal, this);
-            m_areaMaxSlider->setFixedSize(QSize(200, 25));
+            m_areaMaxSlider->setFixedHeight(25);
+            // m_areaMaxSlider->setFixedSize(QSize(200, 25));
 
             m_areaMaxSlider->setSingleStep(100);
             m_areaMaxSlider->setPageStep(100);
@@ -217,15 +170,17 @@ void HuMomentsPage::createComponents() {
 
             m_areaMaxSpinBox->setValue(areaMaxDefaultValue);
 
-            return Layouting::RowWithMargin{areaMaxLabel, Layouting::Space{5}, m_areaMaxSlider, Layouting::Space{5}, m_areaMaxSpinBox, Layouting::Stretch{}};
+            return Layouting::RowWithMargin{areaMaxLabel, Layouting::Space{5}, m_areaMaxSlider, Layouting::Space{5}, m_areaMaxSpinBox};
         }();
 
         auto areaMinThresLayout = [=]() {
             QLabel *areaMinLabel = new QLabel("面积下限");
+            areaMinLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
             areaMinLabel->setAlignment(Qt::AlignCenter);
 
             m_areaMinSlider = new QSlider(Qt::Horizontal, this);
-            m_areaMinSlider->setFixedSize(QSize(200, 25));
+            m_areaMinSlider->setFixedHeight(25);
+            // m_areaMinSlider->setFixedSize(QSize(200, 25));
 
             m_areaMinSlider->setSingleStep(100);
             m_areaMinSlider->setPageStep(100);
@@ -241,7 +196,7 @@ void HuMomentsPage::createComponents() {
 
             m_areaMinSpinBox->setValue(areaMinDefaultValue);
 
-            return Layouting::RowWithMargin{areaMinLabel, Layouting::Space{5}, m_areaMinSlider, Layouting::Space{5}, m_areaMinSpinBox, Layouting::Stretch{}};
+            return Layouting::RowWithMargin{areaMinLabel, Layouting::Space{5}, m_areaMinSlider, Layouting::Space{5}, m_areaMinSpinBox};
         }();
 
         connect(m_areaMaxSlider, &QSlider::valueChanged, m_areaMaxSpinBox, [=](int value) {
@@ -287,6 +242,7 @@ void HuMomentsPage::createComponents() {
     m_imageGridWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     GroupBox *imageResultGroupBox = new GroupBox("输入图片处理结果");
+    imageResultGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(imageResultGroupBox);
 
     m_templateGridWidget = new TemplateGridWidget;
@@ -294,10 +250,11 @@ void HuMomentsPage::createComponents() {
     m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     GroupBox *templateResultGroupBox = new GroupBox("模板匹配结果");
+    templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_templateGridWidget}.attachTo(templateResultGroupBox);
 
-    // WidgetBase *rightPart = new WidgetBase();
-    // rightPart->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    WidgetBase *w = new WidgetBase();
+    w->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
 
     GroupBox *templateGroupBox = [=]() {
@@ -330,14 +287,14 @@ void HuMomentsPage::createComponents() {
         return folderGroupBox;
     }();
 
-    auto rightPart = Layouting::Column{templateGroupBox};
+    auto rightPart = Layouting::Column{paramGroupBox, Layouting::Space{5}, templateGroupBox};
 
     QHBoxLayout* resultLayout = new QHBoxLayout;
-    resultLayout->addWidget(imageResultGroupBox, 1);
+    resultLayout->addWidget(templateResultGroupBox);
     resultLayout->addSpacing(5);
-    resultLayout->addWidget(templateResultGroupBox, 2);
+    resultLayout->addWidget(imageResultGroupBox);
 
-    auto middlePart = Layouting::Column{paramGroupBox, Layouting::Space{5}, resultLayout};
+    auto middlePart = Layouting::Column{w, resultLayout};
 
     auto leftPart = Layouting::Column{fileGroupBox, Layouting::Space{5}, folderGroupBox};
 
@@ -349,18 +306,21 @@ void HuMomentsPage::createConnections() {
         qDebug() << "paramChanged" << m_areaMaxSpinBox->value() << m_areaMinSpinBox->value() << m_currentProcessImageFile;
 
         // m_imageGridWidget->clearAllImages();
-        this->runCutoutAlgo(m_currentProcessImageFile);
+        this->ruHuMomentsMatch(m_currentProcessImageFile);
     });
 }
 
-void HuMomentsPage::runCutoutAlgo(const QString &filePath) {
+void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
     cv::Mat imageMat = cv::imread(filePath.toStdString());
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
         QString imageName = filePath;
+        m_templateGridWidget->addImage("1", imageMat);
+        m_templateGridWidget->addImage("2", imageMat);
+
         m_imageGridWidget->addImage("原图", imageMat);
 
-        CutOutObject cutout;
+        HuMomentsMatcher matcher;
 
         double minArea = 1000.0;
         double maxArea = 100000.0;
@@ -368,34 +328,25 @@ void HuMomentsPage::runCutoutAlgo(const QString &filePath) {
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;
 
-        cutout.setColorThreshold(m_areaMaxSpinBox->value());
-        cutout.setBlueThreshold(m_areaMinSpinBox->value());
+        // matcher.setColorThreshold(m_areaMaxSpinBox->value());
+        // matcher.setBlueThreshold(m_areaMinSpinBox->value());
 
-        std::tie(eraseBlueBackground, singleChannelZeroImage) = cutout.eraseBlueBackground(imageMat);
+        // std::tie(eraseBlueBackground, singleChannelZeroImage) = matcher.eraseBlueBackground(imageMat);
 
-        m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
-        m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
+        // m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
+        // m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
 
-        std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+        // std::vector<ObjectDetectionResult> results = matcher.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
 
-        cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
-        cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);
+        // cv::Mat mask = matcher.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
+        // cv::Mat objsInfo = matcher.drawObjectsInfo(results, singleChannelZeroImage);
 
-        m_imageGridWidget->addImage("mask", mask);
-        m_imageGridWidget->addImage("objsInfo", objsInfo);
+        // m_imageGridWidget->addImage("mask", mask);
+        // m_imageGridWidget->addImage("objsInfo", objsInfo);
 
-        cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-        cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
-        m_imageGridWidget->addImage("closeContour", closeContour);
-
-        // std::vector<cv::Mat> boundings =
-        // cutout.getMultipleObjectsInBoundingRect(results);
-
-        // int i = 0;
-        // for (auto &mat : boundings) {
-        //     m_imageGridWidget->addImage(QString("bounding %1").arg(i), mat);
-        //     ++i;
-        // }
+        // cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+        // cv::Mat closeContour = matcher.drawObjectsContour(results, whiteBackground);
+        // m_imageGridWidget->addImage("closeContour", closeContour);
     }
 }
 

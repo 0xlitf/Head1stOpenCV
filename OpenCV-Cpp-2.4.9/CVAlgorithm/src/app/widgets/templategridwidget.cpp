@@ -33,6 +33,7 @@ void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image) {
     }
 
     TemplateGridItem *newItem = new TemplateGridItem(name, image, m_containerWidget);
+    newItem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);
@@ -93,7 +94,7 @@ int TemplateGridWidget::calculateIdealItemWidth(int parentWidth) {
     int availableWidth = parentWidth - totalSpacing - 20;
     int idealWidth = availableWidth / m_maxColumns;
 
-    idealWidth = std::max(100, idealWidth);
+    idealWidth = std::max(120, idealWidth);
     return idealWidth;
 }
 
@@ -101,7 +102,7 @@ int TemplateGridWidget::calculateIdealItemHeight(int parentHeight) {
     int availableHeight = parentHeight - 30;
     int idealHeight = availableHeight / 2;
 
-    idealHeight = std::max(100, idealHeight);
+    idealHeight = std::max(120, idealHeight);
     return idealHeight;
 }
 

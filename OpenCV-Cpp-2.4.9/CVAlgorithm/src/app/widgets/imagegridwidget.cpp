@@ -5,6 +5,9 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
     : QScrollArea(parent)
     , m_containerWidget(new QWidget)
     , m_gridLayout(new QGridLayout(m_containerWidget)) {
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    m_containerWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
@@ -33,9 +36,11 @@ void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     }
 
     ImageGridItem *newItem = new ImageGridItem(name, image, m_containerWidget);
+
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);
+        qDebug() << "idealItemWidth" << idealItemWidth << ", idealItemHeight" << idealItemHeight;
     }
     m_imageItems[name] = newItem;
 
@@ -93,7 +98,7 @@ int ImageGridWidget::calculateIdealItemWidth(int parentWidth) {
     int availableWidth = parentWidth - totalSpacing - 20;
     int idealWidth = availableWidth / m_maxColumns;
 
-    idealWidth = std::max(100, idealWidth);
+    idealWidth = std::max(120, idealWidth);
     return idealWidth;
 }
 
@@ -101,7 +106,7 @@ int ImageGridWidget::calculateIdealItemHeight(int parentHeight) {
     int availableHeight = parentHeight - 30;
     int idealHeight = availableHeight / 2;
 
-    idealHeight = std::max(100, idealHeight);
+    idealHeight = std::max(120, idealHeight);
     return idealHeight;
 }
 

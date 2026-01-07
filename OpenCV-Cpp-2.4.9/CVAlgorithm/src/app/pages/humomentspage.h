@@ -7,6 +7,9 @@
 
 class HuMomentsPage : public WidgetBase {
     Q_OBJECT
+signals:
+    void paramChanged();
+
 public:
     explicit HuMomentsPage(QWidget *parent = nullptr);
     ~HuMomentsPage();
@@ -14,16 +17,13 @@ public:
     void createComponents();
     void createConnections();
 
-    void runCutoutAlgo(const QString &filePath);
-signals:
-    void paramChanged();
+    void ruHuMomentsMatch(const QString &filePath);
 
 private:
     void loadConfig();
     void saveConfig();
 
-    QString m_currentProcessImageFile{};
-
+private:
     class ImageGridWidget *m_imageGridWidget = nullptr;
     class TemplateGridWidget *m_templateGridWidget = nullptr;
 
@@ -37,9 +37,10 @@ private:
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
     class SelectFolderWidget *m_selectTemplateFolderWidget = nullptr;
 
-    class QSettings *m_settings;
-    QString m_configPath;
-signals:
+    class QSettings *m_settings = nullptr;
+
+    QString m_currentProcessImageFile{};
+    QString m_configPath{};
 };
 
 #endif // HUMOMENTSPAGE_H
