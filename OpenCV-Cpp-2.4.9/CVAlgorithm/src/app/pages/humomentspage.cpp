@@ -239,18 +239,18 @@ void HuMomentsPage::createComponents() {
 
     m_imageGridWidget = new ImageGridWidget;
     m_imageGridWidget->setMaxColumns(1);
-    m_imageGridWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    // m_imageGridWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     GroupBox *imageResultGroupBox = new GroupBox("输入图片处理结果");
-    imageResultGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    // imageResultGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(imageResultGroupBox);
 
     m_templateGridWidget = new TemplateGridWidget;
     m_templateGridWidget->setMaxColumns(2);
-    m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     GroupBox *templateResultGroupBox = new GroupBox("模板匹配结果");
-    templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_templateGridWidget}.attachTo(templateResultGroupBox);
 
     WidgetBase *w = new WidgetBase();
@@ -259,7 +259,7 @@ void HuMomentsPage::createComponents() {
 
     GroupBox *templateGroupBox = [=]() {
         GroupBox *folderGroupBox = new GroupBox("模板目录");
-        folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+        // folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         m_selectTemplateFolderWidget = new SelectFolderWidget();
         ImageListViewWidget *templateListViewWidget = new ImageListViewWidget();
@@ -290,9 +290,9 @@ void HuMomentsPage::createComponents() {
     auto rightPart = Layouting::Column{paramGroupBox, Layouting::Space{5}, templateGroupBox};
 
     QHBoxLayout* resultLayout = new QHBoxLayout;
-    resultLayout->addWidget(templateResultGroupBox);
+    resultLayout->addWidget(imageResultGroupBox, 1);
     resultLayout->addSpacing(5);
-    resultLayout->addWidget(imageResultGroupBox);
+    resultLayout->addWidget(templateResultGroupBox, 2);
 
     auto middlePart = Layouting::Column{w, resultLayout};
 

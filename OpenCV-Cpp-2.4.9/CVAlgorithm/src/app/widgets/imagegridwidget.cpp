@@ -5,8 +5,8 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
     : QScrollArea(parent)
     , m_containerWidget(new QWidget)
     , m_gridLayout(new QGridLayout(m_containerWidget)) {
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    m_containerWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // m_containerWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

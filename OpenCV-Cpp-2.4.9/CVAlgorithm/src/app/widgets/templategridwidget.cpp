@@ -33,7 +33,7 @@ void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image) {
     }
 
     TemplateGridItem *newItem = new TemplateGridItem(name, image, m_containerWidget);
-    newItem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // newItem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);

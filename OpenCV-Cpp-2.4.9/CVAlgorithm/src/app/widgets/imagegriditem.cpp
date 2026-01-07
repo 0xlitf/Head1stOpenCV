@@ -9,7 +9,7 @@ ImageGridItem::ImageGridItem(const QString &imageName, const cv::Mat &imageData,
     , m_imageData(imageData)
     , m_imageLabel(new QLabel)
     , m_infoLabel(new QLabel) {
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     m_resizeTimer->setSingleShot(true);
 
@@ -34,13 +34,13 @@ void ImageGridItem::setupUI() {
 
     // updatePixmap();
 
-    m_imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // m_imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
 
     QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4").arg(m_imageName).arg(m_imageData.cols).arg(m_imageData.rows).arg(m_imageData.channels());
 
-    m_infoLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // m_infoLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_infoLabel->setText(infoText);
     m_infoLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_infoLabel->setStyleSheet("font-size: 9pt; color: #666666;");

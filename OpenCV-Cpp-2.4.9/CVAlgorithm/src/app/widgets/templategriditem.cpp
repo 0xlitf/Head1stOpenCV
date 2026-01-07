@@ -34,7 +34,7 @@ void TemplateGridItem::setupUI() {
 
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
-    m_imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // m_imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4").arg(m_imageName).arg(m_imageData.cols).arg(m_imageData.rows).arg(m_imageData.channels());
     m_infoLabel->setText(infoText);
