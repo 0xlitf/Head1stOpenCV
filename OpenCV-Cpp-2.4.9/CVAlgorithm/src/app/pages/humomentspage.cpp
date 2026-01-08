@@ -111,13 +111,7 @@ void HuMomentsPage::createComponents() {
 
                 cv::Mat imageMat = cv::imread(filePath.toStdString());
                 if (!imageMat.empty()) {
-                    // m_imageGridWidget->addImage("origin image", imageMat);
 
-                    double minArea = 1000.0;
-                    double maxArea = 100000.0;
-
-                    cv::Mat eraseBlueBackground;
-                    cv::Mat singleChannelZeroImage;
                 }
             }
 
@@ -289,6 +283,11 @@ void HuMomentsPage::createComponents() {
 
             } else {
                 templateListViewWidget->loadImagesFromFolder(folderPath);
+
+                QStringList baseNameResult;
+                QStringList fullNameResult;
+                std::tie(baseNameResult, fullNameResult) = FileUtils::findDepth1Folder(folderPath);
+                matcher.setTemplateFolder(baseNameResult, fullNameResult);
             }
         });
         connect(templateListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
@@ -334,36 +333,11 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
         QString imageName = filePath;
+        m_imageGridWidget->addImage("origin image", imageMat);
+
         m_templateGridWidget->addImage("1", imageMat);
         m_templateGridWidget->addImage("2", imageMat);
 
-        m_imageGridWidget->addImage("origin image", imageMat);
-
-        double minArea = 1000.0;
-        double maxArea = 100000.0;
-
-        cv::Mat eraseBlueBackground;
-        cv::Mat singleChannelZeroImage;
-
-        // matcher.setColorThreshold(m_areaMaxSpinBox->value());
-        // matcher.setBlueThreshold(m_areaMinSpinBox->value());
-
-        // std::tie(eraseBlueBackground, singleChannelZeroImage) = matcher.eraseBlueBackground(imageMat);
-
-        // m_imageGridWidget->addImage("eraseBlueBackground", eraseBlueBackground);
-        // m_imageGridWidget->addImage("singleChannelZeroImage", singleChannelZeroImage);
-
-        // std::vector<ObjectDetectionResult> results = matcher.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
-
-        // cv::Mat mask = matcher.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
-        // cv::Mat objsInfo = matcher.drawObjectsInfo(results, singleChannelZeroImage);
-
-        // m_imageGridWidget->addImage("mask", mask);
-        // m_imageGridWidget->addImage("objsInfo", objsInfo);
-
-        // cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-        // cv::Mat closeContour = matcher.drawObjectsContour(results, whiteBackground);
-        // m_imageGridWidget->addImage("closeContour", closeContour);
     }
 }
 

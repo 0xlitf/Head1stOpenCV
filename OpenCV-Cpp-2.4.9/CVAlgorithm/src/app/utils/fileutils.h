@@ -27,7 +27,7 @@ public:
 
     static QStringList findAllImageFiles(const QString &directory, bool recursive = true);
 
-    static QStringList findDepth1Folder(const QString &directory);
+    static std::pair<QStringList, QStringList> findDepth1Folder(const QString &directory);
 
     static QString getRelativePath(const QString &absolutePath, const QString &basePath) {
         QDir baseDir(basePath);

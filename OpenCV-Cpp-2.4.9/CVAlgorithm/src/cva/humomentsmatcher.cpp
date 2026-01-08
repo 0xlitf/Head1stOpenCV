@@ -301,22 +301,6 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs,
             this->addTemplate(desc, filename);
         }
     }
-
-    // auto folderNames = FileUtils::findDepth1Folder(folderNames);
-
-    // emit sendLog(QString("setTemplateFolder: %1\ntemplate folders count: "
-    //                      "%2\ntemplate images count: %3")
-    //                  .arg(folderNames)
-    //                  .arg(folderNames.size())
-    //                  .arg(m_huMomentsList.size()));
-
-    return;
-    qDebug() << "m_humomentsList:";
-    for (int i = 0; i < m_huMomentsList.size(); ++i) {
-        auto tuple = m_huMomentsList[i];
-        qDebug() << i << ", key, value.size: " << std::get<0>(tuple)
-                 << std::get<2>(tuple);
-    }
 }
 
 QList<MatchResult> HuMomentsMatcher::quickMatchImage(const QString &fileName) {

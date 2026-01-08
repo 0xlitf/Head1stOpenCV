@@ -142,21 +142,29 @@ QStringList FileUtils::findAllImageFiles(const QString &directory, bool recursiv
     return imageFiles;
 }
 
-QStringList FileUtils::findDepth1Folder(const QString &directory) {
-    QStringList result;
+std::pair<QStringList, QStringList> FileUtils::findDepth1Folder(const QString &directory) {
+    QStringList baseNameResult;
+    QStringList fullNameResult;
     QDir dir(directory);
 
     if (!dir.exists()) {
         qDebug() << "目录不存在:" << directory;
-        return result;
+        return std::make_pair(baseNameResult, fullNameResult);
     }
 
     // 设置过滤器：只获取目录，排除 . 和 ..
     dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 
-    result = dir.entryList();
+    QFileInfoList infoList = dir.entryInfoList();
 
-    return result;
+    // 提取每个文件夹的绝对路径
+    for (const QFileInfo &info : infoList) {
+        fullNameResult << info.absoluteFilePath();
+    }
+
+    baseNameResult = dir.entryList();
+
+    return std::make_pair(baseNameResult, fullNameResult);
 }
 
 QString FileUtils::getImageFileFilter() {
