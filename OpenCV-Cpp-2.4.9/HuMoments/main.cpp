@@ -236,7 +236,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
         qDebug() << "closeContour" << closeContour.channels();
         auto binary = matcher.binaryProcess(closeContour);
         cv::imshow(QString("binary channels:%1").arg(binary.channels()).toStdString(), binary);
-        auto matchResults = matcher.quickMatchMat(closeContour);
+        auto matchResults = matcher.quickMatchMat(binary);
         qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;
