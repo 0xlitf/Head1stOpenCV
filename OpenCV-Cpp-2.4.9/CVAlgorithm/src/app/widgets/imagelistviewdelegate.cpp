@@ -39,16 +39,16 @@ void ImageListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
     thumbRect.setSize(thumbnailSize);
 
     // 绘制缩略图背景边框
-    painter->setPen(QColor(0xcc, 0xcc, 0xcc));
-    painter->setBrush(QColor(0xf0, 0xf0, 0xf0));
-    painter->drawRect(thumbRect);
+    // painter->setPen(QColor(0xcc, 0xcc, 0xcc));
+    // painter->setBrush(QColor(0xf0, 0xf0, 0xf0));
+    // painter->drawRect(thumbRect);
 
     // 生成并绘制缩略图
     QPixmap thumbnail = generateThumbnail(filePath, thumbnailSize);
     if (!thumbnail.isNull()) {
         // 计算居中显示的矩形
-        QPixmap scaledThumb = thumbnail.scaled(thumbRect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QPoint centerPoint = thumbRect.center() - QPoint(scaledThumb.width() / 2, scaledThumb.height() / 2);
+        QPixmap scaledThumb = thumbnail.scaled(thumbRect.size() - QSize(4, 4), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPoint centerPoint = thumbRect.center() - QPoint(scaledThumb.width() / 2 - 1, scaledThumb.height() / 2 - 1);
         painter->drawPixmap(centerPoint, scaledThumb);
     } else {
         // 绘制错误提示
