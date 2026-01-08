@@ -32,11 +32,13 @@ void TemplateGridItem::setupUI() {
 
     // updatePixmap();
 
+    m_imageLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_imageLabel->setAlignment(Qt::AlignCenter);
     m_imageLabel->setStyleSheet("border: 1px solid #cccccc;");
-    // m_imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4").arg(m_imageName).arg(m_imageData.cols).arg(m_imageData.rows).arg(m_imageData.channels());
+
+    m_infoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     m_infoLabel->setText(infoText);
     m_infoLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_infoLabel->setStyleSheet("font-size: 9pt; color: #666666;");
