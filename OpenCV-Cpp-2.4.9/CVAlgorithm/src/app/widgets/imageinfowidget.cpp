@@ -24,7 +24,7 @@ ImageInfoWidget::ImageInfoWidget(QWidget *parent)
 void ImageInfoWidget::setupUI() {
     m_thumbnailLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_thumbnailLabel->setFixedSize(80, 60);
-    m_thumbnailLabel->setStyleSheet("border: 1px solid #cccccc; background-color: #f0f0f0;");
+    // m_thumbnailLabel->setStyleSheet("border: 1px solid #cccccc; background-color: #f0f0f0;");
     m_thumbnailLabel->setAlignment(Qt::AlignCenter);
     m_thumbnailLabel->setScaledContents(false);
 
