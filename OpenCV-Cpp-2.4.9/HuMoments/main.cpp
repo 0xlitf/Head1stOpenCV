@@ -33,6 +33,8 @@ int testHuMoments(int argc, char *argv[]) {
     } else {
         QString sceneImageStr = QString(PROJECT_DIR) + "/input/chanel1/14-30-00-395.png";
 
+        qDebug() << "sceneImageStr" << sceneImageStr;
+
         HuMomentsMatcher matcher;
         matcher.setWhiteThreshold(240);
         matcher.setScoreThreshold(0.1);
@@ -86,7 +88,7 @@ int testHuMoments(int argc, char *argv[]) {
 
         QElapsedTimer timer;
         timer.start();
-        auto results = matcher.matchMat(imageMat);
+        auto results = matcher.quickMatchMat(imageMat);
         qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;
@@ -156,8 +158,9 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
 
     HuMomentsMatcher matcher;
-    matcher.setWhiteThreshold(240);
     matcher.setScoreThreshold(0.1);
+    matcher.setWhiteThreshold(240);
+    matcher.setAreaThreshold(0.2);
 
     QStringList templateDescStr;
     templateDescStr << "1"
@@ -228,7 +231,12 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
         QElapsedTimer timer;
         timer.start();
-        auto matchResults = matcher.matchMat(closeContour);
+
+        // 输入黑白图，接口会自动进行二值化
+        qDebug() << "closeContour" << closeContour.channels();
+        auto binary = matcher.binaryProcess(closeContour);
+        cv::imshow(QString("binary channels:%1").arg(binary.channels()).toStdString(), binary);
+        auto matchResults = matcher.quickMatchMat(closeContour);
         qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;

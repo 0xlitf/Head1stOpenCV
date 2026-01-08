@@ -115,9 +115,6 @@ void CutoutObjectPage::createComponents() {
                 if (!imageMat.empty()) {
                     // m_imageGridWidget->addImage("origin image", imageMat);
 
-                    double minArea = 1000.0;
-                    double maxArea = 100000.0;
-
                     cv::Mat eraseBlueBackground;
                     cv::Mat singleChannelZeroImage;
 
@@ -131,7 +128,7 @@ void CutoutObjectPage::createComponents() {
                     // m_imageGridWidget->addImage("singleChannelZeroImage",
                     // singleChannelZeroImage);
 
-                    std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, minArea, maxArea);
+                    std::vector<ObjectDetectionResult> results = cutout.extractMultipleObjects(singleChannelZeroImage, m_areaMinSpinBox->value(), m_areaMaxSpinBox->value());
 
                     cv::Mat mask = cutout.getMultipleObjectsInOriginalSize(results, eraseBlueBackground);
                     cv::Mat objsInfo = cutout.drawObjectsInfo(results, singleChannelZeroImage);

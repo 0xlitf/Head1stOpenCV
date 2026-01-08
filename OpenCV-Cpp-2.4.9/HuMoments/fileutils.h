@@ -19,25 +19,30 @@ public:
 
     static QString selectFolderDialog(QWidget *parent = nullptr);
 
-    static QString selectFileDialog(const QString &filter = "",
-                                    QWidget *parent = nullptr);
+    static QString selectFileDialog(const QString &filter = getImageFileFilter(), QWidget *parent = nullptr);
 
-    static QPair<int, int> recursiveCopyFolder(const QString &sourceDir,
-                                               const QString &destinationDir);
+    static QPair<int, int> recursiveCopyFolder(const QString &sourceDir, const QString &destinationDir);
 
-    static QMap<QString, QString>
-    gatherCopyFilesTo(const QString &sourceDir, const QString &destinationDir);
+    static QMap<QString, QString> gatherCopyFilesTo(const QString &sourceDir, const QString &destinationDir);
 
-    static QStringList findAllImageFiles(const QString &directory);
+    static QStringList findAllImageFiles(const QString &directory, bool recursive = true);
 
-    static QStringList findDepth1Folder(const QString &directory);
+    static std::pair<QStringList, QStringList> findDepth1Folder(const QString &directory);
 
-    static QString getRelativePath(const QString &absolutePath,
-                                   const QString &basePath);
+    static QString getRelativePath(const QString &absolutePath, const QString &basePath) {
+        QDir baseDir(basePath);
+        return baseDir.relativeFilePath(absolutePath);
+    }
 
-    static QString getFolderBaseName(const QString &fileName);
+    static QString getImageFileFilter();
 
-signals:
+    static void showInFolder(const QString &filePath);
+
+    static bool makeFilePath(const QString &path);
+
+    static bool makeFolderPath(const QString &path);
+
+    static bool removeFolder(const QString &folderPath);
 };
 
 #endif // FILEUTILS_H

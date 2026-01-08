@@ -1,11 +1,13 @@
 ﻿#include "fileutils.h"
 
+#include <QDesktopServices>
+#include <QProcess>
+
 FileUtils::FileUtils(QObject *parent) : QObject{parent} {}
 
 QString FileUtils::selectFolderDialog(QWidget *parent) {
-    QString folder = QFileDialog::getExistingDirectory(
-        parent, "选择文件夹", QString(PROJECT_DIR),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getExistingDirectory(parent, "选择文件夹", defaultWorkDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
@@ -17,8 +19,8 @@ QString FileUtils::selectFolderDialog(QWidget *parent) {
 }
 
 QString FileUtils::selectFileDialog(const QString &filter, QWidget *parent) {
-    QString folder =
-        QFileDialog::getOpenFileName(parent, "选择文件夹", QString(PROJECT_DIR), filter);
+    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getOpenFileName(parent, "选择文件夹", defaultWorkDir, filter);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
@@ -112,7 +114,7 @@ FileUtils::gatherCopyFilesTo(const QString &sourceDir,
     return map;
 }
 
-QStringList FileUtils::findAllImageFiles(const QString &directory) {
+QStringList FileUtils::findAllImageFiles(const QString &directory, bool recursive) {
     QStringList imageFiles;
     QDir dir(directory);
 
@@ -130,46 +132,108 @@ QStringList FileUtils::findAllImageFiles(const QString &directory) {
         imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
     }
 
-    QStringList subDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    foreach (const QString &subDir, subDirs) {
-        imageFiles.append(findAllImageFiles(dir.absoluteFilePath(subDir)));
+    if (recursive) {
+        QStringList subDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        foreach (const QString &subDir, subDirs) {
+            imageFiles.append(findAllImageFiles(dir.absoluteFilePath(subDir)));
+        }
     }
 
     return imageFiles;
 }
 
-QStringList FileUtils::findDepth1Folder(const QString &directory) {
-    QStringList result;
+std::pair<QStringList, QStringList> FileUtils::findDepth1Folder(const QString &directory) {
+    QStringList baseNameResult;
+    QStringList fullNameResult;
     QDir dir(directory);
 
     if (!dir.exists()) {
         qDebug() << "目录不存在:" << directory;
-        return result;
+        return std::make_pair(baseNameResult, fullNameResult);
     }
 
+    // 设置过滤器：只获取目录，排除 . 和 ..
     dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 
-    result = dir.entryList();
+    QFileInfoList infoList = dir.entryInfoList();
 
-    return result;
-}
-
-QString FileUtils::getRelativePath(const QString &absolutePath,
-                                   const QString &basePath) {
-    QDir baseDir(basePath);
-    return baseDir.relativeFilePath(absolutePath);
-}
-
-QString FileUtils::getFolderBaseName(const QString &fileName) {
-    QFileInfo fileInfo(fileName);
-
-    if (!fileInfo.exists()) {
-        qDebug() << "文件不存在:" << fileName;
-        return QString();
+    // 提取每个文件夹的绝对路径
+    for (const QFileInfo &info : infoList) {
+        fullNameResult << info.absoluteFilePath();
     }
 
-    QString dirPath = fileInfo.absolutePath();
+    baseNameResult = dir.entryList();
 
-    QDir dir(dirPath);
-    return dir.dirName();
+    return std::make_pair(baseNameResult, fullNameResult);
+}
+
+QString FileUtils::getImageFileFilter() {
+    QList<QByteArray> formats = QImageReader::supportedImageFormats();
+
+    QStringList filterList;
+
+    for (const QByteArray &format : formats) {
+        filterList.append(QString("*.%1").arg(QString(format)));
+    }
+
+    QString filter = QString("Images (%1)").arg(filterList.join(" "));
+
+    filter += ";;All Files (*)";
+
+    return filter;
+}
+
+void FileUtils::showInFolder(const QString &filePath) {
+    QFileInfo info(filePath);
+    if (!info.exists()) {
+        return;
+    }
+
+#if defined(Q_OS_WIN)
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(info.absoluteFilePath());
+    QProcess::startDetached("explorer", args);
+#elif defined(Q_OS_MAC)
+    QStringList args;
+    args << "-R" << info.absoluteFilePath();
+    QProcess::startDetached("open", args);
+#else
+    // Linux 或其他类Unix系统
+    QDesktopServices::openUrl(QUrl::fromLocalFile(info.absolutePath()));
+#endif
+}
+
+bool FileUtils::makeFilePath(const QString &path) {
+    QFileInfo fileInfo(path);
+
+    QDir dir(fileInfo.absolutePath());
+    if (!dir.exists()) {
+        return dir.mkpath(".");
+    }
+    return false;
+}
+
+bool FileUtils::makeFolderPath(const QString &path) {
+    QDir dir(path);
+    if (!dir.exists()) {
+        return dir.mkpath(".");
+    }
+    return false;
+}
+
+bool FileUtils::removeFolder(const QString &folderPath) {
+    QDir dir(folderPath);
+
+    if (!dir.exists()) {
+        qDebug() << "文件夹不存在，无需删除:" << folderPath;
+        return true;
+    }
+
+    if (dir.removeRecursively()) {
+        qDebug() << "文件夹删除成功:" << folderPath;
+        return true;
+    } else {
+        qDebug() << "错误：文件夹删除失败:" << folderPath;
+        return false;
+    }
 }

@@ -70,6 +70,8 @@ public:
                                               bool isTemplate);
 
 public:
+    cv::Mat binaryProcess(cv::Mat inputImage);
+
     void addTemplateIntoMap(const QString &desc, const QString &fileName,
                             const QString &huStr, std::vector<cv::Point> contour);
 

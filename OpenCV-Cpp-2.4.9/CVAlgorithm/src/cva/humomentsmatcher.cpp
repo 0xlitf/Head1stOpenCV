@@ -326,11 +326,15 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
     QElapsedTimer timer;
     timer.start();
 
+    cv::imshow("sceneImg", sceneImg);
+
     // 1. 场景图像预处理
     cv::Mat grayScene, thrScene;
     cv::cvtColor(sceneImg, grayScene, cv::COLOR_BGR2GRAY);
     cv::threshold(grayScene, thrScene, m_whiteThreshold, 255,
                   cv::THRESH_BINARY_INV);
+
+    cv::imshow("grayScene", grayScene);
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contoursInScene;
@@ -541,4 +545,12 @@ void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
     // 绘制文本
     cv::putText(image, text, cv::Point(position.x, position.y),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+}
+
+cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
+    cv::Mat grayScene, thrScene;
+    cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
+    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
+
+    return grayScene;
 }
