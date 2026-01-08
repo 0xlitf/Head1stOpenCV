@@ -247,7 +247,7 @@ void MainWindow::onRunMatching() {
 
     m_logTextEdit->append("--- 开始匹配 ---");
 
-    auto results = m_matcher.matchImage(m_sceneFileName);
+    auto results = m_matcher.quickMatchImage(m_sceneFileName);
     qDebug() << "m_matcher.matchImage result" << results.size();
 
     int i = 0;

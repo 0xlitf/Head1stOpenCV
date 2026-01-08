@@ -252,7 +252,10 @@ void CutoutObjectPage::createComponents() {
             return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, m_blueSpinBox, Layouting::Stretch{}};
         }();
 
-        Layouting::ColumnWithMargin{colorThresLayout, blueThresLayout}.attachTo(paramGroupBox);
+        Layouting::RowWithMargin{
+            Layouting::ColumnWithMargin{colorThresLayout, blueThresLayout},
+            Layouting::Stretch{}}
+            .attachTo(paramGroupBox);
 
         return paramGroupBox;
     }();

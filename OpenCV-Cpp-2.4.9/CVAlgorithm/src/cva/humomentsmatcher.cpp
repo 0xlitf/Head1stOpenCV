@@ -319,7 +319,7 @@ void HuMomentsMatcher::setTemplateFolder(const QStringList &descStrs,
     }
 }
 
-QList<MatchResult> HuMomentsMatcher::matchImage(const QString &fileName) {
+QList<MatchResult> HuMomentsMatcher::quickMatchImage(const QString &fileName) {
     QList<MatchResult> tuple;
 
     if (fileName.isEmpty()) {
@@ -335,10 +335,10 @@ QList<MatchResult> HuMomentsMatcher::matchImage(const QString &fileName) {
     if (imageMat.empty())
         return tuple;
 
-    return this->matchMat(imageMat);
+    return this->quickMatchMat(imageMat);
 }
 
-QList<MatchResult> HuMomentsMatcher::matchMat(cv::Mat sceneImg) {
+QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
     QElapsedTimer timer;
     timer.start();
 

@@ -30,6 +30,12 @@ private:
     class QSpinBox *m_colorSpinBox = nullptr;
     class QSpinBox *m_blueSpinBox = nullptr;
 
+    class QSpinBox *m_areaMaxSpinBox = nullptr;
+    class QSpinBox *m_areaMinSpinBox = nullptr;
+
+    class QSlider *m_areaMaxSlider = nullptr;
+    class QSlider *m_areaMinSlider = nullptr;
+
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
 

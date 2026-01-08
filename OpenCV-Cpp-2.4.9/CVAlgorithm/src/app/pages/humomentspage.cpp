@@ -156,8 +156,8 @@ void HuMomentsPage::createComponents() {
             m_areaMaxSlider->setFixedHeight(25);
             // m_areaMaxSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMaxSlider->setSingleStep(100);
-            m_areaMaxSlider->setPageStep(100);
+            m_areaMaxSlider->setSingleStep(1000);
+            m_areaMaxSlider->setPageStep(1000);
             m_areaMaxSlider->setRange(1000, areaMaxValue);
 
             m_areaMaxSlider->setTickPosition(QSlider::NoTicks);
@@ -166,7 +166,7 @@ void HuMomentsPage::createComponents() {
             m_areaMaxSpinBox = new QSpinBox();
             m_areaMaxSpinBox->setRange(1000, areaMaxValue);
             m_areaMaxSpinBox->setFixedSize(QSize(100, 30));
-            m_areaMaxSpinBox->setSingleStep(100);
+            m_areaMaxSpinBox->setSingleStep(1000);
 
             m_areaMaxSpinBox->setValue(areaMaxDefaultValue);
 
@@ -182,8 +182,8 @@ void HuMomentsPage::createComponents() {
             m_areaMinSlider->setFixedHeight(25);
             // m_areaMinSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMinSlider->setSingleStep(100);
-            m_areaMinSlider->setPageStep(100);
+            m_areaMinSlider->setSingleStep(1000);
+            m_areaMinSlider->setPageStep(1000);
             m_areaMinSlider->setRange(1000, areaMaxValue);
 
             m_areaMinSlider->setTickPosition(QSlider::NoTicks);
@@ -192,7 +192,7 @@ void HuMomentsPage::createComponents() {
             m_areaMinSpinBox = new QSpinBox(this);
             m_areaMinSpinBox->setRange(1000, areaMaxValue);
             m_areaMinSpinBox->setFixedSize(QSize(100, 30));
-            m_areaMinSpinBox->setSingleStep(100);
+            m_areaMinSpinBox->setSingleStep(1000);
 
             m_areaMinSpinBox->setValue(areaMinDefaultValue);
 
@@ -200,9 +200,6 @@ void HuMomentsPage::createComponents() {
         }();
 
         connect(m_areaMaxSlider, &QSlider::valueChanged, m_areaMaxSpinBox, [=](int value) {
-            // if (value < m_areaMinSlider->value()) {
-            //     m_areaMinSlider->setValue(value);
-            // }
             m_areaMinSlider->setMaximum(value);
             m_areaMinSpinBox->setMaximum(value);
 

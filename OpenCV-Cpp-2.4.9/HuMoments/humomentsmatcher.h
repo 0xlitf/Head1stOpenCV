@@ -56,7 +56,7 @@ public:
         return m_huMomentsList.size();
     }
 
-    QList<MatchResult> matchImage(const QString &fileName);
+    QList<MatchResult> quickMatchImage(const QString &fileName);
 
     QList<MatchResult> matchMat(cv::Mat sceneImg);
 

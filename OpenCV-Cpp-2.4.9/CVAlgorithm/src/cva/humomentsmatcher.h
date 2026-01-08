@@ -57,9 +57,13 @@ public:
         return m_huMomentsList.size();
     }
 
-    QList<MatchResult> matchImage(const QString &fileName);
+    QList<MatchResult> quickMatchImage(const QString &fileName);
 
-    QList<MatchResult> matchMat(cv::Mat sceneImg);
+    QList<MatchResult> quickMatchMat(cv::Mat sceneImg);
+
+    QList<MatchResult> fullMatchImage(const QString &fileName);
+
+    QList<MatchResult> fullMatchMat(cv::Mat sceneImg);
 
     // 辅助函数：获取最大的轮廓
     std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
