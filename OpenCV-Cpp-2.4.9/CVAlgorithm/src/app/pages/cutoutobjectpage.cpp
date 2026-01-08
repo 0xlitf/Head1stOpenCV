@@ -388,8 +388,8 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
 
         CutOutObject cutout;
 
-        double minArea = 1000.0;
-        double maxArea = 100000.0;
+        double minArea = m_areaMinSpinBox->value();
+        double maxArea = m_areaMaxSpinBox->value();
 
         cv::Mat eraseBlueBackground;
         cv::Mat singleChannelZeroImage;
