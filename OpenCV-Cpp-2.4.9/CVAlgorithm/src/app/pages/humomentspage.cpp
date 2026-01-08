@@ -114,7 +114,7 @@ void HuMomentsPage::createComponents() {
 
                 cv::Mat imageMat = cv::imread(filePath.toStdString());
                 if (!imageMat.empty()) {
-                    // m_imageGridWidget->addImage("原图", imageMat);
+                    // m_imageGridWidget->addImage("origin image", imageMat);
 
                     double minArea = 1000.0;
                     double maxArea = 100000.0;
@@ -156,15 +156,17 @@ void HuMomentsPage::createComponents() {
             m_areaMaxSlider->setFixedHeight(25);
             // m_areaMaxSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMaxSlider->setSingleStep(1000);
-            m_areaMaxSlider->setPageStep(1000);
-            m_areaMaxSlider->setRange(1000, areaMaxValue);
+            m_areaMaxSlider->setSingleStep(1);
+            m_areaMaxSlider->setPageStep(1);
+            m_areaMaxSlider->setRange(areaMinValue, areaMaxValue);
 
             m_areaMaxSlider->setTickPosition(QSlider::NoTicks);
             m_areaMaxSlider->setTickInterval(50);
 
+            m_areaMaxSlider->setValue(areaMaxDefaultValue);
+
             m_areaMaxSpinBox = new QSpinBox();
-            m_areaMaxSpinBox->setRange(1000, areaMaxValue);
+            m_areaMaxSpinBox->setRange(areaMinValue, areaMaxValue);
             m_areaMaxSpinBox->setFixedSize(QSize(100, 30));
             m_areaMaxSpinBox->setSingleStep(1000);
 
@@ -182,15 +184,17 @@ void HuMomentsPage::createComponents() {
             m_areaMinSlider->setFixedHeight(25);
             // m_areaMinSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMinSlider->setSingleStep(1000);
-            m_areaMinSlider->setPageStep(1000);
-            m_areaMinSlider->setRange(1000, areaMaxValue);
+            m_areaMinSlider->setSingleStep(1);
+            m_areaMinSlider->setPageStep(1);
+            m_areaMinSlider->setRange(areaMinValue, areaMaxValue);
 
             m_areaMinSlider->setTickPosition(QSlider::NoTicks);
             m_areaMinSlider->setTickInterval(50);
 
+            m_areaMinSlider->setValue(areaMinDefaultValue);
+
             m_areaMinSpinBox = new QSpinBox(this);
-            m_areaMinSpinBox->setRange(1000, areaMaxValue);
+            m_areaMinSpinBox->setRange(areaMinValue, areaMaxValue);
             m_areaMinSpinBox->setFixedSize(QSize(100, 30));
             m_areaMinSpinBox->setSingleStep(1000);
 
@@ -199,30 +203,30 @@ void HuMomentsPage::createComponents() {
             return Layouting::RowWithMargin{areaMinLabel, Layouting::Space{5}, m_areaMinSlider, Layouting::Space{5}, m_areaMinSpinBox};
         }();
 
-        connect(m_areaMaxSlider, &QSlider::valueChanged, m_areaMaxSpinBox, [=](int value) {
-            m_areaMinSlider->setMaximum(value);
-            m_areaMinSpinBox->setMaximum(value);
+        connect(m_areaMaxSlider, &QSlider::valueChanged, this, [=](int value) {
+            // m_areaMinSlider->setMaximum(value);
+            // m_areaMinSpinBox->setMaximum(value);
 
             m_areaMaxSpinBox->setValue(value);
         });
-        connect(m_areaMaxSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), m_areaMaxSlider, [=](int value) {
-            m_areaMinSlider->setMaximum(value);
-            m_areaMinSpinBox->setMaximum(value);
+        connect(m_areaMaxSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
+            // m_areaMinSlider->setMaximum(value);
+            // m_areaMinSpinBox->setMaximum(value);
 
             m_areaMaxSlider->setValue(value);
 
             emit this->paramChanged();
         });
 
-        connect(m_areaMinSlider, &QSlider::valueChanged, m_areaMinSpinBox, [=](int value) {
-            m_areaMaxSlider->setMinimum(value);
-            m_areaMaxSpinBox->setMinimum(value);
+        connect(m_areaMinSlider, &QSlider::valueChanged, this, [=](int value) {
+            // m_areaMaxSlider->setMinimum(value);
+            // m_areaMaxSpinBox->setMinimum(value);
 
             m_areaMinSpinBox->setValue(value);
         });
-        connect(m_areaMinSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), m_areaMinSlider, [=](int value) {
-            m_areaMaxSlider->setMinimum(value);
-            m_areaMaxSpinBox->setMinimum(value);
+        connect(m_areaMinSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
+            // m_areaMaxSlider->setMinimum(value);
+            // m_areaMaxSpinBox->setMinimum(value);
 
             m_areaMinSlider->setValue(value);
 
@@ -311,7 +315,7 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
         m_templateGridWidget->addImage("1", imageMat);
         m_templateGridWidget->addImage("2", imageMat);
 
-        m_imageGridWidget->addImage("原图", imageMat);
+        m_imageGridWidget->addImage("origin image", imageMat);
 
         HuMomentsMatcher matcher;
 

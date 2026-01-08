@@ -113,7 +113,7 @@ void CutoutObjectPage::createComponents() {
 
                 cv::Mat imageMat = cv::imread(filePath.toStdString());
                 if (!imageMat.empty()) {
-                    // m_imageGridWidget->addImage("原图", imageMat);
+                    // m_imageGridWidget->addImage("origin image", imageMat);
 
                     double minArea = 1000.0;
                     double maxArea = 100000.0;
@@ -252,8 +252,101 @@ void CutoutObjectPage::createComponents() {
             return Layouting::RowWithMargin{blueLabel, Layouting::Space{5}, blueSlider, Layouting::Space{5}, m_blueSpinBox, Layouting::Stretch{}};
         }();
 
+        int areaMaxValue = 1000000;
+        int areaMinValue = 1000;
+
+        int areaMaxDefaultValue = 100000;
+        int areaMinDefaultValue = 2000;
+
+        auto areaMaxThresLayout = [=]() {
+            QLabel *areaMaxLabel = new QLabel("面积上限");
+            areaMaxLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+            areaMaxLabel->setAlignment(Qt::AlignCenter);
+
+            m_areaMaxSlider = new QSlider(Qt::Horizontal, this);
+            m_areaMaxSlider->setFixedHeight(25);
+            // m_areaMaxSlider->setFixedSize(QSize(200, 25));
+
+            m_areaMaxSlider->setSingleStep(1);
+            m_areaMaxSlider->setPageStep(1);
+            m_areaMaxSlider->setRange(areaMinValue, areaMaxValue);
+
+            m_areaMaxSlider->setTickPosition(QSlider::NoTicks);
+            m_areaMaxSlider->setTickInterval(50);
+
+            m_areaMaxSlider->setValue(areaMaxDefaultValue);
+
+            m_areaMaxSpinBox = new QSpinBox();
+            m_areaMaxSpinBox->setRange(areaMinValue, areaMaxValue);
+            m_areaMaxSpinBox->setFixedSize(QSize(100, 30));
+            m_areaMaxSpinBox->setSingleStep(1000);
+
+            m_areaMaxSpinBox->setValue(areaMaxDefaultValue);
+
+            return Layouting::RowWithMargin{areaMaxLabel, Layouting::Space{5}, m_areaMaxSlider, Layouting::Space{5}, m_areaMaxSpinBox};
+        }();
+
+        auto areaMinThresLayout = [=]() {
+            QLabel *areaMinLabel = new QLabel("面积下限");
+            areaMinLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+            areaMinLabel->setAlignment(Qt::AlignCenter);
+
+            m_areaMinSlider = new QSlider(Qt::Horizontal, this);
+            m_areaMinSlider->setFixedHeight(25);
+            // m_areaMinSlider->setFixedSize(QSize(200, 25));
+
+            m_areaMinSlider->setSingleStep(1);
+            m_areaMinSlider->setPageStep(1);
+            m_areaMinSlider->setRange(areaMinValue, areaMaxValue);
+
+            m_areaMinSlider->setTickPosition(QSlider::NoTicks);
+            m_areaMinSlider->setTickInterval(50);
+
+            m_areaMinSlider->setValue(areaMinDefaultValue);
+
+            m_areaMinSpinBox = new QSpinBox(this);
+            m_areaMinSpinBox->setRange(areaMinValue, areaMaxValue);
+            m_areaMinSpinBox->setFixedSize(QSize(100, 30));
+            m_areaMinSpinBox->setSingleStep(1000);
+
+            m_areaMinSpinBox->setValue(areaMinDefaultValue);
+
+            return Layouting::RowWithMargin{areaMinLabel, Layouting::Space{5}, m_areaMinSlider, Layouting::Space{5}, m_areaMinSpinBox};
+        }();
+
+        connect(m_areaMaxSlider, &QSlider::valueChanged, this, [=](int value) {
+            // m_areaMinSlider->setMaximum(value);
+            // m_areaMinSpinBox->setMaximum(value);
+
+            m_areaMaxSpinBox->setValue(value);
+        });
+        connect(m_areaMaxSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
+            // m_areaMinSlider->setMaximum(value);
+            // m_areaMinSpinBox->setMaximum(value);
+
+            m_areaMaxSlider->setValue(value);
+
+            emit this->paramChanged();
+        });
+
+        connect(m_areaMinSlider, &QSlider::valueChanged, this, [=](int value) {
+            // m_areaMaxSlider->setMinimum(value);
+            // m_areaMaxSpinBox->setMinimum(value);
+
+            m_areaMinSpinBox->setValue(value);
+        });
+        connect(m_areaMinSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
+            // m_areaMaxSlider->setMinimum(value);
+            // m_areaMaxSpinBox->setMinimum(value);
+
+            m_areaMinSlider->setValue(value);
+
+            emit this->paramChanged();
+        });
+
         Layouting::RowWithMargin{
             Layouting::ColumnWithMargin{colorThresLayout, blueThresLayout},
+            Layouting::ColumnWithMargin{areaMaxThresLayout, areaMinThresLayout},
             Layouting::Stretch{}}
             .attachTo(paramGroupBox);
 
@@ -291,7 +384,7 @@ void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
         QString imageName = filePath;
-        m_imageGridWidget->addImage("原图", imageMat);
+        m_imageGridWidget->addImage("origin image", imageMat);
 
         CutOutObject cutout;
 
