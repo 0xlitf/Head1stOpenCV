@@ -1,7 +1,6 @@
 ﻿#include "humomentspage.h"
 #include "controls/groupbox.h"
 #include "controls/clickablewidget.h"
-#include "humomentsmatcher.h"
 #include "imageutils.h"
 #include "utils/fileutils.h"
 #include "widgets/imagegridwidget.h"
@@ -105,8 +104,6 @@ void HuMomentsPage::createComponents() {
 
             qDebug() << "fileList.size" << filesList;
 
-            HuMomentsMatcher matcher;
-
             for (int i = 0; i < filesList.size(); ++i) {
                 QString filePath = filesList[i];
                 QFileInfo fileInfo(filePath);
@@ -141,99 +138,124 @@ void HuMomentsPage::createComponents() {
         paramGroupBox->setFixedWidth(300);
         paramGroupBox->setFixedHeight(150);
 
-        int areaMaxValue = 1000000;
-        int areaMinValue = 1000;
+        auto scoreThresLayout = [=]() {
+            double scoreThresholdDefaultValue = 0.1;
 
-        int areaMaxDefaultValue = 100000;
-        int areaMinDefaultValue = 2000;
+            QLabel *scoreThresholdLabel = new QLabel("得分误差");
+            scoreThresholdLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+            scoreThresholdLabel->setAlignment(Qt::AlignCenter);
 
-        auto areaMaxThresLayout = [=]() {
-            QLabel *areaMaxLabel = new QLabel("面积上限");
-            areaMaxLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-            areaMaxLabel->setAlignment(Qt::AlignCenter);
-
-            m_areaMaxSlider = new QSlider(Qt::Horizontal, this);
-            m_areaMaxSlider->setFixedHeight(25);
+            m_scoreThresholdSlider = new QSlider(Qt::Horizontal, this);
+            m_scoreThresholdSlider->setFixedHeight(25);
             // m_areaMaxSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMaxSlider->setSingleStep(1);
-            m_areaMaxSlider->setPageStep(1);
-            m_areaMaxSlider->setRange(areaMinValue, areaMaxValue);
+            m_scoreThresholdSlider->setSingleStep(1);
+            m_scoreThresholdSlider->setPageStep(1);
+            m_scoreThresholdSlider->setRange(1, 100);
 
-            m_areaMaxSlider->setTickPosition(QSlider::NoTicks);
-            m_areaMaxSlider->setTickInterval(50);
+            m_scoreThresholdSlider->setTickPosition(QSlider::NoTicks);
+            m_scoreThresholdSlider->setTickInterval(1);
 
-            m_areaMaxSlider->setValue(areaMaxDefaultValue);
+            m_scoreThresholdSlider->setValue(scoreThresholdDefaultValue * 100);
 
-            m_areaMaxSpinBox = new QSpinBox();
-            m_areaMaxSpinBox->setRange(areaMinValue, areaMaxValue);
-            m_areaMaxSpinBox->setFixedSize(QSize(100, 30));
-            m_areaMaxSpinBox->setSingleStep(1000);
+            m_scoreThresholdSpinBox = new QDoubleSpinBox();
+            m_scoreThresholdSpinBox->setRange(0.01, 1);
+            m_scoreThresholdSpinBox->setFixedSize(QSize(100, 30));
+            m_scoreThresholdSpinBox->setSingleStep(0.01);
 
-            m_areaMaxSpinBox->setValue(areaMaxDefaultValue);
+            m_scoreThresholdSpinBox->setValue(scoreThresholdDefaultValue);
 
-            return Layouting::RowWithMargin{areaMaxLabel, Layouting::Space{5}, m_areaMaxSlider, Layouting::Space{5}, m_areaMaxSpinBox};
+            return Layouting::RowWithMargin{scoreThresholdLabel, Layouting::Space{5}, m_scoreThresholdSlider, Layouting::Space{5}, m_scoreThresholdSpinBox};
         }();
 
-        auto areaMinThresLayout = [=]() {
-            QLabel *areaMinLabel = new QLabel("面积下限");
-            areaMinLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-            areaMinLabel->setAlignment(Qt::AlignCenter);
+        auto whiteThresLayout = [=]() {
+            int whiteThresholdDefaultValue = 250;
 
-            m_areaMinSlider = new QSlider(Qt::Horizontal, this);
-            m_areaMinSlider->setFixedHeight(25);
+            QLabel *whiteThresholdLabel = new QLabel("白色阈值");
+            whiteThresholdLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+            whiteThresholdLabel->setAlignment(Qt::AlignCenter);
+
+            m_whiteThresholdSlider = new QSlider(Qt::Horizontal, this);
+            m_whiteThresholdSlider->setFixedHeight(25);
             // m_areaMinSlider->setFixedSize(QSize(200, 25));
 
-            m_areaMinSlider->setSingleStep(1);
-            m_areaMinSlider->setPageStep(1);
-            m_areaMinSlider->setRange(areaMinValue, areaMaxValue);
+            m_whiteThresholdSlider->setSingleStep(1);
+            m_whiteThresholdSlider->setPageStep(1);
+            m_whiteThresholdSlider->setRange(1, 254);
 
-            m_areaMinSlider->setTickPosition(QSlider::NoTicks);
-            m_areaMinSlider->setTickInterval(50);
+            m_whiteThresholdSlider->setTickPosition(QSlider::NoTicks);
+            m_whiteThresholdSlider->setTickInterval(50);
 
-            m_areaMinSlider->setValue(areaMinDefaultValue);
+            m_whiteThresholdSlider->setValue(whiteThresholdDefaultValue);
 
-            m_areaMinSpinBox = new QSpinBox(this);
-            m_areaMinSpinBox->setRange(areaMinValue, areaMaxValue);
-            m_areaMinSpinBox->setFixedSize(QSize(100, 30));
-            m_areaMinSpinBox->setSingleStep(1000);
+            m_whiteThresholdSpinBox = new QSpinBox(this);
+            m_whiteThresholdSpinBox->setRange(1, 254);
+            m_whiteThresholdSpinBox->setFixedSize(QSize(100, 30));
+            m_whiteThresholdSpinBox->setSingleStep(1000);
 
-            m_areaMinSpinBox->setValue(areaMinDefaultValue);
+            m_whiteThresholdSpinBox->setValue(whiteThresholdDefaultValue);
 
-            return Layouting::RowWithMargin{areaMinLabel, Layouting::Space{5}, m_areaMinSlider, Layouting::Space{5}, m_areaMinSpinBox};
+            return Layouting::RowWithMargin{whiteThresholdLabel, Layouting::Space{5}, m_whiteThresholdSlider, Layouting::Space{5}, m_whiteThresholdSpinBox};
         }();
 
-        connect(m_areaMaxSlider, &QSlider::valueChanged, this, [=](int value) {
-            // m_areaMinSlider->setMaximum(value);
-            // m_areaMinSpinBox->setMaximum(value);
+        auto areaThresLayout = [=]() {
+            double areaThresholdDefaultValue = 0.2;
 
-            m_areaMaxSpinBox->setValue(value);
+            QLabel *areaThresholdLabel = new QLabel("面积偏差");
+            areaThresholdLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+            areaThresholdLabel->setAlignment(Qt::AlignCenter);
+
+            m_areaThresholdSlider = new QSlider(Qt::Horizontal, this);
+            m_areaThresholdSlider->setFixedHeight(25);
+            // m_areaMinSlider->setFixedSize(QSize(200, 25));
+
+            m_areaThresholdSlider->setSingleStep(1);
+            m_areaThresholdSlider->setPageStep(1);
+            m_areaThresholdSlider->setRange(1, 100);
+
+            m_areaThresholdSlider->setTickPosition(QSlider::NoTicks);
+            m_areaThresholdSlider->setTickInterval(1);
+
+            m_areaThresholdSlider->setValue(areaThresholdDefaultValue * 100);
+
+            m_areaThresholdSpinBox = new QDoubleSpinBox(this);
+            m_areaThresholdSpinBox->setRange(0.01, 1);
+            m_areaThresholdSpinBox->setFixedSize(QSize(100, 30));
+            m_areaThresholdSpinBox->setSingleStep(0.01);
+
+            m_areaThresholdSpinBox->setValue(areaThresholdDefaultValue);
+
+            return Layouting::RowWithMargin{areaThresholdLabel, Layouting::Space{5}, m_areaThresholdSlider, Layouting::Space{5}, m_areaThresholdSpinBox};
+        }();
+
+        connect(m_scoreThresholdSlider, &QSlider::valueChanged, this, [=](int value) {
+            m_scoreThresholdSpinBox->setValue(value / 100.);
         });
-        connect(m_areaMaxSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
-            // m_areaMinSlider->setMaximum(value);
-            // m_areaMinSpinBox->setMaximum(value);
-
-            m_areaMaxSlider->setValue(value);
+        connect(m_scoreThresholdSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, [=](double value) {
+            m_scoreThresholdSlider->setValue(value * 100);
 
             emit this->paramChanged();
         });
 
-        connect(m_areaMinSlider, &QSlider::valueChanged, this, [=](int value) {
-            // m_areaMaxSlider->setMinimum(value);
-            // m_areaMaxSpinBox->setMinimum(value);
-
-            m_areaMinSpinBox->setValue(value);
+        connect(m_whiteThresholdSlider, &QSlider::valueChanged, this, [=](int value) {
+            m_whiteThresholdSpinBox->setValue(value);
         });
-        connect(m_areaMinSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
-            // m_areaMaxSlider->setMinimum(value);
-            // m_areaMaxSpinBox->setMinimum(value);
-
-            m_areaMinSlider->setValue(value);
+        connect(m_whiteThresholdSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
+            m_whiteThresholdSlider->setValue(value);
 
             emit this->paramChanged();
         });
 
-        Layouting::ColumnWithMargin{areaMaxThresLayout, areaMinThresLayout}.attachTo(paramGroupBox);
+        connect(m_areaThresholdSlider, &QSlider::valueChanged, this, [=](int value) {
+            m_areaThresholdSpinBox->setValue(value / 100.);
+        });
+        connect(m_areaThresholdSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, [=](double value) {
+            m_areaThresholdSlider->setValue(value * 100);
+
+            emit this->paramChanged();
+        });
+
+        Layouting::ColumnWithMargin{scoreThresLayout, whiteThresLayout, areaThresLayout}.attachTo(paramGroupBox);
 
         return paramGroupBox;
     }();
@@ -300,7 +322,7 @@ void HuMomentsPage::createComponents() {
 
 void HuMomentsPage::createConnections() {
     connect(this, &HuMomentsPage::paramChanged, this, [=]() {
-        qDebug() << "paramChanged" << m_areaMaxSpinBox->value() << m_areaMinSpinBox->value() << m_currentProcessImageFile;
+        qDebug() << "paramChanged" << m_scoreThresholdSpinBox->value() << m_whiteThresholdSpinBox->value() << m_currentProcessImageFile;
 
         // m_imageGridWidget->clearAllImages();
         this->ruHuMomentsMatch(m_currentProcessImageFile);
@@ -316,8 +338,6 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
         m_templateGridWidget->addImage("2", imageMat);
 
         m_imageGridWidget->addImage("origin image", imageMat);
-
-        HuMomentsMatcher matcher;
 
         double minArea = 1000.0;
         double maxArea = 100000.0;
@@ -370,8 +390,9 @@ void HuMomentsPage::loadConfig() {
         QString defaultPath = QCoreApplication::applicationDirPath();
         // m_settings->setValue("Path/filePath", defaultPath);
         // m_settings->setValue("Path/folderPath", defaultPath);
-        m_settings->setValue("Parameter/areaMaxValue", 100000);
-        m_settings->setValue("Parameter/areaMinValue", 2000);
+        m_settings->setValue("Parameter/scoreThreshold", 0.1);
+        m_settings->setValue("Parameter/whiteThreshold", 250);
+        m_settings->setValue("Parameter/areaThreshold", 0.2);
 
         m_settings->sync();
     } else {
@@ -381,8 +402,9 @@ void HuMomentsPage::loadConfig() {
     m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
     m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
     m_selectTemplateFolderWidget->setSelectFolder(m_settings->value("Path/templateFolderPath", "").toString());
-    m_areaMaxSpinBox->setValue(m_settings->value("Parameter/areaMaxValue", 100000).toInt());
-    m_areaMinSpinBox->setValue(m_settings->value("Parameter/areaMinValue", 2000).toInt());
+    m_scoreThresholdSpinBox->setValue(m_settings->value("Parameter/scoreThreshold", 0.1).toDouble());
+    m_whiteThresholdSpinBox->setValue(m_settings->value("Parameter/whiteThreshold", 250).toInt());
+    m_areaThresholdSpinBox->setValue(m_settings->value("Parameter/areaThreshold", 0.2).toDouble());
 
     qDebug() << "HuMomentsPage::loadConfig()";
 }
@@ -391,8 +413,9 @@ void HuMomentsPage::saveConfig() {
     m_settings->setValue("Path/filePath", m_selectFileWidget->getSelectFile());
     m_settings->setValue("Path/folderPath", m_selectFolderWidget->getSelectFolder());
     m_settings->setValue("Path/templateFolderPath", m_selectTemplateFolderWidget->getSelectFolder());
-    m_settings->setValue("Parameter/areaMaxValue", m_areaMaxSpinBox->value());
-    m_settings->setValue("Parameter/areaMinValue", m_areaMinSpinBox->value());
+    m_settings->setValue("Parameter/scoreThreshold", m_scoreThresholdSpinBox->value());
+    m_settings->setValue("Parameter/whiteThreshold", m_whiteThresholdSpinBox->value());
+    m_settings->setValue("Parameter/areaThreshold", m_areaThresholdSpinBox->value());
 
     m_settings->sync();
 

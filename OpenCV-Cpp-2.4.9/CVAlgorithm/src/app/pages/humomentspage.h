@@ -4,6 +4,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "controls/controls.h"
+#include "humomentsmatcher.h"
 
 class HuMomentsPage : public WidgetBase {
     Q_OBJECT
@@ -27,11 +28,13 @@ private:
     class ImageGridWidget *m_imageGridWidget = nullptr;
     class TemplateGridWidget *m_templateGridWidget = nullptr;
 
-    class QSpinBox *m_areaMaxSpinBox = nullptr;
-    class QSpinBox *m_areaMinSpinBox = nullptr;
+    class QDoubleSpinBox *m_scoreThresholdSpinBox = nullptr;
+    class QSpinBox *m_whiteThresholdSpinBox = nullptr;
+    class QDoubleSpinBox *m_areaThresholdSpinBox = nullptr;
 
-    class QSlider *m_areaMaxSlider = nullptr;
-    class QSlider *m_areaMinSlider = nullptr;
+    class QSlider *m_scoreThresholdSlider = nullptr;
+    class QSlider *m_whiteThresholdSlider = nullptr;
+    class QSlider *m_areaThresholdSlider = nullptr;
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
@@ -41,6 +44,9 @@ private:
 
     QString m_currentProcessImageFile{};
     QString m_configPath{};
+
+    HuMomentsMatcher matcher;
+
 };
 
 #endif // HUMOMENTSPAGE_H
