@@ -551,47 +551,47 @@ void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
 
-cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
-    cv::Mat grayScene, thrScene;
-    cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
-    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
-
-    return thrScene;
-}
-
 // cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
-//     // 1. 检查输入图像是否有效
-//     if (inputImage.empty()) {
-//         qDebug() << "错误：binaryProcess 接收到空图像！";
-//         return cv::Mat(); // 返回空矩阵表示错误
-//     }
-
 //     cv::Mat grayScene, thrScene;
-
-//     // 2. 根据输入图像的通道数进行不同处理
-//     int channels = inputImage.channels();
-//     qDebug() << "输入图像通道数：" << channels;
-
-//     if (channels == 1) {
-//         // 情况1：输入已经是单通道图像（例如灰度图或二值图）
-//         grayScene = inputImage; // 直接使用，无需转换
-//         qDebug() << "输入为单通道图像，直接进行二值化。";
-//     }
-//     else if (channels == 3 || channels == 4) {
-//         // 情况2：输入是3通道（BGR）或4通道（如BGRA）图像
-//         // 将彩色图像转换为灰度图[2,5](@ref)
-//         cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
-//         qDebug() << "已将" << channels << "通道图像转换为灰度图。";
-//     }
-//     else {
-//         // 情况3：不支持的通道数（如2通道）
-//         qDebug() << "错误：不支持的图像通道数：" << channels;
-//         return cv::Mat(); // 返回空矩阵表示错误
-//     }
-
-//     // 3. 对灰度图进行二值化[4,7](@ref)
+//     cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
 //     cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
-//     // 4. 返回二值化结果（根据您的函数名和逻辑，应该返回thrScene）
 //     return thrScene;
 // }
+
+cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
+    // 1. 检查输入图像是否有效
+    if (inputImage.empty()) {
+        qDebug() << "错误：binaryProcess 接收到空图像！";
+        return cv::Mat(); // 返回空矩阵表示错误
+    }
+
+    cv::Mat grayScene, thrScene;
+
+    // 2. 根据输入图像的通道数进行不同处理
+    int channels = inputImage.channels();
+    qDebug() << "输入图像通道数：" << channels;
+
+    if (channels == 1) {
+        // 情况1：输入已经是单通道图像（例如灰度图或二值图）
+        grayScene = inputImage; // 直接使用，无需转换
+        qDebug() << "输入为单通道图像，直接进行二值化。";
+    }
+    else if (channels == 3 || channels == 4) {
+        // 情况2：输入是3通道（BGR）或4通道（如BGRA）图像
+        // 将彩色图像转换为灰度图[2,5](@ref)
+        cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
+        qDebug() << "已将" << channels << "通道图像转换为灰度图。";
+    }
+    else {
+        // 情况3：不支持的通道数（如2通道）
+        qDebug() << "错误：不支持的图像通道数：" << channels;
+        return cv::Mat(); // 返回空矩阵表示错误
+    }
+
+    // 3. 对灰度图进行二值化[4,7](@ref)
+    cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
+
+    // 4. 返回二值化结果（根据您的函数名和逻辑，应该返回thrScene）
+    return thrScene;
+}
