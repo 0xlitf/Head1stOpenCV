@@ -15,7 +15,7 @@
 #include "imageutils.h"
 
 using MatchResult =
-    std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double, double>;
+    std::tuple<QString, std::vector<cv::Point>, cv::Point2f, double, double, QString>;
 
 class CVASHARED_EXPORT HuMomentsMatcher : public QObject {
     Q_OBJECT

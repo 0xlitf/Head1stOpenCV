@@ -380,9 +380,10 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
         bool finded = false;
 
         for (int j = 0; j < m_huMomentsList.size(); ++j) {
-            auto templateTuple = m_huMomentsList[j];
-            auto templateName = std::get<0>(templateTuple);
-            auto templateContour = std::get<3>(templateTuple);
+            std::tuple<QString, QString, QString, std::vector<cv::Point>> templateTuple = m_huMomentsList[j];
+            QString templateName = std::get<0>(templateTuple);
+            QString templateFileName = std::get<1>(templateTuple);
+            std::vector<cv::Point> templateContour = std::get<3>(templateTuple);
             double templateArea = cv::contourArea(templateContour);
 
             double areaDifferencePercent = (templateArea - objArea) / objArea;
@@ -426,13 +427,14 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
                 //             cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
                 auto str = QString("发现目标 %1 -> 相似度(越小越好): %2, 角度: %3, "
-                                   "坐标: (%4, %5), 面积差值百分比: %6")
+                                   "坐标: (%4, %5), 面积差值百分比: %6, 模板文件: %7")
                                .arg(objName)
                                .arg(score)
                                .arg(rotRect.angle)
                                .arg(rotRect.center.x)
                                .arg(rotRect.center.y)
-                               .arg(areaDifferencePercent);
+                               .arg(areaDifferencePercent)
+                               .arg(templateFileName);
                 qDebug() << str.toUtf8().constData();
 
                 emit sendLog(str);
@@ -440,7 +442,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
                 finded = true;
 
                 resultList.append(std::make_tuple(objName, objContourInScene, center,
-                                                  score, areaDifferencePercent));
+                                                  score, areaDifferencePercent, templateFileName));
 
                 break;
             } else {
@@ -450,7 +452,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
 
         if (!finded) {
             resultList.append(
-                std::make_tuple(QString(""), objContourInScene, center, 100, -100.));
+                std::make_tuple(QString(""), objContourInScene, center, 100, -100., QString("")));
         }
     }
 

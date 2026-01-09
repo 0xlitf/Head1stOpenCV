@@ -353,7 +353,8 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
             std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
             cv::Point2f center = std::get<2>(result);             // 中心点
             double score = std::get<3>(result);                   // 分数
-            double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
+            double areaDifferencePercent = std::get<4>(result);   // 面积差值百分比
+            QString templateFileName = std::get<5>(result); // 匹配到的模板文件
 
             qDebug() << "结果" << i + 1 << ":";
             qDebug() << "\t名称:" << name;
@@ -366,6 +367,9 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
             auto resultImage = matcher.drawResultOnImage(mask, result);
 
             m_templateGridWidget->addImage(QString("matchResult %1").arg(i), resultImage, result);
+
+            auto t = cv::imread(templateFileName.toStdString());
+            m_templateGridWidget->addImage(QString("templateFileName %1").arg(i), t, result);
 
             ++i;
         }
