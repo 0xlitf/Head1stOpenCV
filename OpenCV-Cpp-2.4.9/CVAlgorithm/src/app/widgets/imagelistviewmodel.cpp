@@ -1,6 +1,8 @@
 ﻿#include "imagelistviewmodel.h"
 
 #include <QFileInfo>
+#include <QDir>
+#include <QDebug>
 
 ImageListViewModel::ImageListViewModel(QObject *parent)
     : QAbstractListModel{parent} {}
@@ -14,14 +16,19 @@ QVariant ImageListViewModel::data(const QModelIndex &index, int role) const {
         return QVariant();
 
     QFileInfo fileInfo(m_imageFiles.at(index.row()));
+    QString folderName = fileInfo.dir().dirName();
 
     switch (role) {
-    case Qt::DisplayRole: // 返回用于显示的文件名
-        return fileInfo.fileName();
-    case Qt::UserRole: // 返回完整文件路径
+    case Qt::DisplayRole: {  // 返回用于显示的文件名, 控制搜索, 在delegate中控制显示
+        return QString("%1/%2").arg(folderName).arg(fileInfo.fileName());
+        // return fileInfo.fileName();
+    }
+    case Qt::UserRole: { // 返回完整文件路径
         return fileInfo.absoluteFilePath();
-    default:
+    }
+    default: {
         return QVariant();
+    }
     }
 }
 

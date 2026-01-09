@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QPainter>
+#include <QDir>
 
 ImageListViewDelegate::ImageListViewDelegate(QObject *parent)
     : QStyledItemDelegate(parent) {}
@@ -76,7 +77,9 @@ void ImageListViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
     painter->setPen(option.state & QStyle::State_Selected ? option.palette.highlightedText().color() : Qt::black);
 
     QString fileName = fileInfo.fileName();
-    QString elidedFileName = option.fontMetrics.elidedText(fileName, Qt::ElideRight, fileNameRect.width());
+    QString folderName = fileInfo.dir().dirName();
+
+    QString elidedFileName = option.fontMetrics.elidedText(QString("%1/%2").arg(folderName).arg(fileInfo.fileName()), Qt::ElideRight, fileNameRect.width());
     painter->drawText(fileNameRect, Qt::AlignLeft | Qt::AlignVCenter, elidedFileName);
 
     // 绘制图片信息（灰色，正常字号）
