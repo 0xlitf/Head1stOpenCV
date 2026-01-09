@@ -22,7 +22,9 @@ TemplateGridWidget::TemplateGridWidget(QWidget *parent)
     });
 }
 
-void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, const MatchResult &result) {
+void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, const MatchResult &result, bool isTemplate) {
+    qDebug() << "TemplateGridWidget::addImage" << name ;
+
     QString matchedTemplateName = std::get<0>(result);                   // 名称
     std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
     cv::Point2f center = std::get<2>(result);             // 中心点
@@ -35,8 +37,9 @@ void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, con
     qDebug() << "\t误差分数:" << QString::number(score, 'f', 6);
     qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
 
-    if (m_imageItems.contains(name)) {
-        removeImage(name);
+    if (m_imageNames.contains(name)) {
+        qDebug() << "m_imageItems.contains(name)";
+        // removeImage(name);
 
         // qDebug() << "m_imageItems.contains" << name;
         // TemplateGridItem *item = m_imageItems[name];
@@ -45,12 +48,15 @@ void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, con
     }
 
     TemplateGridItem *newItem = new TemplateGridItem(name, image, result, m_containerWidget);
+    newItem->setIsTemplate(isTemplate);
 
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);
     }
-    m_imageItems[name] = newItem;
+
+    m_imageNames.append(name);
+    m_imageItems.append(newItem);
 
     int totalItems = m_imageItems.size() - 1; // 新项插入前的总数，即新索引
     int row = totalItems / m_maxColumns;
@@ -60,21 +66,23 @@ void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, con
 }
 
 void TemplateGridWidget::removeImage(const QString &name) {
-    if (m_imageItems.contains(name)) {
-        TemplateGridItem *itemToRemove = m_imageItems.value(name);
+    if (m_imageNames.contains(name)) {
+        int index = m_imageNames.indexOf(name);
+        TemplateGridItem *itemToRemove = m_imageItems[index];
         m_gridLayout->removeWidget(itemToRemove);
-        m_imageItems.remove(name);
+        m_imageNames.removeAt(index);
+        m_imageItems.removeAt(index);
         itemToRemove->deleteLater();
     }
 }
 
 void TemplateGridWidget::clearAllImages() {
-    QMapIterator<QString, TemplateGridItem *> i(m_imageItems);
-    while (i.hasNext()) {
-        i.next();
-        m_gridLayout->removeWidget(i.value());
-        i.value()->deleteLater();
+    for (int i = 0; i < m_imageItems.size(); ++i) {
+        m_gridLayout->removeWidget(m_imageItems[i]);
+        m_imageItems[i]->deleteLater();
     }
+
+    m_imageNames.clear();
     m_imageItems.clear();
 }
 

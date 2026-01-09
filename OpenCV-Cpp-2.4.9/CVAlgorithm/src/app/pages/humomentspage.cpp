@@ -228,6 +228,8 @@ void HuMomentsPage::createComponents() {
         connect(m_scoreThresholdSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, [=](double value) {
             m_scoreThresholdSlider->setValue(value * 100);
 
+            matcher.setScoreThreshold(value);
+
             emit this->paramChanged();
         });
 
@@ -237,6 +239,8 @@ void HuMomentsPage::createComponents() {
         connect(m_whiteThresholdSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [=](int value) {
             m_whiteThresholdSlider->setValue(value);
 
+            matcher.setWhiteThreshold(value);
+
             emit this->paramChanged();
         });
 
@@ -245,6 +249,8 @@ void HuMomentsPage::createComponents() {
         });
         connect(m_areaThresholdSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, [=](double value) {
             m_areaThresholdSlider->setValue(value * 100);
+
+            matcher.setAreaThreshold(value);
 
             emit this->paramChanged();
         });
@@ -329,6 +335,9 @@ void HuMomentsPage::createConnections() {
 }
 
 void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
+
+    m_templateGridWidget->clearAllImages();
+
     cv::Mat imageMat = cv::imread(filePath.toStdString());
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
@@ -339,8 +348,6 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
         m_imageGridWidget->addImage("binary", binary);
         QList<MatchResult> matchResults = matcher.quickMatchMat(binary);
 
-
-        m_templateGridWidget->clearAllImages();
         int i = 0;
         for (const MatchResult &result : matchResults) {
             QString name = std::get<0>(result);                   // 名称
@@ -369,14 +376,10 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
             m_templateGridWidget->addImage(QString("matchResult %1").arg(i), resultImage, result);
 
             auto t = cv::imread(templateFileName.toStdString());
-            m_templateGridWidget->addImage(QString("templateFileName %1").arg(i), t, result);
+            m_templateGridWidget->addImage(QString(QFileInfo(templateFileName).fileName()), t, result, true);
 
             ++i;
         }
-
-        // auto mask = imageMat.clone();
-        // auto resultImage = matcher.drawResultsOnImage(mask, matchResults);
-        // m_templateGridWidget->addImage("resultImage", resultImage);
     }
 }
 

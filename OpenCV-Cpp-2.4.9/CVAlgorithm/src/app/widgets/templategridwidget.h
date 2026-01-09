@@ -6,7 +6,7 @@
 #include "templategriditem.h"
 #include "humomentsmatcher.h"
 #include <QGridLayout>
-#include <QMap>
+#include <QList>
 #include <QScrollArea>
 #include <QWidget>
 
@@ -14,7 +14,7 @@ class TemplateGridWidget : public QScrollArea {
     Q_OBJECT
 public:
     explicit TemplateGridWidget(QWidget *parent = nullptr);
-    void addImage(const QString &name, const cv::Mat &image, const MatchResult &result);
+    void addImage(const QString &name, const cv::Mat &image, const MatchResult &result, bool isTemplate = false);
     void removeImage(const QString &name);
     void clearAllImages();
 
@@ -33,7 +33,8 @@ private:
 private:
     QWidget *m_containerWidget;
     QGridLayout *m_gridLayout;
-    QMap<QString, TemplateGridItem *> m_imageItems;
+    QList<QString> m_imageNames;
+    QList<TemplateGridItem *> m_imageItems;
     int m_maxColumns{3};
 
     QTimer *m_resizeTimer = new QTimer(this);

@@ -96,15 +96,24 @@ void TemplateGridItem::updatePixmap() {
 }
 
 void TemplateGridItem::updateText() {
-    QString infoText = QString("名称: %1\n尺寸: %2x%3\n通道: "
-                               "%4\n匹配模板名:%5\n误差分数:%6\n面积偏差:%7")
-                           .arg(m_imageName)
-                           .arg(m_imageData.cols)
-                           .arg(m_imageData.rows)
-                           .arg(m_imageData.channels())
-                           .arg(m_matchedTemplateName)
-                           .arg(QString::number(m_score, 'f', 6))
-                           .arg(QString::number(m_areaDifferencePercent, 'f', 6));
+    QString infoText;
+    if (!m_isTemplate) {
+        infoText = QString("名称: %1\n尺寸: %2x%3\n通道: "
+                           "%4\n匹配模板名:%5\n误差分数:%6\n面积偏差:%7")
+                       .arg(m_imageName)
+                       .arg(m_imageData.cols)
+                       .arg(m_imageData.rows)
+                       .arg(m_imageData.channels())
+                       .arg(m_matchedTemplateName)
+                       .arg(QString::number(m_score, 'f', 6))
+                       .arg(QString::number(m_areaDifferencePercent, 'f', 6));
+    } else {
+        infoText = QString("名称: %1\n尺寸: %2x%3\n通道: %4")
+                       .arg(m_imageName)
+                       .arg(m_imageData.cols)
+                       .arg(m_imageData.rows)
+                       .arg(m_imageData.channels());
+    }
     m_infoLabel->setText(infoText);
 }
 
@@ -154,6 +163,16 @@ QString TemplateGridItem::getMatchedTemplateName() const {
 
 void TemplateGridItem::setMatchedTemplateName(const QString &newMatchedTemplateName) {
     m_matchedTemplateName = newMatchedTemplateName;
+
+    this->updateText();
+}
+
+bool TemplateGridItem::isTemplate() const {
+    return m_isTemplate;
+}
+
+void TemplateGridItem::setIsTemplate(bool newIsTemplate) {
+    m_isTemplate = newIsTemplate;
 
     this->updateText();
 }

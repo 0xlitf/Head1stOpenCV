@@ -32,6 +32,9 @@ public:
     double getAreaDifferencePercent() const;
     void setAreaDifferencePercent(double newAreaDifferencePercent);
 
+    bool isTemplate() const;
+    void setIsTemplate(bool newIsTemplate);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
@@ -56,6 +59,8 @@ private:
     cv::Point2f m_center;               // 中心点
     double m_score{-100.};               // 分数
     double m_areaDifferencePercent{-100.}; // 面积差值百分比
+
+    bool m_isTemplate{false};
 };
 
 #endif // TEMPLATEGRIDITEM_H
