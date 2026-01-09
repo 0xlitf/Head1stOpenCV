@@ -1,7 +1,6 @@
 ﻿
 #pragma execution_character_set("utf-8")
 
-#include "mainwindow.h"
 #include "messageinstaller.h"
 #include <QApplication>
 #include <QElapsedTimer>
@@ -9,10 +8,9 @@
 #include <opencv2/opencv.hpp>
 #include "cutoutobject.h"
 #include "humomentsmatcher.h"
+#include "fileutils.h"
 
-int testHuMoments(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-
+int testHuMoments() {
     QFontDatabase fontDB;
     QStringList fonts = fontDB.families();
     auto fontName = QString("微软雅黑");
@@ -22,129 +20,118 @@ int testHuMoments(int argc, char *argv[]) {
     } else {
         qDebug() << "微软雅黑字体未找到，使用系统默认字体";
     }
+    QString sceneImageStr = QString(PROJECT_DIR) + "/input/chanel1/14-30-00-395.png";
 
-    if (auto useMainWindow = false) {
-        MainWindow w;
-        w.setWindowFlags(Qt::Window);
-        w.show();
-        w.showMaximized();
+    qDebug() << "sceneImageStr" << sceneImageStr;
 
-        return a.exec();
-    } else {
-        QString sceneImageStr = QString(PROJECT_DIR) + "/input/chanel1/14-30-00-395.png";
+    HuMomentsMatcher matcher;
+    matcher.setWhiteThreshold(240);
+    matcher.setScoreThreshold(0.1);
 
-        qDebug() << "sceneImageStr" << sceneImageStr;
+    auto image1 = cv::imread(QString(QString(PROJECT_DIR) + "/image1.png").toStdString(), cv::IMREAD_COLOR);
+    auto image2 = cv::imread(QString(QString(PROJECT_DIR) + "/image2.png").toStdString(), cv::IMREAD_COLOR);
 
-        HuMomentsMatcher matcher;
-        matcher.setWhiteThreshold(240);
-        matcher.setScoreThreshold(0.1);
-
-        auto image1 = cv::imread(QString(QString(PROJECT_DIR) + "/image1.png").toStdString(), cv::IMREAD_COLOR);
-        auto image2 = cv::imread(QString(QString(PROJECT_DIR) + "/image2.png").toStdString(), cv::IMREAD_COLOR);
-
-        if (auto showResult = false) {
-            cv::imshow("image1 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image1)));
-            cv::imshow("image2 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image2)));
-        }
-
-        QStringList templateDescStr;
-        templateDescStr << "1"
-                        << "2"
-                        << "3"
-                        << "4"
-                        << "5"
-                        << "6"
-                        << "7"
-                        << "8"
-                        << "9"
-                        << "10";
-        QStringList templateFolderStr;
-        templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-2"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-3"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-4"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/88012-1"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
-        matcher.setTemplateFolder(templateDescStr, templateFolderStr);
-
-        qDebug() << matcher.getTemplateSize();
-        matcher.setTemplateFolder(templateDescStr, templateFolderStr);
-
-        qDebug() << matcher.getTemplateSize();
-
-        QFile sceneImageFile(sceneImageStr);
-        if (!sceneImageFile.exists()) {
-            qWarning() << "警告：匹配图片不存在";
-            return -1;
-        }
-
-        // auto results = matcher.matchImage(sceneImage);
-        // 等同于
-        cv::Mat imageMat = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
-
-        QElapsedTimer timer;
-        timer.start();
-        auto results = matcher.quickMatchMat(imageMat);
-        qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
-
-        int i = 0;
-        for (auto &result : results) {
-            QString name = std::get<0>(result);                   // 名称
-            std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
-            cv::Point2f center = std::get<2>(result);             // 中心点
-            double score = std::get<3>(result);                   // 分数
-            double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
-
-            qDebug() << "结果" << i + 1 << ":";
-            qDebug() << "\t名称:" << name;
-            qDebug() << "\t匹配分数:" << QString::number(score, 'f', 6);
-            qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
-            qDebug() << "\t轮廓点数:" << contour.size();
-            qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
-
-            ++i;
-        }
-
-        auto sceneImg = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
-
-        auto resultImage = matcher.drawResultsOnImage(sceneImg, results);
-
-        cv::imshow("resultImage detect result", resultImage);
-
-        // 方法2：创建绿色小图并在另一位置放置
-        // cv::Mat greenImage(80, 80, CV_8UC3, cv::Scalar(0, 255, 0));
-        // cv::Rect roi2(200, 100, greenImage.cols, greenImage.rows);
-        // greenImage.copyTo(bigImage(roi2));
-
-        // // 方法3：居中放置蓝色小图
-        // cv::Mat blueImage(120, 120, CV_8UC3, cv::Scalar(255, 0, 0));
-        // placeImageCenter(bigImage, blueImage);
-
-        if (auto testImageCombine = false) {
-            cv::Mat bigImage(480, 640, CV_8UC3, cv::Scalar(255, 255, 255));
-
-            cv::Mat smallImage(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
-
-            cv::Rect roi1(50, 150, smallImage.cols, smallImage.rows);
-            smallImage.copyTo(bigImage(roi1));
-
-            cv::imshow("testImageCombine", bigImage);
-        }
-
-
-        cv::waitKey(0);
-        cv::destroyAllWindows();
-
-        return 0;
+    if (auto showResult = false) {
+        cv::imshow("image1 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image1)));
+        cv::imshow("image2 analyzeAndDrawContour", std::get<1>(matcher.analyzeAndDrawContour(image2)));
     }
+
+    QStringList templateDescStr;
+    templateDescStr << "1"
+                    << "2"
+                    << "3"
+                    << "4"
+                    << "5"
+                    << "6"
+                    << "7"
+                    << "8"
+                    << "9"
+                    << "10";
+    QStringList templateFolderStr;
+    templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-2"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-3"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-4"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/88012-1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
+    matcher.setTemplateFolder(templateDescStr, templateFolderStr);
+
+    qDebug() << matcher.getTemplateSize();
+    matcher.setTemplateFolder(templateDescStr, templateFolderStr);
+
+    qDebug() << matcher.getTemplateSize();
+
+    QFile sceneImageFile(sceneImageStr);
+    if (!sceneImageFile.exists()) {
+        qWarning() << "警告：匹配图片不存在";
+        return -1;
+    }
+
+    // auto results = matcher.matchImage(sceneImage);
+    // 等同于
+    cv::Mat imageMat = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
+
+    QElapsedTimer timer;
+    timer.start();
+    auto results = matcher.quickMatchMat(imageMat);
+    qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
+
+    int i = 0;
+    for (auto &result : results) {
+        QString name = std::get<0>(result);                   // 名称
+        std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
+        cv::Point2f center = std::get<2>(result);             // 中心点
+        double score = std::get<3>(result);                   // 分数
+        double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
+
+        qDebug() << "结果" << i + 1 << ":";
+        qDebug() << "\t名称:" << name;
+        qDebug() << "\t匹配分数:" << QString::number(score, 'f', 6);
+        qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
+        qDebug() << "\t轮廓点数:" << contour.size();
+        qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
+
+        ++i;
+    }
+
+    auto sceneImg = cv::imread(sceneImageStr.toStdString(), cv::IMREAD_COLOR);
+
+    auto resultImage = matcher.drawResultsOnImage(sceneImg, results);
+
+    cv::imshow("resultImage detect result", resultImage);
+
+    // 方法2：创建绿色小图并在另一位置放置
+    // cv::Mat greenImage(80, 80, CV_8UC3, cv::Scalar(0, 255, 0));
+    // cv::Rect roi2(200, 100, greenImage.cols, greenImage.rows);
+    // greenImage.copyTo(bigImage(roi2));
+
+    // // 方法3：居中放置蓝色小图
+    // cv::Mat blueImage(120, 120, CV_8UC3, cv::Scalar(255, 0, 0));
+    // placeImageCenter(bigImage, blueImage);
+
+    if (auto testImageCombine = false) {
+        cv::Mat bigImage(480, 640, CV_8UC3, cv::Scalar(255, 255, 255));
+
+        cv::Mat smallImage(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
+
+        cv::Rect roi1(50, 150, smallImage.cols, smallImage.rows);
+        smallImage.copyTo(bigImage(roi1));
+
+        cv::imshow("testImageCombine", bigImage);
+    }
+
+
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+
+    return 0;
 }
 
-int testCutoutObjectAndHu(int argc, char *argv[]) {
-    QApplication a(argc, argv);
+int testCutoutObjectAndHu() {
 
     QFontDatabase fontDB;
     QStringList fonts = fontDB.families();
@@ -195,7 +182,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
     // QString imageName = QString(PROJECT_DIR) + "/dataset/1.png"; // 1个物体
     // QString imageName = QString(PROJECT_DIR) + "/dataset/2.png"; // 2个物体
 
-    auto allImage = FileUtils::findAllImageFiles(QString(PROJECT_DIR) + "/input/chanel1");
+    auto allImage = FileUtils::findAllImageFiles(QString(PROJECT_DIR) + "/input");
 
     qDebug() << "allImage:" << allImage.size();
     for (auto & imageName: allImage) {
@@ -244,7 +231,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
             if (name.isEmpty()) {
                 qDebug() << "图中没有物体或者物体为杂料";
-                break;
+                // break;
             }
 
             std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
@@ -270,13 +257,15 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
     }
 
     cv::destroyAllWindows();
-
-    return a.exec();
 }
 int main(int argc, char *argv[]) {
     MessageInstaller::instance()->install();
 
-    // testHuMoments(argc, argv);
+    QApplication a(argc, argv);
 
-    testCutoutObjectAndHu(argc, argv);
+    // testHuMoments();
+
+    testCutoutObjectAndHu();
+
+    return a.exec();
 }

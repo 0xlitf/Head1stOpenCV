@@ -6,7 +6,7 @@ greaterThan(QT_MAJOR_VERSION, 6): QT += core5compat
 
 CONFIG += c++11
 
-DEFINES += CVA_LIBRARY
+# DEFINES += CVA_LIBRARY
 DEFINES += QT_MESSAGELOGCONTEXT
 DEFINES += PROJECT_DIR=\\\"$$PWD\\\"
 
@@ -48,7 +48,8 @@ HEADERS += \
     $$PWD/cutoutobject.h \
     $$PWD/imageutils.h \
     $$PWD/fileutils.h \
-    $$PWD/humomentsmatcher.h
+    $$PWD/humomentsmatcher.h \
+    cva_global.h
 
 SOURCES += \
     $$PWD/../share/layoutbuilder.cpp \
