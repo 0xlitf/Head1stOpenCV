@@ -39,6 +39,9 @@ signals:
 public:
     static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
 
+    static cv::Mat drawResultOnImage(const cv::Mat &inputImage,
+                                      const MatchResult &result);
+
     static cv::Mat drawResultsOnImage(const cv::Mat &inputImage,
                                       const QList<MatchResult> &resultList);
 

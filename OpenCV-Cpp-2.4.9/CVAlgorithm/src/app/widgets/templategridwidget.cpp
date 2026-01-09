@@ -22,18 +22,30 @@ TemplateGridWidget::TemplateGridWidget(QWidget *parent)
     });
 }
 
-void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image) {
-    if (m_imageItems.contains(name)) {
-        // removeImage(name);
+void TemplateGridWidget::addImage(const QString &name, const cv::Mat &image, const MatchResult &result) {
+    QString matchedTemplateName = std::get<0>(result);                   // 名称
+    std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
+    cv::Point2f center = std::get<2>(result);             // 中心点
+    double score = std::get<3>(result);                   // 分数
+    double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
 
-        qDebug() << "m_imageItems.contains" << name;
-        TemplateGridItem *item = m_imageItems[name];
-        item->setImageMat(image);
-        return;
+    // qDebug() << "\t名称:" << matchedTemplateName;
+    // qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
+    // qDebug() << "\t轮廓点数:" << contour.size();
+    qDebug() << "\t误差分数:" << QString::number(score, 'f', 6);
+    qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
+
+    if (m_imageItems.contains(name)) {
+        removeImage(name);
+
+        // qDebug() << "m_imageItems.contains" << name;
+        // TemplateGridItem *item = m_imageItems[name];
+        // item->setImageMat(image, result);
+        // return;
     }
 
-    TemplateGridItem *newItem = new TemplateGridItem(name, image, m_containerWidget);
-    // newItem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    TemplateGridItem *newItem = new TemplateGridItem(name, image, result, m_containerWidget);
+
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);

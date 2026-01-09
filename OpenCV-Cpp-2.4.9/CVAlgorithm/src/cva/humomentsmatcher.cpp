@@ -323,22 +323,11 @@ QList<MatchResult> HuMomentsMatcher::quickMatchImage(const QString &fileName) {
 }
 
 QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
-    QElapsedTimer timer;
-    timer.start();
-
+    // 输入1通道黑底白物
     // cv::imshow("sceneImg", sceneImg);
 
-    // 1. 场景图像预处理
-    // cv::Mat grayScene, thrScene;
-    // cv::cvtColor(sceneImg, grayScene, cv::COLOR_BGR2GRAY);
-    // cv::threshold(grayScene, thrScene, m_whiteThreshold, 255,
-    //               cv::THRESH_BINARY_INV);
-
-    // cv::imshow("grayScene", grayScene);
-
-    // cv::Mat thrScene;
-    // cv::threshold(sceneImg, thrScene, m_whiteThreshold, 255,
-    //               cv::THRESH_BINARY_INV);
+    QElapsedTimer timer;
+    timer.start();
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contoursInScene;
@@ -469,13 +458,63 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
         qDebug() << "未在场景中找到匹配物体。";
     }
 
-    qDebug() << "matchMat elapsed:" << timer.nsecsElapsed();
+    qDebug() << "matchMat elapsed:" << timer.nsecsElapsed() << ", matchCount:" << matchCount << ", resultList.count:" << resultList.count();
 
     return resultList;
 }
 
-cv::Mat
-HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
+cv::Mat HuMomentsMatcher::drawResultOnImage(const cv::Mat &inputImage,
+                                             const MatchResult &result) {
+    // 创建输出图像（复制原始图像）
+    cv::Mat outputImage = inputImage.clone();
+
+    // 如果原始图像是灰度图，转换为彩色以便绘制
+    if (outputImage.channels() == 1) {
+        cv::cvtColor(outputImage, outputImage, cv::COLOR_GRAY2BGR);
+    }
+
+    // 定义颜色数组
+    std::vector<cv::Scalar> colors = {
+        cv::Scalar(0, 255, 0),   // 绿色
+        cv::Scalar(255, 0, 0),   // 蓝色
+        cv::Scalar(0, 0, 255),   // 红色
+        cv::Scalar(255, 255, 0), // 青色
+        cv::Scalar(255, 0, 255), // 洋红
+        cv::Scalar(0, 255, 255)  // 黄色
+    };
+
+    int colorIndex = 0;
+
+    QString label = std::get<0>(result);
+    std::vector<cv::Point> contour = std::get<1>(result);
+
+    if (contour.empty()) {
+        qDebug() << "contour is empty";
+        return outputImage;
+    }
+
+    // 选择颜色
+    cv::Scalar color = colors[colorIndex % colors.size()];
+    // cv::Scalar color = cv::Scalar(255, 255, 255);
+    colorIndex++;
+
+    // 绘制轮廓
+    cv::drawContours(outputImage, std::vector<std::vector<cv::Point>>{contour}, -1, color, 2, CV_AA);
+
+    // 计算轮廓中心点用于放置标签
+    cv::Moments m = cv::moments(contour);
+    if (m.m00 != 0) {
+        int centerX = static_cast<int>(m.m10 / m.m00);
+        int centerY = static_cast<int>(m.m01 / m.m00);
+
+        // 绘制标签
+        drawLabel(outputImage, label, cv::Point(centerX, centerY), color);
+    }
+
+    return outputImage;
+}
+
+cv::Mat HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
                                      const QList<MatchResult> &resultList) {
     // 创建输出图像（复制原始图像）
     cv::Mat outputImage = inputImage.clone();
@@ -513,8 +552,7 @@ HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
         colorIndex++;
 
         // 绘制轮廓
-        cv::drawContours(outputImage, std::vector<std::vector<cv::Point>>{contour},
-                         -1, color, 2, CV_AA);
+        cv::drawContours(outputImage, std::vector<std::vector<cv::Point>>{contour}, -1, color, 2, CV_AA);
 
         // 计算轮廓中心点用于放置标签
         cv::Moments m = cv::moments(contour);
@@ -550,14 +588,6 @@ void HuMomentsMatcher::drawLabel(cv::Mat &image, const QString &label,
     cv::putText(image, text, cv::Point(position.x, position.y),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
-
-// cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
-//     cv::Mat grayScene, thrScene;
-//     cv::cvtColor(inputImage, grayScene, cv::COLOR_BGR2GRAY);
-//     cv::threshold(grayScene, thrScene, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
-
-//     return thrScene;
-// }
 
 cv::Mat HuMomentsMatcher::binaryProcess(cv::Mat inputImage) {
     // 1. 检查输入图像是否有效

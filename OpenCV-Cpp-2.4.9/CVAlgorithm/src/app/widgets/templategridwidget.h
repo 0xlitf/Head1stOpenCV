@@ -4,6 +4,7 @@
 #pragma execution_character_set("utf-8")
 
 #include "templategriditem.h"
+#include "humomentsmatcher.h"
 #include <QGridLayout>
 #include <QMap>
 #include <QScrollArea>
@@ -13,7 +14,7 @@ class TemplateGridWidget : public QScrollArea {
     Q_OBJECT
 public:
     explicit TemplateGridWidget(QWidget *parent = nullptr);
-    void addImage(const QString &name, const cv::Mat &image);
+    void addImage(const QString &name, const cv::Mat &image, const MatchResult &result);
     void removeImage(const QString &name);
     void clearAllImages();
 

@@ -335,9 +335,44 @@ void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
         QString imageName = filePath;
         m_imageGridWidget->addImage("origin image", imageMat);
 
-        m_templateGridWidget->addImage("1", imageMat);
-        m_templateGridWidget->addImage("2", imageMat);
+        auto binary = matcher.binaryProcess(imageMat);
+        m_imageGridWidget->addImage("binary", binary);
+        QList<MatchResult> matchResults = matcher.quickMatchMat(binary);
 
+
+        m_templateGridWidget->clearAllImages();
+        int i = 0;
+        for (const MatchResult &result : matchResults) {
+            QString name = std::get<0>(result);                   // 名称
+            qDebug() << "name" << name;
+            if (name.isEmpty()) {
+                qDebug() << "图中没有物体或者物体为杂料";
+                // continue;
+            }
+
+            std::vector<cv::Point> contour = std::get<1>(result); // 轮廓
+            cv::Point2f center = std::get<2>(result);             // 中心点
+            double score = std::get<3>(result);                   // 分数
+            double areaDifferencePercent = std::get<4>(result);                   // 面积差值百分比
+
+            qDebug() << "结果" << i + 1 << ":";
+            qDebug() << "\t名称:" << name;
+            qDebug() << "\t匹配分数:" << QString::number(score, 'f', 6);
+            qDebug() << "\t中心坐标: (" << center.x << "," << center.y << ")";
+            qDebug() << "\t轮廓点数:" << contour.size();
+            qDebug() << "\t面积差值百分比:" << areaDifferencePercent;  // 如果模板没有匹配到，面积差值百分比为-100
+
+            auto mask = imageMat.clone();
+            auto resultImage = matcher.drawResultOnImage(mask, result);
+
+            m_templateGridWidget->addImage(QString("matchResult %1").arg(i), resultImage, result);
+
+            ++i;
+        }
+
+        // auto mask = imageMat.clone();
+        // auto resultImage = matcher.drawResultsOnImage(mask, matchResults);
+        // m_templateGridWidget->addImage("resultImage", resultImage);
     }
 }
 

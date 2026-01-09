@@ -232,7 +232,6 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
         QElapsedTimer timer;
         timer.start();
 
-        // 输入黑白图，接口会自动进行二值化
         qDebug() << "closeContour" << closeContour.channels();
         auto binary = matcher.binaryProcess(closeContour);
         cv::imshow(QString("binary channels:%1").arg(binary.channels()).toStdString(), binary);
