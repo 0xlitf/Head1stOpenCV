@@ -1,7 +1,7 @@
 ﻿
 #pragma execution_character_set("utf-8")
 
-#include "messageinstaller.h"
+#include "../share/messageinstaller.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFontDatabase>
@@ -220,6 +220,11 @@ int testCutoutObjectAndHu() {
         timer.start();
 
         qDebug() << "closeContour" << closeContour.channels();
+
+        matcher.setAreaThreshold(0.2);
+        matcher.setScoreThreshold(0.1);
+        matcher.setWhiteThreshold(240);
+
         auto binary = matcher.binaryProcess(closeContour);
         cv::imshow(QString("binary channels:%1").arg(binary.channels()).toStdString(), binary);
         auto matchResults = matcher.quickMatchMat(binary);
