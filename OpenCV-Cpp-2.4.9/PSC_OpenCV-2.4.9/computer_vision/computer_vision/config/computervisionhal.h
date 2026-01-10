@@ -37,14 +37,12 @@ public:
 	bool updateParam();                                                      //更新系统参数
 	bool autoSetRoi(cv::Mat* image, int& roiLTX, int& roiLTY, int& roiWidth, int& roiHeight);					 //自动更新ROI    Edit by pmh 20170516
 	bool updateRoi(std::string strPath);
-	bool updateProject(std::string strPath, int trainID = 0);
-	bool updateProjectHP(std::string strPath, int trainID = 0);
-	bool updateDLMode(std::wstring strPath);
-	bool setDLMode(int halconDLModel);
+	bool updateProject(std::string strPath);
+	bool updateProjectHP(std::string strPath);
 	void reset();
 	unsigned int getTargetNumber();
 	unsigned int getErrorNumber();
-	std::vector<int> getMatchIDs();
+	//std::vector<int> getMatchIDs();
 	int getNGEndingNumber();				 //获取空降物料计数结果
 	std::vector<ObjData> getObjData();
 	std::pair<unsigned int, unsigned int> getObjectNumber();
@@ -54,10 +52,8 @@ public:
 	int getErrorStatus();
 	bool getRetentionValue();
 	int getStatus();
-
 	void initialize();
 
-	void setHardTriggerMode(bool flag);                //打开硬触发模式，默认false不打开
 	void setNGEndingCountError(bool flag = true);      //末端空降是否打杂开关. 默认true 打开
 	void setUseInsideDetection(bool flag = true);      //设置内轮廓检测开关，默认false 不打开
 private:

@@ -105,18 +105,5 @@ int get_max(std::vector<int> a);
 void setObjAreaThresh(int areaThresh);
 
 extern bool m_useCountDebug;            // 0 - 关闭图像计数  && 非0 - 开启图像计数
-
-enum        
-{ 
-	// halcon深度学习模型类型
-	DL_CLASSIFICATION,          // 分类模型  && 2-目标检测模型 && 3-异常检测模型  && 4-目标检测模型-水平框
-	DL_OBJECT_DETECTION,        // 目标检测模型
-	DL_ANOMALY_DETECTION,       // 异常检测模型
-	DL_OBJECT_DETECTION_HOR,    // 目标检测模型-水平框
-	DL_MODE_CLOSED              // 关闭DL模式，采用传统halcon精细检测模型
-};
-
-extern int m_halconDLModel;    // halcon深度学习模型类型
-
 extern SysParam mySysParam;    //系统参数
 #endif

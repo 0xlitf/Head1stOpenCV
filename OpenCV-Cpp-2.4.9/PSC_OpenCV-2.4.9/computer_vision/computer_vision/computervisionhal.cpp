@@ -103,16 +103,6 @@ bool PartsCounterHal::updateProjectHP(std::string strPath, int trainID)
 	return d->updateProjectHP(strPath, trainID);
 }
 
-bool PartsCounterHal::updateDLMode(std::wstring strPath)
-{
-	return d->updateDLMode(strPath);
-}
-
-bool PartsCounterHal::setDLMode(int halconDLModel)
-{
-	return d->setDLMode(halconDLModel);
-}
-
 void PartsCounterHal::reset()
 {
 	return d->reset();

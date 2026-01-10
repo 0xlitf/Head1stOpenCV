@@ -36,8 +36,6 @@ class PartsCounter
 		bool updateRoi(std::string strPath);									 //更新ROI参数
 		bool updateProject(std::string strPath, int trainID = 0);								 //更新工程项目参数
 		bool updateProjectHP(std::string strPath, int trainID = 0);                               //更新HP工程项目参数
-		bool updateDLMode(std::wstring strPath);                                  //更新深度学习模型
-		bool setDLMode(int halconDLModel);                                       //设置深度学习模型任务类别
 		void reset();                                                            //清空工程项目参数
 		unsigned int getTargetNumber() { return m_targetNumber; }				 //获取正常料计数结果
 		unsigned int getErrorNumber()  { return m_errorNumber; }				 //获取杂料计数结果

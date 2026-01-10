@@ -1,0 +1,3322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.0" halcon_version="10.0" cs="-86783364">
+<procedure name="main">
+<interface/>
+<body>
+<l>set_system('border_shape_models','false')</l>
+<c>* 最小缺陷面积参数</c>
+<l>MinDefectArea := 200</l>
+<c>* 合格误差范围</c>
+<l>WdiffValue := 3</l>
+<l>ADiffValue := 0.1</l>
+<c>* 二值化阈值</c>
+<l>Threshold := 200    </l>
+<c>* 物料匹配限制参数</c>
+<l>MinScore := 0.7</l>
+<c>* 最小缺陷内径</c>
+<l>MinDefectInnerRadian := 3</l>
+<c></c>
+<c>* 是否采用动态训练模式</c>
+<l>IsDynamic := 0</l>
+<c>    </c>
+<l>dev_update_window ('off')</l>
+<l>Width := 600</l>
+<l>Height := 450</l>
+<l>* Width := 1280</l>
+<l>* Height := 1024</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, Width, Height, 'white', WindowHandle)</l>
+<l>dev_set_part (0, 0, Height - 1, Width - 1)</l>
+<l>set_draw(WindowHandle, 'margin')</l>
+<l>* dev_close_window()</l>
+<c></c>
+<c>* ROI参数设置</c>
+<c>*roi_1 </c>
+<l>* roiLTX := 36</l>
+<l>* roiLTY := 65</l>
+<l>* roiWidth := 203</l>
+<l>* roiHeight := 89</l>
+<c>*roi_2无黑点</c>
+<l>roiLTX := 34</l>
+<l>roiLTY := 125</l>
+<l>roiWidth := 598</l>
+<l>roiHeight := 208</l>
+<c>*roi_2有黑点</c>
+<l>* roiLTX := 11</l>
+<l>* roiLTY := 21</l>
+<l>* roiWidth := 218 </l>
+<l>* roiHeight := 59</l>
+<c></c>
+<l>* roiLTX := 44</l>
+<l>* roiLTY := 69</l>
+<l>* roiWidth := 274-roiLTX</l>
+<l>* roiHeight := 111-roiLTY</l>
+<l>gen_rectangle1(RegionROI, roiLTY, roiLTX, roiLTY+roiHeight, roiLTX + roiWidth)</l>
+<c>    </c>
+<l>        ModelIDs := []</l>
+<l>        gen_empty_obj(ModelRegionsOrigins)</l>
+<l>        ModelGrays := []</l>
+<l>        ModelWidthAll := []</l>
+<l>        ModelHeightAll := []</l>
+<l>        ModelIDs := [] </l>
+<l>        ModelGrays := []</l>
+<l>        gen_empty_obj(ModelRegions)</l>
+<l>        tuple_gen_const(80, 0, ObjectID)</l>
+<c></c>
+<c></c>
+<c>* 文件保存路径</c>
+<c>        </c>
+<l>filePath := 'E:/VC++  Project/Counter_halcon/20240408/image/ok-8'</l>
+<l>ProjectPath := 'E:/VC++  Project/Counter_halcon/20240408/project'</l>
+<l>list_files (ProjectPath, ['directories'], ProjectDirs)</l>
+<l>for DirNo := 0 to |ProjectDirs|-1 by 1</l>
+<l>    TrainPath := ProjectDirs[DirNo]</l>
+<l>    file_exists(TrainPath, FileExists)</l>
+<l>    list_files (TrainPath, ['files','follow_links'], Files)</l>
+<l>    tuple_regexp_select (Files, ['\\.(shm)$','ignore_case'], ModelFiles)</l>
+<l>    if(FileExists) </l>
+<c>       </c>
+<l>        RegionSavePath := TrainPath</l>
+<l>        ModelIDSavePath := TrainPath</l>
+<c>        </c>
+<c>        </c>
+<c>****************  /*如果要训练模型，请激活此段代码   *******************************</c>
+<l>*         tuple_gen_const(80, 0, TrainTimes)</l>
+<l>*         ModelIDs := []</l>
+<l>*         gen_empty_obj(ModelRegionsOrigins)</l>
+<l>*         ModelGrays := []</l>
+<l>*         ModelWidthAll := []</l>
+<l>*         ModelHeightAll := []</l>
+<l>*         ModelIDs := [] </l>
+<l>*         ModelGrays := []</l>
+<l>*         gen_empty_obj(ModelRegions)</l>
+<c>        </c>
+<c>        </c>
+<l>*         list_files (TrainPath, ['files','follow_links'], ImageFiles)</l>
+<l>*         tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima)$','ignore_case'], ImageFiles)</l>
+<l>*         for index := 0 to |ImageFiles| - 1 by 1</l>
+<l>*             tuple_sort(ImageFiles, ImageFiles)</l>
+<l>*             read_image (ModelImage, ImageFiles[index])</l>
+<l>*             get_image_size(ModelImage, imgWidth, imgHeight)</l>
+<l>*             dev_set_part (0, 0, imgHeight - 1, imgWidth - 1)</l>
+<c></c>
+<c>        </c>
+<l>*             dev_display (ModelImage)</l>
+<c>           ** colors and other settings for the visualization</c>
+<l>*             dev_set_color ('green')</l>
+<l>*             dev_set_draw ('margin')</l>
+<l>*             dev_set_line_width (3)</l>
+<l>*             set_display_font (WindowHandle, 14, 'sans', 'true', 'false')</l>
+<c>            </c>
+<l>*             count_channels(ModelImage, Channels)</l>
+<l>*             if(Channels=3)</l>
+<l>*                 rgb1_to_gray(ModelImage, ModelImage)</l>
+<l>*             endif</l>
+<l>*             draw_rectangle2(WindowHandle, Row1, Column1, Phi, Length1, Length2)</l>
+<l>*             gen_rectangle2(Domain, Row1, Column1, Phi, Length1, Length2)</l>
+<l>*             reduce_domain(ModelImage, Domain, ImageReduced)</l>
+<c></c>
+<c>            ** 1.训练模型</c>
+<l>*             generate_shape_model_dynamic (ImageReduced, RegionROI, ModelRegions, ModelRegionsOrigin, WindowHandle, ModelIDs, ModelWidthAll, ModelHeightAll, ModelGrays, Threshold, WdiffValue, IsDynamic, ModelID, ModelWidth, ModelHeight, ModelArea, ModelGrayVal, isTrained)</l>
+<l>*             dump_window_image(hImage, WindowHandle)</l>
+<l>*             zoom_image_size(hImage, hImage, imgWidth, imgHeight, 'constant')</l>
+<c>                        </c>
+<l>*             if (isTrained = 1)</l>
+<c>                ** isTrained 为1是第一次训练，2是已经训练过，0表示未训练成功 </c>
+<l>*                 if (isTrained = 1)   </l>
+<l>*                     ModelWidthAll := [ModelWidthAll, ModelWidth]</l>
+<l>*                     ModelHeightAll := [ModelHeightAll, ModelHeight]</l>
+<l>*                     ModelIDs := [ModelIDs, ModelID]</l>
+<l>*                     ModelGrays := [ModelGrays, ModelGrayVal]</l>
+<c>                    ** translate measurement ROIs to lie on XLD model (without clipping!)</c>
+<l>*                     find_scaled_shape_models(ModelImage, ModelID, 0, rad(360), 0.5, 1.5, MinScore, 1, 0.2, 'least_squares', 9, 0.9, RowCheck, ColumnCheck, AngleCheck, Scale, Score, Model)</l>
+<l>*                     find_shape_models (ModelImage, ModelID, 0, rad(360), MinScore, 1, 0.2, 'least_squares', 0, 0.9, RowCheck, ColumnCheck, AngleCheck, Score, Model)</l>
+<l>*                     get_system ('clip_region', OriginalClipRegion)</l>
+<l>*                     set_system ('clip_region', 'false')</l>
+<l>*                     move_region(ModelRegionsOrigin, ModelRegionsOrigin, imgHeight/2-RowCheck, imgWidth/2-ColumnCheck)</l>
+<l>*                     concat_obj(ModelRegions, ModelRegionsOrigin, ModelRegions)</l>
+<c></c>
+<c>                    ** 验证训练模型匹配准确性</c>
+<l>*                     if (|Score| &gt; 0)</l>
+<l>*                         for i := 0 to |Score| - 1 by 1</l>
+<c>                            ** step 3: determine the affine transformation</c>
+<c>**                             select_obj(ModelRegions, SingleModelRegionsOrigin, ModelID + 1)       </c>
+<c>                            ** 旋转xld轮廓</c>
+<c>        **                     vector_angle_to_rigid (0, 0, 0, RowCheck[i], ColumnCheck[i], AngleCheck[i], HomMat2D)</c>
+<c>        **                     affine_trans_contour_xld (ModelContours, ModelTrans, HomMat2D)</c>
+<c>        **                     area_center_points_xld(ModelTrans, Area1, Row, Column)</c>
+<c>                            </c>
+<c>                            ** 旋转区域</c>
+<l>*                             vector_angle_to_rigid (imgHeight/2, imgWidth/2, 0, RowCheck[i], ColumnCheck[i], AngleCheck[i], MovementOfObject)</l>
+<c>                            ** 如果模版有缩放，则激活该句代码</c>
+<l>*                             hom_mat2d_scale (MovementOfObject, Scale[i], Scale[i], RowCheck[i], ColumnCheck[i], MovementOfObject)</l>
+<l>*                             affine_trans_region(ModelRegionsOrigin, RegionAffineTrans, MovementOfObject, 'false')</l>
+<l>*                             dev_display(ModelImage)</l>
+<l>*                             dev_display(RegionAffineTrans)</l>
+<l>*                             write_image(hImage, 'jpeg', 0,  TrainPath + '/trainImg_'+ index)</l>
+<l>*                             disp_message(WindowHandle, '创建模版成功！ ', 'window', -1, -1, 'green', 'true')</l>
+<l>*                             disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>*                             stop()</l>
+<l>*                         endfor  </l>
+<l>*                     elseif(ObjNum &gt; 0)</l>
+<l>*                         disp_message (WindowHandle, 'match no object: ' + time$'.4' + ' ms', 'window', 60, -1, 'red', 'false')</l>
+<l>*                         wait_seconds(0.5)</l>
+<l>*                     endif</l>
+<l>*                 endif</l>
+<l>*             elseif(isTrained = 3)</l>
+<l>*                 TrainTimes[ModelID] := TrainTimes[ModelID] + 1</l>
+<l>*                 disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>*                 stop ()</l>
+<l>*                 if(ModelID = 2)</l>
+<l>*                     stop()</l>
+<l>*                 endif</l>
+<l>*             endif</l>
+<c>        </c>
+<l>*         endfor</l>
+<c>        </c>
+<l>*         Index := 1</l>
+<l>*         for I := 0 to |ModelWidthAll|-1 by 1</l>
+<l>*             select_obj(ModelRegions, ModelRegionsSave, I+1)</l>
+<l>*             write_region(ModelRegionsSave, TrainPath + '/region_' + Index + '.reg')</l>
+<l>*             write_shape_model(ModelIDs[I], TrainPath + '/model_' + Index + '.shm')</l>
+<l>*             disp_message(WindowHandle, 'model_' + I +' 训练完成！', 'window', -1, -1, 'magenta', 'true')</l>
+<l>*             Index := Index + 1</l>
+<l>*             disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>*             stop ()</l>
+<l>*         endfor</l>
+<l>*         write_tuple(ModelGrays, TrainPath + '/thresh.tup')</l>
+<c>             </c>
+<c>            </c>
+<l>*         clear_all_shape_models()</l>
+<l>*         stop ()</l>
+<c>****************  如果要训练模型，请激活此段代码 */   *******************************</c>
+<c>                            </c>
+<c>                            </c>
+<c>        </c>
+<c>        * 在检测算子里读取模版model 和区域region</c>
+<c>        * 设置超出边界的目标也可以找到</c>
+<l>        set_system('border_shape_models', 'true')</l>
+<l>        set_system ('timer_mode', 'performance_counter')</l>
+<c>        </c>
+<l>        list_files (ModelIDSavePath, ['files','follow_links'], Files)</l>
+<l>*         ModelIDs := []</l>
+<l>        tuple_regexp_select (Files, ['\\.(shm)$','ignore_case'], ModelFiles)</l>
+<l>        for Index := 0 to |ModelFiles|-1 by 1</l>
+<l>            ObjectID[|ModelIDs|] := DirNo+1</l>
+<l>            path := ModelFiles[Index]</l>
+<l>            read_shape_model(path, ModelID)</l>
+<l>            get_shape_model_params(ModelID, NumLevels, AngleStart, AngleExtent, AngleStep, ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</l>
+<l>            set_shape_model_param(ModelID, 'timeout', -1)</l>
+<l>            tuple_concat(ModelIDs, ModelID, ModelIDs)</l>
+<c>            </c>
+<l>        endfor</l>
+<c>        </c>
+<c>        * 2. 读取模板和区域</c>
+<l>        list_files (RegionSavePath, ['files','follow_links'], Files)</l>
+<l>*         gen_empty_obj(ModelRegions)</l>
+<l>        tuple_regexp_select (Files, ['\\.(reg)$','ignore_case'], RegionFiles)</l>
+<l>        for Index := 0 to |RegionFiles|-1 by 1</l>
+<l>            path := RegionFiles[Index]</l>
+<l>            read_region(ModelRegionsOrigin, path)</l>
+<l>*             move_region(ModelRegionsOrigin, ModelRegionsOrigin, 120, 160)</l>
+<l>            concat_obj(ModelRegions, ModelRegionsOrigin, ModelRegions)</l>
+<l>        endfor</l>
+<c>        </c>
+<c>        * 2. 读取模板和区域</c>
+<l>*         ModelGrays := []</l>
+<l>        list_files (RegionSavePath, ['files','follow_links'], Files)</l>
+<l>        tuple_regexp_select (Files, ['\\.(tup)$','ignore_case'], RegionFiles)</l>
+<l>        for Index := 0 to |RegionFiles|-1 by 1</l>
+<l>            path := RegionFiles[Index]</l>
+<l>            read_tuple(path, ModGray)</l>
+<l>            tuple_concat(ModelGrays, ModGray, ModelGrays)</l>
+<l>        endfor</l>
+<c></c>
+<l>    endif</l>
+<c>    </c>
+<l>*     break</l>
+<l>endfor</l>
+<c>   </c>
+<c></c>
+<c>* 3.检测缺陷</c>
+<c>* Image Acquisition 01: Code generated by Image Acquisitions 01</c>
+<c></c>
+<l>list_files (filePath, ['files','follow_links'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,3]" as_ord="1">tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima)$','ignore_case'], ImageFiles)</l>
+<l>tuple_sort(ImageFiles, ImageFiles)</l>
+<l>* tuple_regexp_replace(ImageFiles, ['(.*)\\*.jpg', 'replace_all'], '*\\$6.jpg', ImageFiles2)</l>
+<l>for index := 1 to |ImageFiles| - 1 by 1 </l>
+<l>    dev_set_color ('red')</l>
+<l>    read_image (SearchImage, ImageFiles[index]) </l>
+<l>    get_image_size(SearchImage, imgWidth, imgHeight)</l>
+<l>    dev_set_part (0, 0, imgHeight - 1, imgWidth - 1)</l>
+<l>    dev_display(SearchImage)</l>
+<l>    count_channels(SearchImage, Channels)</l>
+<l>    if(Channels&gt;1)</l>
+<l>        decompose3(SearchImage, SearchImage, Image2, Image3)</l>
+<l>    endif</l>
+<l>*     dev_display(RegionROI)</l>
+<l>    disp_message (WindowHandle, 'Index:' + index, 'window', 12, 12, 'black', 'true')</l>
+<c>    * 2.检测图片，输出结果isDefect = 0合格，1不合格</c>
+<l>    count_seconds (start)</l>
+<l>    search_shape_model_gray (SearchImage, RegionROI, ModelRegions, ObjRegions, WindowHandle, ModelIDs, ModelGrays, Threshold, WdiffValue, MinScore, MinDefectInnerRadian, NewRow, NewColumn, NewWidth, NewArea, Model, isDefect)</l>
+<l>    count_seconds (end)</l>
+<l>    for i := 0 to |isDefect|-1 by 1</l>
+<l>        if (isDefect[i] = 0)</l>
+<l>            disp_message (WindowHandle, 'ModelID:'+ Model[i] +'\nMatchID:' + ObjectID[Model[i]], 'window', NewRow[i], NewColumn[i], 'black', 'true')</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>    disp_message (WindowHandle, 'Index:' + index + '   time: ' + (end-start), 'window', 12, 12, 'black', 'true')</l>
+<l>    for J := 0 to |isDefect|-1 by 1</l>
+<l>        if (isDefect[J] &lt; 2)</l>
+<l>            stop()</l>
+<l>            break</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>    stop()</l>
+<l>endfor</l>
+<c>* -------------------  end of the application  -----------------</c>
+<c>* clean up</c>
+<l>* clear_all_shape_models()</l>
+<l>dev_update_window ('on')</l>
+<l>disp_message(WindowHandle, 'Detect Finish! ', 'window', -1, -1, 'red', 'true')</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="dev_display_shape_matching_results">
+<interface>
+<ic>
+<par name="ModelID"/>
+<par name="Color"/>
+<par name="Row"/>
+<par name="Column"/>
+<par name="Angle"/>
+<par name="ScaleR"/>
+<par name="ScaleC"/>
+<par name="Model"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure displays the results of Shape-Based Matching.</c>
+<c>* </c>
+<l>NumMatches := |Row|</l>
+<l>if (NumMatches&gt;0)</l>
+<l>    if (|ScaleR|=1)</l>
+<l>        tuple_gen_const (NumMatches, ScaleR, ScaleR)</l>
+<l>    endif</l>
+<l>    if (|ScaleC|=1)</l>
+<l>        tuple_gen_const (NumMatches, ScaleC, ScaleC)</l>
+<l>    endif</l>
+<l>    if (|Model|=0)</l>
+<l>        tuple_gen_const (NumMatches, 0, Model)</l>
+<l>    elseif (|Model|=1)</l>
+<l>        tuple_gen_const (NumMatches, Model, Model)</l>
+<l>    endif</l>
+<l>    for Index := 0 to |ModelID|-1 by 1</l>
+<l>        get_shape_model_contours (ModelContours, ModelID[Index], 1)</l>
+<l>        dev_set_color (Color[Index%|Color|])</l>
+<l>        for Match := 0 to NumMatches-1 by 1</l>
+<l>            if (Index=Model[Match])</l>
+<l>                hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>                hom_mat2d_scale (HomMat2DIdentity, ScaleR[Match], ScaleC[Match], 0, 0, HomMat2DScale)</l>
+<l>                hom_mat2d_rotate (HomMat2DScale, Angle[Match], 0, 0, HomMat2DRotate)</l>
+<l>                hom_mat2d_translate (HomMat2DRotate, Row[Match], Column[Match], HomMat2DTranslate)</l>
+<l>                affine_trans_contour_xld (ModelContours, ContoursAffinTrans, HomMat2DTranslate)</l>
+<l>                dev_display (ContoursAffinTrans)</l>
+<l>            endif</l>
+<l>        endfor</l>
+<l>    endfor</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="dev_display_shape_matching_results">
+<abstract lang="en_US">The procedure dev_display_shape_matching_results displays the results of Shape-Based Matching. 
+
+In ModelID, the shape models for which results should be displayed are passed. This parameter typically contains the same values that were passed to the operator that was used to find the instances of the shape model.
+
+Color is a tuple of colors that will be used for the visualization. If Color contains only one element, all found instances are displayed in this color. If Color is a tuple that  contains multiple elements,  the specified colors are used cyclically for the visualization of the matching results.
+
+Row, Column, and Angle contain the position and rotation information of the found instances of the shape models.
+
+ScaleR and ScaleC contain the scale of the found instances of the shape model. If find_shape_model(s) was used to find the instances of the shape model, ScaleR and ScaleC should be set to 1.0. If find_scaled_shape_model(s) was used to find the instances of the shape model, ScaleR contains the scale of the found instances and ScaleC should be set to 1.0. If find_aniso_shape_model(s) was used to find the instances of the shape model, ScaleR and ScaleC contain the respective anisotropic scales of the found instances.
+
+The elements of Model describe to which element of the tuple ModelID the elements of Row, Column, Angle, ScaleR, and ScaleC refer to. The elements of Model are indices into the tuple ModelID, i.e., they can contain values from 0 to |ModelID|-1.  Hence, a value of 0 in an element of Model corresponds to an instance of the first model in ModelID. If only one model is given in ModelID, Model can be set to 0. Otherwise, the output of the operators find_shape_models, find_scaled_shape_models, or find_aniso_shape_models can be used directly.
+</abstract>
+<chapters>
+<item>Matching</item>
+<item>Shape-Based</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Matching</item>
+<item>Shape-Based</item>
+</chapters>
+<chapters lang="en_US">
+<item>Matching</item>
+<item>Shape-Based</item>
+</chapters>
+<example lang="en_US">read_image(Image,'mreut')
+gen_rectangle1(Rectangle1, 30, 20, 100, 200)
+gen_rectangle1 (Rectangle2, 130, 120, 200, 200)
+reduce_domain (Image, Rectangle1, ImageReduced1)
+reduce_domain (Image, Rectangle2, ImageReduced2)
+create_scaled_shape_model(ImageReduced1, 'auto', -0.39, 0.79,
+                          'auto', 0.9, 1.1, 'auto', 'auto',
+                          'use_polarity', 'auto', 'auto', ModelID1)
+create_scaled_shape_model(ImageReduced2, 'auto', -0.39, 0.79,
+                          'auto', 0.9, 1.1, 'auto', 'auto',
+                          'use_polarity', 'auto', 'auto', ModelID2)
+find_scaled_shape_models (Image, [ModelID1,ModelID2], -0.39, 0.78,
+                          0.9, 1.1, 0.5, 2, 0.5, 'least_squares', 0, 0.9,
+                          Row, Column, Angle, Scale, Score, Model)
+dev_display_shape_matching_results ([ModelID1,ModelID2], ['red','green'],
+                          Row, Column, Angle, Scale, 1.0, Model)
+</example>
+<keywords lang="de_DE">
+<item>Ergebnisse des formbasierten Matchings anzeigen</item>
+</keywords>
+<keywords lang="en_US">
+<item>display results of shape-based matching</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>find_shape_model</item>
+<item>find_shape_models</item>
+<item>find_scaled_shape_model</item>
+<item>find_scaled_shape_models</item>
+<item>find_aniso_shape_model</item>
+<item>find_aniso_shape_models</item>
+</predecessor>
+<short>This procedure displays the results of Shape-based Matching.</short>
+<short lang="de_DE">Display the results of Shape-Based Matching.</short>
+<short lang="en_US">Display the results of Shape-Based Matching.</short>
+<parameters>
+<parameter id="Angle">
+<default_type>real</default_type>
+<description lang="en_US">Rotation angle of the found instances of the models</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>angle.rad</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Color">
+<default_type>string</default_type>
+<default_value>'red'</default_value>
+<description lang="en_US">Colors used for the visualization of the matching result</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>color</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>'red'</item>
+<item>'green'</item>
+<item>'blue'</item>
+<item>['red','green','blue']</item>
+<item>['red','green','blue','cyan','magenta','yellow']</item>
+</values>
+</parameter>
+<parameter id="Column">
+<default_type>real</default_type>
+<description lang="en_US">Column coordinate of the found instances of the models</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.x</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Model">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Index of the found instances of the models</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelID">
+<default_type>integer</default_type>
+<description lang="en_US">IDs of the shape models for which the results should be displayed</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>shape_model</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="Row">
+<default_type>real</default_type>
+<description lang="en_US">Row coordinate of the found instances of the models</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.y</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ScaleC">
+<default_type>real</default_type>
+<default_value>1.0</default_value>
+<description lang="en_US">Scale of the found instances of the models inthe column direction</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ScaleR">
+<default_type>real</default_type>
+<default_value>1.0</default_value>
+<description lang="en_US">Scale of the found instances of the models inthe row direction</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="dev_open_window_fit_image">
+<interface>
+<io>
+<par name="Image"/>
+</io>
+<ic>
+<par name="Row"/>
+<par name="Column"/>
+<par name="WidthLimit"/>
+<par name="HeightLimit"/>
+</ic>
+<oc>
+<par name="WindowHandle"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure opens a new graphics window and adjusts the size</c>
+<c>* such that it fits into the limits specified by WidthLimit </c>
+<c>* and HeightLimit, but also maintains the correct image aspect ratio.</c>
+<c>* </c>
+<c>* If it is impossible to match the minimum and maximum extent requirements</c>
+<c>* at the same time (f.e. if the image is very long but narrow),</c>
+<c>* the maximum value gets a higher priority,</c>
+<c>* </c>
+<c>* Parse input tuple WidthLimit</c>
+<l>if (|WidthLimit|=0 or WidthLimit&lt;0)</l>
+<l>    MinWidth := 500</l>
+<l>    MaxWidth := 800</l>
+<l>elseif (|WidthLimit|=1)</l>
+<l>    MinWidth := 0</l>
+<l>    MaxWidth := WidthLimit</l>
+<l>else</l>
+<l>    MinWidth := WidthLimit[0]</l>
+<l>    MaxWidth := WidthLimit[1]</l>
+<l>endif</l>
+<c>* Parse input tuple HeightLimit</c>
+<l>if (|HeightLimit|=0 or HeightLimit&lt;0)</l>
+<l>    MinHeight := 400</l>
+<l>    MaxHeight := 600</l>
+<l>elseif (|HeightLimit|=1)</l>
+<l>    MinHeight := 0</l>
+<l>    MaxHeight := HeightLimit</l>
+<l>else</l>
+<l>    MinHeight := HeightLimit[0]</l>
+<l>    MaxHeight := HeightLimit[1]</l>
+<l>endif</l>
+<c>* </c>
+<c>* Test, if window size has to be changed.</c>
+<l>ResizeFactor := 1</l>
+<l>get_image_size (Image, ImageWidth, ImageHeight)</l>
+<c>* First, expand window to the minimum extents (if necessary).</c>
+<l>if (MinWidth&gt;ImageWidth or MinHeight&gt;ImageHeight)</l>
+<l>    ResizeFactor := max([real(MinWidth)/ImageWidth,real(MinHeight)/ImageHeight])</l>
+<l>endif</l>
+<l>TempWidth := ImageWidth*ResizeFactor</l>
+<l>TempHeight := ImageHeight*ResizeFactor</l>
+<c>* Then, shrink window to maximum extents (if necessary).</c>
+<l>if (MaxWidth&lt;TempWidth or MaxHeight&lt;TempHeight)</l>
+<l>    ResizeFactor := ResizeFactor*min([real(MaxWidth)/TempWidth,real(MaxHeight)/TempHeight])</l>
+<l>endif</l>
+<l>WindowWidth := ImageWidth*ResizeFactor</l>
+<l>WindowHeight := ImageHeight*ResizeFactor</l>
+<c>* Resize window</c>
+<l>dev_open_window (Row, Column, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
+<l>dev_set_part (0, 0, ImageHeight-1, ImageWidth-1)</l>
+<l>return ()</l>
+</body>
+<docu id="dev_open_window_fit_image">
+<abstract lang="en_US">This procedure  opens a new graphics window with a given minimum and maximum extent such that it preserves the aspect ratio of the given image.
+
+The position of the new graphics window is given by the parameters Row and Column, which define the position of the upper left corner of the graphics window.
+
+The size of the new graphics window is determined such that the limits given in WidthLimit and HeightLimit are fulfilled and that the aspect ratio of the given image is preserved. To restrict only the maximum size of the new graphics window, only one value must be passed in WidthLimit and HeightLimit, respectively. To restrict both the minimum and the maximum size, WidthLimit and HeightLimit must contain a tuple with two elements, each. The first element defines the minimum size and the second element defines the maximum size of the new graphics window.
+
+If it is not possible to set the window size such that all limits (minimum and maximum width and height as well as the aspect ratio of the given image) are fulfilled, the limit for the minimum window size is neglected.
+
+If WidthLimit is empty or negative, the following default value is used: [500,800].
+If HeightLimit is empty or negative, the following default value is used: [400,600].</abstract>
+<alternatives>
+<item>dev_open_window_fit_size</item>
+<item>dev_open_window</item>
+</alternatives>
+<chapters>
+<item>Develop</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">read_image (Image, 'mreut')
+*
+* Open a new graphics window with the default size limits.
+dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle1)
+*
+* Open a new graphics window at the position (50,50) with a
+* minimum size of 300 x 200 and a maximum size of 600 x 400.
+dev_open_window_fit_image (Image, 50, 50, [300,600], [200,400],
+                           WindowHandle2)</example>
+<keywords lang="de_DE">
+<item>Grafikfenster öffnen</item>
+<item>Größe eines Grafikfensters setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>open graphics window</item>
+<item>set size of graphics window</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>dev_resize_window_fit_image</item>
+<item>dev_resize_window_fit_size</item>
+</see_also>
+<short>Opens a graphics window with a given maximum and minimum extent such that it preserves the aspect ratio of the given image</short>
+<short lang="de_DE">Open a new graphics window that preserves the aspect ratio of the given image.</short>
+<short lang="en_US">Open a new graphics window that preserves the aspect ratio of the given image.</short>
+<successor>
+<item>dev_display</item>
+</successor>
+<parameters>
+<parameter id="Column">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Column coordinate of the upper left corner of the new window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="HeightLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window height.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="Image">
+<description lang="en_US">Image to the size of which the new window is adapted.</description>
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+<item>vector_field</item>
+</type_list>
+</parameter>
+<parameter id="Row">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Row coordinate of the upper left corner of the new window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="WidthLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window width.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[300,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The window handle of the new graphics window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="dev_open_window_fit_size">
+<interface>
+<ic>
+<par name="Row"/>
+<par name="Column"/>
+<par name="Width"/>
+<par name="Height"/>
+<par name="WidthLimit"/>
+<par name="HeightLimit"/>
+</ic>
+<oc>
+<par name="WindowHandle"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure open a new graphic window</c>
+<c>* such that it fits into the limits specified by WidthLimit </c>
+<c>* and HeightLimit, but also maintains the correct aspect ratio</c>
+<c>* given by Width and Height.</c>
+<c>* </c>
+<c>* If it is impossible to match the minimum and maximum extent requirements</c>
+<c>* at the same time (f.e. if the image is very long but narrow),</c>
+<c>* the maximum value gets a higher priority.</c>
+<c>* </c>
+<c>* Parse input tuple WidthLimit</c>
+<l>if (|WidthLimit|=0 or WidthLimit&lt;0)</l>
+<l>    MinWidth := 500</l>
+<l>    MaxWidth := 800</l>
+<l>elseif (|WidthLimit|=1)</l>
+<l>    MinWidth := 0</l>
+<l>    MaxWidth := WidthLimit</l>
+<l>else</l>
+<l>    MinWidth := WidthLimit[0]</l>
+<l>    MaxWidth := WidthLimit[1]</l>
+<l>endif</l>
+<c>* Parse input tuple HeightLimit</c>
+<l>if (|HeightLimit|=0 or HeightLimit&lt;0)</l>
+<l>    MinHeight := 400</l>
+<l>    MaxHeight := 600</l>
+<l>elseif (|HeightLimit|=1)</l>
+<l>    MinHeight := 0</l>
+<l>    MaxHeight := HeightLimit</l>
+<l>else</l>
+<l>    MinHeight := HeightLimit[0]</l>
+<l>    MaxHeight := HeightLimit[1]</l>
+<l>endif</l>
+<c>* </c>
+<c>* Test, if window size has to be changed.</c>
+<l>ResizeFactor := 1</l>
+<c>* First, expand window to the minimum extents (if necessary).</c>
+<l>if (MinWidth&gt;Width or MinHeight&gt;Height)</l>
+<l>    ResizeFactor := max([real(MinWidth)/Width,real(MinHeight)/Height])</l>
+<l>endif</l>
+<l>TempWidth := Width*ResizeFactor</l>
+<l>TempHeight := Height*ResizeFactor</l>
+<c>* Then, shrink window to maximum extents (if necessary).</c>
+<l>if (MaxWidth&lt;TempWidth or MaxHeight&lt;TempHeight)</l>
+<l>    ResizeFactor := ResizeFactor*min([real(MaxWidth)/TempWidth,real(MaxHeight)/TempHeight])</l>
+<l>endif</l>
+<l>WindowWidth := Width*ResizeFactor</l>
+<l>WindowHeight := Height*ResizeFactor</l>
+<c>* Resize window</c>
+<l>dev_open_window (Row, Column, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
+<l>dev_set_part (0, 0, Height-1, Width-1)</l>
+<l>return ()</l>
+</body>
+<docu id="dev_open_window_fit_size">
+<abstract lang="en_US">The procedure dev_open_window_fit_size opens a new graphics window with a given minimum and maximum extent such that it preserves the aspect ratio of the given image size.
+
+The position of the new graphics window is given by the parameters Row and Column, which define the position of the upper left corner of the graphics window.
+
+The size of the new graphics window is determined such that the limits given in WidthLimit and HeightLimit are fulfilled and that the aspect ratio of the image size that is given in Width and Height is preserved. To restrict only the maximum size of the new graphics window, only one value must be passed in WidthLimit and HeightLimit, respectively. To restrict both the minimum and the maximum size, WidthLimit and HeightLimit must contain a tuple with two elements, each. The first element defines the minimum size and the second element defines the maximum size of the new graphics window.
+
+If it is not possible to set the window size such that all limits (minimum and maximum width and height as well as the aspect ratio of the given image size) are fulfilled, the limit for the minimum window size is neglected.
+
+If WidthLimit is set to -1, the following default value is used: [500,800].
+If HeightLimit is set to -1, the following default value is used: [400,600].</abstract>
+<alternatives>
+<item>dev_open_window_fit_image</item>
+<item>dev_open_window</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">*
+* Open a new graphics window with the default size limits.
+dev_open_window_fit_size (0, 0, 640, 480, -1, -1, WindowHandle1)
+*
+* Open a new graphics window at the position (50,50) with a
+* minimum size of 300 x 200 and a maximum size of 600 x 400.
+* The window is intended to display a large image with a width
+* of 2000 pixel and a height of 15000 pixel while preserving the
+* aspect ratio. Note that in this case the minimum width is
+* neglected.
+dev_open_window_fit_size (50, 50, 2000, 15000, [300,600], [400,800],
+                          WindowHandle2)</example>
+<keywords lang="de_DE">
+<item>Grafikfenster öffnen</item>
+<item>Größe eines Grafikfensters setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>open graphics window</item>
+<item>set size of graphics window</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>dev_resize_window_fit_size</item>
+<item>dev_resize_window_fit_image</item>
+</see_also>
+<short lang="de_DE">Open a new graphics window that preserves the aspect ratio of the given image size.</short>
+<short lang="en_US">Open a new graphics window that preserves the aspect ratio of the given image size.</short>
+<successor>
+<item>dev_display</item>
+</successor>
+<parameters>
+<parameter id="Column">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Column coordinate of the upper left corner of the new window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="Height">
+<default_type>integer</default_type>
+<description lang="en_US">The height of the image to be displayed.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>480</item>
+<item>600</item>
+<item>768</item>
+<item>960</item>
+<item>1050</item>
+<item>1200</item>
+<item>1536</item>
+<item>2100</item>
+<item>2400</item>
+<item>4800</item>
+</values>
+</parameter>
+<parameter id="HeightLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window height.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="Row">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Row coordinate of the upper left corner of the new window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="Width">
+<default_type>integer</default_type>
+<description lang="en_US">The width of the image to be displayed.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>640</item>
+<item>800</item>
+<item>1024</item>
+<item>1280</item>
+<item>1400</item>
+<item>1600</item>
+<item>2048</item>
+<item>2800</item>
+<item>3200</item>
+<item>6400</item>
+</values>
+</parameter>
+<parameter id="WidthLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window width.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The window handle of the new graphics window.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="dev_resize_window_fit_image">
+<interface>
+<io>
+<par name="Image"/>
+</io>
+<ic>
+<par name="Row"/>
+<par name="Column"/>
+<par name="WidthLimit"/>
+<par name="HeightLimit"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure adjusts the size of the current window</c>
+<c>* such that it fits into the limits specified by WidthLimit </c>
+<c>* and HeightLimit, but also maintains the correct image aspect ratio.</c>
+<c>* </c>
+<c>* If it is impossible to match the minimum and maximum extent requirements</c>
+<c>* at the same time (f.e. if the image is very long but narrow),</c>
+<c>* the maximum value gets a higher priority,</c>
+<c>* </c>
+<c>* Parse input tuple WidthLimit</c>
+<l>if (|WidthLimit|=0 or WidthLimit&lt;0)</l>
+<l>    MinWidth := 500</l>
+<l>    MaxWidth := 800</l>
+<l>elseif (|WidthLimit|=1)</l>
+<l>    MinWidth := 0</l>
+<l>    MaxWidth := WidthLimit</l>
+<l>else</l>
+<l>    MinWidth := WidthLimit[0]</l>
+<l>    MaxWidth := WidthLimit[1]</l>
+<l>endif</l>
+<c>* Parse input tuple HeightLimit</c>
+<l>if (|HeightLimit|=0 or HeightLimit&lt;0)</l>
+<l>    MinHeight := 400</l>
+<l>    MaxHeight := 600</l>
+<l>elseif (|HeightLimit|=1)</l>
+<l>    MinHeight := 0</l>
+<l>    MaxHeight := HeightLimit</l>
+<l>else</l>
+<l>    MinHeight := HeightLimit[0]</l>
+<l>    MaxHeight := HeightLimit[1]</l>
+<l>endif</l>
+<c>* </c>
+<c>* Test, if window size has to be changed.</c>
+<l>ResizeFactor := 1</l>
+<l>get_image_pointer1 (Image, Pointer, Type, ImageWidth, ImageHeight)</l>
+<c>* First, expand window to the minimum extents (if necessary).</c>
+<l>if (MinWidth&gt;ImageWidth or MinHeight&gt;ImageHeight)</l>
+<l>    ResizeFactor := max([real(MinWidth)/ImageWidth,real(MinHeight)/ImageHeight])</l>
+<l>endif</l>
+<l>TempWidth := ImageWidth*ResizeFactor</l>
+<l>TempHeight := ImageHeight*ResizeFactor</l>
+<c>* Then, shrink window to maximum extents (if necessary).</c>
+<l>if (MaxWidth&lt;TempWidth or MaxHeight&lt;TempHeight)</l>
+<l>    ResizeFactor := ResizeFactor*min([real(MaxWidth)/TempWidth,real(MaxHeight)/TempHeight])</l>
+<l>endif</l>
+<l>WindowWidth := ImageWidth*ResizeFactor</l>
+<l>WindowHeight := ImageHeight*ResizeFactor</l>
+<c>* Resize window</c>
+<l>dev_set_window_extents (Row, Column, WindowWidth, WindowHeight)</l>
+<l>dev_set_part (0, 0, ImageHeight-1, ImageWidth-1)</l>
+<l>return ()</l>
+</body>
+<docu id="dev_resize_window_fit_image">
+<abstract lang="en_US">This procedure resizes the current graphics window with a given minimum and maximum extent such that it preserves the aspect ratio of the given image.
+
+The position of the new graphics window is given by the parameters Row and Column, which define the position of the upper left corner of the graphics window.
+
+The size of the new graphics window is determined such that the limits given in WidthLimit and HeightLimit are fulfilled and that the aspect ratio of the given image is preserved. To restrict only the maximum size of the new graphics window, only one value must be passed in WidthLimit and HeightLimit, respectively. To restrict both the minimum and the maximum size, WidthLimit and HeightLimit must contain a tuple with two elements, each. The first element defines the minimum size and the second element defines the maximum size of the new graphics window.
+
+If it is not possible to set the window size such that all limits (minimum and maximum width and height as well as the aspect ratio of the given image) are fulfilled, the limit for the minimum window size is neglected.
+
+If WidthLimit is empty or negative, the following default value is used: [500,800].
+If HeightLimit is empty or negative, the following default value is used: [400,600].</abstract>
+<alternatives>
+<item>dev_resize_window_fit_size</item>
+<item>dev_set_window_extents</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">dev_open_window (0, 0, 200, 200, 'black', WindowHandle)
+*
+read_image (Image, 'mreut')
+*
+dev_resize_window_fit_image (Image, 0, 0, -1, -1)
+</example>
+<keywords lang="de_DE">
+<item>Größe eines Grafikfensters setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>set size of graphics window</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>dev_open_window</item>
+</predecessor>
+<see_also>
+<item>dev_open_window_fit_image</item>
+<item>dev_open_window_fit_size</item>
+</see_also>
+<short lang="de_DE">Changes the size of a graphics window with a given maximum and minimum extent such that it preserves the aspect ratio of the given image</short>
+<short lang="en_US">Changes the size of a graphics window with a given maximum and minimum extent such that it preserves the aspect ratio of the given image</short>
+<successor>
+<item>dev_display</item>
+</successor>
+<parameters>
+<parameter id="Column">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Column coordinate of the upper left corner of the window.</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="HeightLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window height.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="Image">
+<description lang="en_US">Image to the size of which the window is adapted.</description>
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+<item>vector_field</item>
+</type_list>
+</parameter>
+<parameter id="Row">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Row coordinate of the upper left corner of the new window.</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="WidthLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window width.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[300,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="dev_resize_window_fit_size">
+<interface>
+<ic>
+<par name="Row"/>
+<par name="Column"/>
+<par name="Width"/>
+<par name="Height"/>
+<par name="WidthLimit"/>
+<par name="HeightLimit"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure adjusts the size of the current window</c>
+<c>* such that it fits into the limits specified by WidthLimit </c>
+<c>* and HeightLimit, but also maintains the correct aspect ratio</c>
+<c>* given by Width and Height.</c>
+<c>* </c>
+<c>* If it is impossible to match the minimum and maximum extent requirements</c>
+<c>* at the same time (f.e. if the image is very long but narrow),</c>
+<c>* the maximum value gets a higher priority.</c>
+<c>* </c>
+<c>* Parse input tuple WidthLimit</c>
+<l>if (|WidthLimit|=0 or WidthLimit&lt;0)</l>
+<l>    MinWidth := 500</l>
+<l>    MaxWidth := 800</l>
+<l>elseif (|WidthLimit|=1)</l>
+<l>    MinWidth := 0</l>
+<l>    MaxWidth := WidthLimit</l>
+<l>else</l>
+<l>    MinWidth := WidthLimit[0]</l>
+<l>    MaxWidth := WidthLimit[1]</l>
+<l>endif</l>
+<c>* Parse input tuple HeightLimit</c>
+<l>if (|HeightLimit|=0 or HeightLimit&lt;0)</l>
+<l>    MinHeight := 400</l>
+<l>    MaxHeight := 600</l>
+<l>elseif (|HeightLimit|=1)</l>
+<l>    MinHeight := 0</l>
+<l>    MaxHeight := HeightLimit</l>
+<l>else</l>
+<l>    MinHeight := HeightLimit[0]</l>
+<l>    MaxHeight := HeightLimit[1]</l>
+<l>endif</l>
+<c>* </c>
+<c>* Test, if window size has to be changed.</c>
+<l>ResizeFactor := 1</l>
+<c>* First, expand window to the minimum extents (if necessary).</c>
+<l>if (MinWidth&gt;Width or MinHeight&gt;Height)</l>
+<l>    ResizeFactor := max([real(MinWidth)/Width,real(MinHeight)/Height])</l>
+<l>endif</l>
+<l>TempWidth := Width*ResizeFactor</l>
+<l>TempHeight := Height*ResizeFactor</l>
+<c>* Then, shrink window to maximum extents (if necessary).</c>
+<l>if (MaxWidth&lt;TempWidth or MaxHeight&lt;TempHeight)</l>
+<l>    ResizeFactor := ResizeFactor*min([real(MaxWidth)/TempWidth,real(MaxHeight)/TempHeight])</l>
+<l>endif</l>
+<l>WindowWidth := Width*ResizeFactor</l>
+<l>WindowHeight := Height*ResizeFactor</l>
+<c>* Resize window</c>
+<l>dev_set_window_extents (Row, Column, WindowWidth, WindowHeight)</l>
+<l>dev_set_part (0, 0, Height-1, Width-1)</l>
+<l>return ()</l>
+</body>
+<docu id="dev_resize_window_fit_size">
+<abstract lang="en_US">This procedure resizes the current graphics window with a given minimum and maximum extent such that it preserves the aspect ratio of the given image size.
+
+The position of the graphics window is given by the parameters Row and Column, which define the position of the upper left corner of the graphics window.
+
+The size of the new graphics window is determined such that the limits given in WidthLimit and HeightLimit are fulfilled and that the aspect ratio of the image size that is given in Width and Height is preserved. To restrict only the maximum size of the new graphics window, only one value must be passed in WidthLimit and HeightLimit, respectively. To restrict both the minimum and the maximum size, WidthLimit and HeightLimit must contain a tuple with two elements, each. The first element defines the minimum size and the second element defines the maximum size of the new graphics window.
+
+If it is not possible to set the window size such that all limits (minimum and maximum width and height as well as the aspect ratio of the given image size) are fulfilled, the limit for the minimum window size is neglected.
+
+If WidthLimit is empty or negative, the following default value is used: [500,800].
+If HeightLimit is empty or negative, the following default value is used: [400,600].</abstract>
+<alternatives>
+<item>dev_resize_window_fit_image</item>
+<item>dev_set_window_extents</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">dev_open_window (0, 0, 512, 512, 'black', WindowHandle)
+*
+gen_image_const (Image, 'byte', 2000, 128)
+*
+dev_resize_window_fit_size (0, 0, 2000, 128, -1, -1)</example>
+<keywords lang="de_DE">
+<item>Größe eines Grafikfensters setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>set size of graphics window</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>dev_open_window</item>
+</predecessor>
+<see_also>
+<item>dev_open_window_fit_size</item>
+<item>dev_open_window_fit_image</item>
+<item>dev_set_window_extents</item>
+</see_also>
+<short lang="de_DE">Resizes a graphics window with a given maximum extent such that it preserves the aspect ratio of a given width and height</short>
+<short lang="en_US">Resizes a graphics window with a given maximum extent such that it preserves the aspect ratio of a given width and height</short>
+<successor>
+<item>dev_display</item>
+</successor>
+<parameters>
+<parameter id="Column">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Column coordinate of the upper left corner of the window.</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="Height">
+<default_type>integer</default_type>
+<description lang="en_US">The height of the image to be displayed.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>480</item>
+<item>600</item>
+<item>768</item>
+<item>960</item>
+<item>1050</item>
+<item>1200</item>
+<item>1536</item>
+<item>2100</item>
+<item>2400</item>
+<item>4800</item>
+</values>
+</parameter>
+<parameter id="HeightLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window height.</description>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+<parameter id="Row">
+<default_type>integer</default_type>
+<default_value>0</default_value>
+<description lang="en_US">Row coordinate of the upper left corner of the window.</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>0</item>
+<item>10</item>
+<item>50</item>
+<item>100</item>
+<item>150</item>
+<item>200</item>
+<item>500</item>
+</values>
+</parameter>
+<parameter id="Width">
+<default_type>integer</default_type>
+<description lang="en_US">The width of the image to be displayed.</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>640</item>
+<item>800</item>
+<item>1024</item>
+<item>1280</item>
+<item>1400</item>
+<item>1600</item>
+<item>2048</item>
+<item>2800</item>
+<item>3200</item>
+<item>6400</item>
+</values>
+</parameter>
+<parameter id="WidthLimit">
+<default_type>integer</default_type>
+<default_value>-1</default_value>
+<description lang="en_US">Limit for the window width.</description>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>300</item>
+<item>400</item>
+<item>500</item>
+<item>600</item>
+<item>800</item>
+<item>1000</item>
+<item>[400,600]</item>
+<item>[500,800]</item>
+</values>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="dev_update_off">
+<interface/>
+<body>
+<c>* This procedure sets different update settings to 'off'.</c>
+<c>* This is useful to get the best performance and reduce overhead.</c>
+<c>* </c>
+<l>dev_update_pc ('off')</l>
+<l>dev_update_var ('off')</l>
+<l>dev_update_window ('off')</l>
+<l>return ()</l>
+</body>
+<docu id="dev_update_off">
+<abstract lang="en_US">This procedure sets dev_update_pc, dev_update_var and dev_update_window to 'off'.</abstract>
+<alternatives>
+<item>dev_update_pc</item>
+<item>dev_update_var</item>
+<item>dev_update_window</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">dev_update_off ()
+* do something
+dev_update_on ()</example>
+<keywords lang="de_DE">
+<item>Aktualisierungsmodus setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>set update mode</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>dev_update_on</item>
+</see_also>
+<short lang="de_DE">Switch dev_update_pc, dev_update_var and dev_update_window to 'off'.</short>
+<short lang="en_US">Switch dev_update_pc, dev_update_var and dev_update_window to 'off'.</short>
+<parameters/>
+</docu>
+</procedure>
+<procedure name="dev_update_on">
+<interface/>
+<body>
+<c>* This procedure sets different update settings to 'on'.</c>
+<c>* </c>
+<l>dev_update_pc ('on')</l>
+<l>dev_update_var ('on')</l>
+<l>dev_update_window ('on')</l>
+<l>return ()</l>
+</body>
+<docu id="dev_update_on">
+<abstract lang="en_US">This procedure sets dev_update_pc, dev_update_var and dev_update_window to 'on'.</abstract>
+<alternatives>
+<item>dev_update_pc</item>
+<item>dev_update_var</item>
+<item>dev_update_window</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>Develop</item>
+</chapters>
+<chapters lang="en_US">
+<item>Develop</item>
+</chapters>
+<example lang="en_US">dev_update_off ()
+* do something
+dev_update_on ()</example>
+<keywords lang="de_DE">
+<item>Aktualisierungsmodus setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>set update mode</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>dev_update_off</item>
+</see_also>
+<short lang="de_DE">Switch dev_update_pc, dev_update_var and dev_update_window to 'on'.</short>
+<short lang="en_US">Switch dev_update_pc, dev_update_var and dev_update_window to 'on'.</short>
+<parameters/>
+</docu>
+</procedure>
+<procedure name="disp_3d_coord_system">
+<interface>
+<ic>
+<par name="WindowHandle"/>
+<par name="CamParam"/>
+<par name="Pose"/>
+<par name="CoordAxesLength"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure displays a 3D coordinate system.</c>
+<c>* It needs the procedure gen_arrow_contour_xld.</c>
+<c>* </c>
+<c>* Input parameters:</c>
+<c>* WindowHandle: The window where the coordinate system shall be displayed</c>
+<c>* CamParam: The camera paramters</c>
+<c>* Pose: The pose to be displayed</c>
+<c>* CoordAxesLength: The length of the coordinate axes in world coordinates</c>
+<c>* </c>
+<c>* Check, if Pose is a correct pose tuple.</c>
+<l>if (|Pose| # 7)</l>
+<l>    return ()</l>
+<l>endif</l>
+<c>* </c>
+<c>* Poses with Z position zero cannot be projected</c>
+<c>* (that would lead to a division by zero error).</c>
+<l>if (Pose[2] = 0.0)</l>
+<l>    return ()</l>
+<l>endif</l>
+<c>* Convert to pose to a transformation matrix</c>
+<l>pose_to_hom_mat3d (Pose, TransWorld2Cam)</l>
+<c>* Project the world origin into the image</c>
+<l>affine_trans_point_3d (TransWorld2Cam, 0, 0, 0, OrigCamX, OrigCamY, OrigCamZ)</l>
+<l>project_3d_point (OrigCamX, OrigCamY, OrigCamZ, CamParam, Row0, Column0)</l>
+<c>* Project the coordinate axes into the image</c>
+<l>affine_trans_point_3d (TransWorld2Cam, CoordAxesLength, 0, 0, X, Y, Z)</l>
+<l>project_3d_point (X, Y, Z, CamParam, RowAxX, ColumnAxX)</l>
+<l>affine_trans_point_3d (TransWorld2Cam, 0, CoordAxesLength, 0, X, Y, Z)</l>
+<l>project_3d_point (X, Y, Z, CamParam, RowAxY, ColumnAxY)</l>
+<l>affine_trans_point_3d (TransWorld2Cam, 0, 0, CoordAxesLength, X, Y, Z)</l>
+<l>project_3d_point (X, Y, Z, CamParam, RowAxZ, ColumnAxZ)</l>
+<c>* </c>
+<c>* Generate an XLD contour for each axis</c>
+<l>gen_arrow_contour_xld (Arrows, [Row0,Row0,Row0], [Column0,Column0,Column0], [RowAxX,RowAxY,RowAxZ], [ColumnAxX,ColumnAxY,ColumnAxZ], 5, 5)</l>
+<c>* </c>
+<c>* Display coordinate system</c>
+<l>disp_xld (Arrows, WindowHandle)</l>
+<c>* </c>
+<l>get_rgb (WindowHandle, Red, Green, Blue)</l>
+<l>set_rgb (WindowHandle, Red[0], Green[0], Blue[0])</l>
+<l>set_tposition (WindowHandle, RowAxX+3, ColumnAxX+3)</l>
+<l>write_string (WindowHandle, 'X')</l>
+<l>set_rgb (WindowHandle, Red[1%|Red|], Green[1%|Green|], Blue[1%|Blue|])</l>
+<l>set_tposition (WindowHandle, RowAxY+3, ColumnAxY+3)</l>
+<l>write_string (WindowHandle, 'Y')</l>
+<l>set_rgb (WindowHandle, Red[2%|Red|], Green[2%|Green|], Blue[2%|Blue|])</l>
+<l>set_tposition (WindowHandle, RowAxZ+3, ColumnAxZ+3)</l>
+<l>write_string (WindowHandle, 'Z')</l>
+<l>set_rgb (WindowHandle, Red, Green, Blue)</l>
+<l>return ()</l>
+</body>
+<docu id="disp_3d_coord_system">
+<abstract lang="en_US">This procedure displays a 3D coordinate system at the given Pose using the camera parameters CamParam in the window WindowHandle. The length of the displayed axes can be specified in world coordinates with the parameter CoordAxesLength. The axes are displayed in the first three currently set colors, which can be checked with get_rgb.
+If only a single color is set, this color is used for all three axes.</abstract>
+<attention lang="en_US">This procedure needs the procedure gen_arrow_contour_xld.</attention>
+<chapters>
+<item>Matching-3D</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Graphics</item>
+<item>Output</item>
+</chapters>
+<chapters lang="en_US">
+<item>Graphics</item>
+<item>Output</item>
+</chapters>
+<example lang="en_US">dev_open_window (0, 0, 640, 480, 'black', WindowHandle)
+Pose:=[0,0,2.0,-30,-15,60,0]
+CamParam:=[0.012,0,5e-6,5e-6,320,240,640,480]
+disp_3d_coord_system (WindowHandle, CamParam, Pose, 0.1)</example>
+<keywords lang="de_DE">
+<item>3D-Koordinatensystem anzeigen</item>
+</keywords>
+<keywords lang="en_US">
+<item>display 3D coordinate system</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>dev_set_colored</item>
+<item>set_rgb</item>
+<item>vector_to_pose</item>
+<item>camera_calibration</item>
+<item>find_calib_descriptor_model</item>
+<item>find_planar_calib_deformable_model</item>
+<item>dev_display</item>
+<item>find_marks_and_pose</item>
+<item>find_shape_model_3d</item>
+<item>get_circle_pose</item>
+<item>get_rectangle_pose</item>
+</predecessor>
+<see_also>
+<item>create_pose</item>
+</see_also>
+<short>Display the axes of a 3d coordinate system</short>
+<short lang="de_DE">Display the axes of a 3d coordinate system</short>
+<short lang="en_US">Display the axes of a 3d coordinate system</short>
+<successor>
+<item>dev_display</item>
+<item>disp_obj</item>
+</successor>
+<parameters>
+<parameter id="CamParam">
+<default_type>real</default_type>
+<default_value>[0.012,0.0,5e-6,5e-6,320,240,640,480]</default_value>
+<description lang="en_US">Interior camera parameters</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="CoordAxesLength">
+<default_type>integer</default_type>
+<default_value>0.05</default_value>
+<description lang="en_US">The length of the coordinate axes in world coordinates.</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+<values>
+<item>0.01</item>
+<item>0.02</item>
+<item>0.05</item>
+<item>0.1</item>
+<item>0.2</item>
+<item>0.5</item>
+</values>
+</parameter>
+<parameter id="Pose">
+<default_type>real</default_type>
+<default_value>[0.0,0.0,1.0,0.0,0.0,0.0,0]</default_value>
+<description lang="en_US">The pose to be displayed</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<sem_type>pose</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The window where the coordinate system shall be displayed</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="disp_continue_message">
+<interface>
+<ic>
+<par name="WindowHandle"/>
+<par name="Color"/>
+<par name="Box"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure displays 'Press Run (F5) to continue' in the</c>
+<c>* lower right corner of the screen.</c>
+<c>* It uses the procedure disp_message.</c>
+<c>* </c>
+<c>* Input parameters:</c>
+<c>* WindowHandle: The window, where the text shall be displayed</c>
+<c>* Color: defines the text color.</c>
+<c>*    If set to '' or 'auto', the currently set color is used.</c>
+<c>* Box: If set to 'true', the text is displayed in a box.</c>
+<c>* </c>
+<l>ContinueMessage := 'Press Run (F5) to continue'</l>
+<l>get_window_extents (WindowHandle, Row, Column, Width, Height)</l>
+<l>get_string_extents (WindowHandle, ' '+ContinueMessage+' ', Ascent, Descent, TextWidth, TextHeight)</l>
+<l>disp_message (WindowHandle, ContinueMessage, 'window', Height-TextHeight-12, Width-TextWidth-12, Color, Box)</l>
+<l>return ()</l>
+</body>
+<docu id="disp_continue_message">
+<abstract lang="en_US">This procedure displays 'Click 'Run' to continue' in a given Color in the lower right corner of the screen.
+If the parameter Box is set to 'true', the text is written within a white box, which is useful on irregular background.</abstract>
+<alternatives>
+<item>disp_message</item>
+<item>write_string</item>
+</alternatives>
+<attention lang="en_US">This procedure uses the procedure disp_message.
+</attention>
+<chapters>
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="en_US">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<example lang="en_US">dev_open_window (0, 0, 512, 512, 'black', WindowHandle)
+set_display_font (WindowHandle, 16, 'mono', 'true', 'false')
+for Index := 1 to 5 by 1
+    disp_message (WindowHandle, 'Step '+Index, 'window', 30*Index, -1, 'black', 'true')
+    disp_continue_message (WindowHandle, 'black', 'true')
+    stop ()
+endfor
+</example>
+<keywords lang="de_DE">
+<item>Fortsetzungs-Nachricht anzeigen</item>
+</keywords>
+<keywords lang="en_US">
+<item>display continue message</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>disp_message</item>
+<item>set_display_font</item>
+<item>write_string</item>
+<item>dev_display</item>
+<item>disp_obj</item>
+<item>disp_image</item>
+</predecessor>
+<see_also>
+<item>disp_message</item>
+<item>write_string</item>
+</see_also>
+<short>This procedure displays 'Press 'Run' to continue' in the lower right corner of the screen.</short>
+<short lang="de_DE">This procedure displays 'Click 'Run' to continue' in the lower right corner of the screen.</short>
+<short lang="en_US">This procedure displays 'Click 'Run' to continue' in the lower right corner of the screen.</short>
+<successor>
+<item>stop</item>
+</successor>
+<parameters>
+<parameter id="Box">
+<default_type>string</default_type>
+<default_value>'true'</default_value>
+<description lang="en_US">If set to 'true', the text is written within a white box.</description>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<value_list>
+<item>'true'</item>
+<item>'false'</item>
+</value_list>
+</parameter>
+<parameter id="Color">
+<default_type>string</default_type>
+<default_value>'black'</default_value>
+<description lang="en_US">Defines the text color. If set to '' or 'auto', the currently set color is used.
+</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>color</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>'black'</item>
+<item>'blue'</item>
+<item>'yellow'</item>
+<item>'red'</item>
+<item>'green'</item>
+<item>'cyan'</item>
+<item>'magenta'</item>
+<item>'forest green'</item>
+<item>'lime green'</item>
+<item>'coral'</item>
+<item>'slate blue'</item>
+</values>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The handle of the window, where the text shall be displayed.
+</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="disp_message">
+<interface>
+<ic>
+<par name="WindowHandle"/>
+<par name="String"/>
+<par name="CoordSystem"/>
+<par name="Row"/>
+<par name="Column"/>
+<par name="Color"/>
+<par name="Box"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure displays text in a graphics window.</c>
+<c>* </c>
+<c>* Input parameters:</c>
+<c>* WindowHandle: The WindowHandle of the graphics window, where</c>
+<c>*    the message should be displayed</c>
+<c>* String: A tuple of strings containing the text message to be displayed</c>
+<c>* CoordSystem: If set to 'window', the text position is given</c>
+<c>*    with respect to the window coordinate system.</c>
+<c>*    If set to 'image', image coordinates are used. </c>
+<c>*    (This may be useful in zoomed images.)</c>
+<c>* Row: The row coordinate of the desired text position</c>
+<c>*    If set to -1, a default value of 12 is used.</c>
+<c>* Column: The column coordinate of the desired text position</c>
+<c>*    If set to -1, a default value of 12 is used.</c>
+<c>* Color: defines the color of the text as string.</c>
+<c>*    If set to [], '' or 'auto' the currently set color is used.</c>
+<c>*    If a tuple of strings is passed, the colors are used cyclically</c>
+<c>*    for each new textline.</c>
+<c>* Box: If set to 'true', the text is written within a white box.</c>
+<c>* </c>
+<c>* prepare window</c>
+<l>get_rgb (WindowHandle, Red, Green, Blue)</l>
+<l>get_part (WindowHandle, Row1Part, Column1Part, Row2Part, Column2Part)</l>
+<l>get_window_extents (WindowHandle, RowWin, ColumnWin, WidthWin, HeightWin)</l>
+<l>set_part (WindowHandle, 0, 0, HeightWin-1, WidthWin-1)</l>
+<c>* </c>
+<c>* default settings</c>
+<l>if (Row=-1)</l>
+<l>    Row := 12</l>
+<l>endif</l>
+<l>if (Column=-1)</l>
+<l>    Column := 12</l>
+<l>endif</l>
+<l>if (Color=[])</l>
+<l>    Color := ''</l>
+<l>endif</l>
+<c>* </c>
+<l>String := split(''+String+'','\n')</l>
+<c>* </c>
+<c>* Estimate extentions of text depending on font size. </c>
+<l>get_font_extents (WindowHandle, MaxAscent, MaxDescent, MaxWidth, MaxHeight)</l>
+<l>if (CoordSystem='window')</l>
+<l>    R1 := Row</l>
+<l>    C1 := Column</l>
+<l>else</l>
+<c>    * transform image to window coordinates</c>
+<l>    FactorRow := 1.*HeightWin/(Row2Part-Row1Part+1)</l>
+<l>    FactorColumn := 1.*WidthWin/(Column2Part-Column1Part+1)</l>
+<l>    R1 := (Row-Row1Part+0.5)*FactorRow</l>
+<l>    C1 := (Column-Column1Part+0.5)*FactorColumn</l>
+<l>endif</l>
+<c>* </c>
+<c>* display text box depending on text size</c>
+<l>if (Box='true')</l>
+<c>    * calculate box extents</c>
+<l>    String := ' '+String+' '</l>
+<l>    Width := []</l>
+<l>    for Index := 0 to |String|-1 by 1</l>
+<l>        get_string_extents (WindowHandle, String[Index], Ascent, Descent, W, H)</l>
+<l>        Width := [Width,W]</l>
+<l>    endfor</l>
+<l>    FrameHeight := MaxHeight*|String|</l>
+<l>    FrameWidth := max([0,Width])</l>
+<l>    R2 := R1+FrameHeight</l>
+<l>    C2 := C1+FrameWidth</l>
+<c>    * display rectangles</c>
+<l>    get_draw (WindowHandle, DrawMode)</l>
+<l>    set_draw (WindowHandle, 'fill')</l>
+<l>    set_color (WindowHandle, 'light gray')</l>
+<l>    disp_rectangle1 (WindowHandle, R1+3, C1+3, R2+3, C2+3)</l>
+<l>    set_color (WindowHandle, 'white')</l>
+<l>    disp_rectangle1 (WindowHandle, R1, C1, R2, C2)</l>
+<l>    set_draw (WindowHandle, DrawMode)</l>
+<l>elseif (Box#'false')</l>
+<l>    Exception := 'Wrong value of control parameter Box'</l>
+<l>    throw (Exception)</l>
+<l>endif</l>
+<c>* Write text.</c>
+<l>for Index := 0 to |String|-1 by 1</l>
+<l>    CurrentColor := Color[Index%|Color|]</l>
+<l>    if (CurrentColor#'' and CurrentColor#'auto')</l>
+<l>        set_color (WindowHandle, CurrentColor)</l>
+<l>    else</l>
+<l>        set_rgb (WindowHandle, Red, Green, Blue)</l>
+<l>    endif</l>
+<l>    Row := R1+MaxHeight*Index</l>
+<l>    set_tposition (WindowHandle, Row, C1)</l>
+<l>    write_string (WindowHandle, String[Index])</l>
+<l>endfor</l>
+<c>* reset changed window settings</c>
+<l>set_rgb (WindowHandle, Red, Green, Blue)</l>
+<l>set_part (WindowHandle, Row1Part, Column1Part, Row2Part, Column2Part)</l>
+<l>return ()</l>
+</body>
+<docu id="disp_message">
+<abstract lang="en_US">This procedure displays text in a graphics window WindowHandle at the position (Row,Column).
+If String is a tuple, one text line is displayed for each entry. Also, '\n' will be interpreted as a newline character, i.e. a line break is performed. Empty strings (or empty parts before or after a newline) are ignored. To write empty lines, use a whitespace character.
+
+The position of the text may be specified in window coordinates (CoordSystem = 'window') or in image coordinates (CoordSystem = 'image'), which is useful when using zoomed images.
+
+The parameter Color also accepts tuples of values. In that case, the specified colors are used cyclically for every new textline.
+
+If the parameter Box is set to 'true', the text is written within a white box, which is useful on irregular background.
+
+</abstract>
+<alternatives>
+<item>write_string</item>
+<item>disp_continue_message</item>
+</alternatives>
+<chapters>
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="en_US">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<example lang="en_US">dev_open_window (0, 0, 512, 512, 'black', WindowHandle)
+set_display_font (WindowHandle, 16, 'mono', 'true', 'false')
+disp_message (WindowHandle, ['Hello','world!'], 'window', -1, -1, ['black','blue'], 'true')
+</example>
+<keywords lang="de_DE">
+<item>Meldung anzeigen</item>
+</keywords>
+<keywords lang="en_US">
+<item>display message</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>dev_open_window</item>
+<item>set_display_font</item>
+<item>dev_open_window_fit_image</item>
+<item>dev_open_window_fit_size</item>
+<item>dev_display</item>
+<item>disp_obj</item>
+<item>disp_image</item>
+</predecessor>
+<see_also>
+<item>write_string</item>
+<item>disp_continue_message</item>
+</see_also>
+<short>This procedure writes a text message.</short>
+<short lang="de_DE">This procedure writes a text message.</short>
+<short lang="en_US">This procedure writes a text message.</short>
+<successor>
+<item>disp_continue_message</item>
+<item>dev_display</item>
+<item>disp_obj</item>
+</successor>
+<parameters>
+<parameter id="Box">
+<default_type>string</default_type>
+<default_value>'true'</default_value>
+<description lang="en_US">If set to 'true', the text is written within a white box.</description>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<value_list>
+<item>'true'</item>
+<item>'false'</item>
+</value_list>
+</parameter>
+<parameter id="Color">
+<default_type>string</default_type>
+<default_value>'black'</default_value>
+<description lang="en_US">Defines the color of the text as string. If set to [], or '' the currently set color is used. If a tuple of strings is passed, the colors are used cyclically for each new textline.</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>color</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>''</item>
+<item>'black'</item>
+<item>'blue'</item>
+<item>'yellow'</item>
+<item>'red'</item>
+<item>'green'</item>
+<item>'cyan'</item>
+<item>'magenta'</item>
+<item>'forest green'</item>
+<item>'lime green'</item>
+<item>'coral'</item>
+<item>'slate blue'</item>
+</values>
+</parameter>
+<parameter id="Column">
+<default_type>integer</default_type>
+<default_value>12</default_value>
+<description lang="en_US">The column coordinate of the desired text position. If set to -1, a default value of 12 is used.</description>
+<multivalue>false</multivalue>
+<sem_type>point.x</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+<values>
+<item>[10,12,20]</item>
+</values>
+</parameter>
+<parameter id="CoordSystem">
+<default_type>string</default_type>
+<default_value>'window'</default_value>
+<description lang="en_US">If set to 'window', the text position is given with respect to the window coordinate system. If set to 'image', image coordinates are used (This may be useful in zoomed images).</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<value_list>
+<item>'window'</item>
+<item>'image'</item>
+</value_list>
+</parameter>
+<parameter id="Row">
+<default_type>integer</default_type>
+<default_value>12</default_value>
+<description lang="en_US">The row coordinate of the desired text position. If set to -1, a default value of 12 is used.</description>
+<multivalue>false</multivalue>
+<sem_type>point.y</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+<values>
+<item>[10,12,20,30]</item>
+</values>
+</parameter>
+<parameter id="String">
+<default_type>string</default_type>
+<description lang="en_US">A tuple of strings containing the text message to be displayed. Each value of the tuple will be displayed in a single line.
+</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The window handle of the graphics window, where the message should be displayed.</description>
+<mixed_type>false</mixed_type>
+<multivalue>false</multivalue>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="gen_arrow_contour_xld">
+<interface>
+<oo>
+<par name="Arrow"/>
+</oo>
+<ic>
+<par name="Row1"/>
+<par name="Column1"/>
+<par name="Row2"/>
+<par name="Column2"/>
+<par name="HeadLength"/>
+<par name="HeadWidth"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure generates arrow shaped XLD contours,</c>
+<c>* pointing from (Row1, Column1) to (Row2, Column2).</c>
+<c>* If starting and end point are identical, a contour consisting</c>
+<c>* of a single point is returned.</c>
+<c>* </c>
+<c>* input parameteres:</c>
+<c>* Row1, Column1: Coordinates of the arrows' starting points</c>
+<c>* Row2, Column2: Coordinates of the arrows' end points</c>
+<c>* HeadLength, HeadWidth: Size of the arrow heads in pixels</c>
+<c>* </c>
+<c>* output parameter:</c>
+<c>* Arrow: The resulting XLD contour</c>
+<c>* </c>
+<c>* The input tuples Row1, Column1, Row2, and Column2 have to be of</c>
+<c>* the same length.</c>
+<c>* HeadLength and HeadWidth either have to be of the same length as</c>
+<c>* Row1, Column1, Row2, and Column2 or have to be a single element.</c>
+<c>* If one of the above restrictions is violated, an error will occur.</c>
+<c>* </c>
+<c>* </c>
+<c>* Init</c>
+<l>gen_empty_obj (Arrow)</l>
+<c>* </c>
+<c>* Calculate the arrow length</c>
+<l>distance_pp (Row1, Column1, Row2, Column2, Length)</l>
+<c>* </c>
+<c>* Mark arrows with identical start and end point</c>
+<c>* (set Length to -1 to avoid division-by-zero exception)</c>
+<l>ZeroLengthIndices := find(Length,0)</l>
+<l>if (ZeroLengthIndices#-1)</l>
+<l>    Length[ZeroLengthIndices] := -1</l>
+<l>endif</l>
+<c>* </c>
+<c>* Calculate auxiliary variables.</c>
+<l>DR := 1.0*(Row2-Row1)/Length</l>
+<l>DC := 1.0*(Column2-Column1)/Length</l>
+<l>HalfHeadWidth := HeadWidth/2.0</l>
+<c>* </c>
+<c>* Calculate end points of the arrow head.</c>
+<l>RowP1 := Row1+(Length-HeadLength)*DR+HalfHeadWidth*DC</l>
+<l>ColP1 := Column1+(Length-HeadLength)*DC-HalfHeadWidth*DR</l>
+<l>RowP2 := Row1+(Length-HeadLength)*DR-HalfHeadWidth*DC</l>
+<l>ColP2 := Column1+(Length-HeadLength)*DC+HalfHeadWidth*DR</l>
+<c>* </c>
+<c>* Finally create output XLD contour for each input point pair</c>
+<l>for Index := 0 to |Length|-1 by 1</l>
+<l>    if (Length[Index]=-1)</l>
+<c>        * Create_ single points for arrows with identical start and end point</c>
+<l>        gen_contour_polygon_xld (TempArrow, Row1[Index], Column1[Index])</l>
+<l>    else</l>
+<c>        * Create arrow contour</c>
+<l>        gen_contour_polygon_xld (TempArrow, [Row1[Index],Row2[Index],RowP1[Index],Row2[Index],RowP2[Index],Row2[Index]], [Column1[Index],Column2[Index],ColP1[Index],Column2[Index],ColP2[Index],Column2[Index]])</l>
+<l>    endif</l>
+<l>    concat_obj (Arrow, TempArrow, Arrow)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="gen_arrow_contour_xld">
+<abstract lang="en_US">This procedure creates arrow shaped XLD contours, which point from the coordinates (Row1, Column1) to the coordinates (Row2, Coordinates2). The shape of the arrow head can be specified with the parameters HeadLength and HeadWidth (in pixels).
+
+If starting and end point are identical, a contour consisting of a single point is returned.
+
+The input tuples Row1, Column1, Row2, and Column2 have to be of the same length. HeadLength and HeadWidth either have to be of the same length as Row1, Column1, Row2, and Column2 or have to be a single element. If one of the above restrictions is violated, an error will occur.
+</abstract>
+<alternatives>
+<item>disp_arrow</item>
+<item>gen_contour_polygon_xld</item>
+</alternatives>
+<chapters lang="de_DE">
+<item>XLD</item>
+<item>Creation</item>
+</chapters>
+<chapters lang="en_US">
+<item>XLD</item>
+<item>Creation</item>
+</chapters>
+<example lang="en_US">StartPointRows:=[100,100]
+StartPointColumns:=[100,100]
+EndPointRows:=[200,50]
+EndPointColumns:=[200,150]
+dev_set_colored (3)
+gen_arrow_contour_xld (Arrow, StartPointRows, StartPointColumns, EndPointRows, EndPointColumns, [10,20], [20,10])
+</example>
+<keywords lang="de_DE">
+<item>XLD-Konturen erzeugen</item>
+<item>XLD-Kontur eines Pfeils erzeugen</item>
+</keywords>
+<keywords lang="en_US">
+<item>create XLD contours</item>
+<item>create XLD contour of arrow</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>gen_contour_nurbs_xld</item>
+</see_also>
+<short lang="de_DE">Creates an arrow shaped XLD contour.</short>
+<short lang="en_US">Creates an arrow shaped XLD contour.</short>
+<successor>
+<item>dev_display</item>
+<item>disp_obj</item>
+</successor>
+<parameters>
+<parameter id="Arrow">
+<description lang="en_US">The generated xld</description>
+<multivalue>optional</multivalue>
+<sem_type>xld_cont</sem_type>
+</parameter>
+<parameter id="Column1">
+<default_type>integer</default_type>
+<default_value>100</default_value>
+<description lang="en_US">The column coordinate of the starting point</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.x</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Column2">
+<default_type>integer</default_type>
+<default_value>200</default_value>
+<description lang="en_US">The column coordinate of the end point</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.x</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="HeadLength">
+<default_type>integer</default_type>
+<default_value>5</default_value>
+<description lang="en_US">The length of the arrow head in pixels</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+<values>
+<item>[2,3,5,10,20]</item>
+</values>
+</parameter>
+<parameter id="HeadWidth">
+<default_type>integer</default_type>
+<default_value>5</default_value>
+<description lang="en_US">The width of the arrow head in pixels</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+<values>
+<item>[2,3,5,10,20]</item>
+</values>
+</parameter>
+<parameter id="Row1">
+<default_type>integer</default_type>
+<default_value>100</default_value>
+<description lang="en_US">The row coordinate of the starting point</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.y</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Row2">
+<default_type>integer</default_type>
+<default_value>200</default_value>
+<description lang="en_US">The row coordinate of the end point</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>point.y</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="list_image_files">
+<interface>
+<ic>
+<par name="ImageDirectory"/>
+<par name="Extensions"/>
+<par name="Options"/>
+</ic>
+<oc>
+<par name="ImageFiles"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure returns all files in a given directory </c>
+<c>* with one of the suffixes specified in Extensions.</c>
+<c>* </c>
+<c>* input parameters:</c>
+<c>* ImageDirectory: as the name says</c>
+<c>*    If a tuple of directories is given, only the images in the first</c>
+<c>*    existing directory are returned.</c>
+<c>*    If a local directory is not found, the directory is searched</c>
+<c>*    under %HALCONIMAGES%/ImageDirectory. If %HALCONIMAGES% is not set,</c>
+<c>*    %HALCONROOT%/images is used instead.</c>
+<c>* Extensions: A string tuple containing the extensions to be found</c>
+<c>*    e.g. ['png','tif',jpg'] or others</c>
+<c>* If Extensions is set to 'default' or the empty string '',</c>
+<c>*    all image suffixes supported by HALCON are used.</c>
+<c>* Options: as in the operator list_files, except that the 'files'</c>
+<c>*    option is always used. Note that the 'directories' option</c>
+<c>*    has no effect but increases runtime, because only files are</c>
+<c>*    returned.</c>
+<c>* </c>
+<c>* output parameter:</c>
+<c>* ImageFiles: A tuple of all found image file names</c>
+<c>* </c>
+<l>if (Extensions=[] or Extensions='' or Extensions='default')</l>
+<l>    Extensions := ['ima','bmp','jpg','png','tiff','tif','gif','jpeg','pcx','pgm','ppm','pbm','xwd','pnm']</l>
+<l>endif</l>
+<l>if (ImageDirectory='')</l>
+<l>    ImageDirectory := '.'</l>
+<l>endif</l>
+<l>get_system ('image_dir', HalconImages)</l>
+<l>get_system ('operating_system', OS)</l>
+<l>if (OS{0:2}='Win')</l>
+<l>    HalconImages := split(HalconImages,';')</l>
+<l>else</l>
+<l>    HalconImages := split(HalconImages,':')</l>
+<l>endif</l>
+<l>Directories := [ImageDirectory,HalconImages+'/'+ImageDirectory]</l>
+<l>ImageFiles := []</l>
+<l>for Index := 0 to |Directories|-1 by 1</l>
+<l>    file_exists (Directories[Index], FileExists)</l>
+<l>    if (FileExists)</l>
+<l>        list_files (Directories[Index], ['files',Options], AllFiles)</l>
+<l>        ImageFiles := []</l>
+<l>        for i := 0 to |Extensions|-1 by 1</l>
+<l>            tuple_regexp_select (AllFiles, ['.*'+Extensions[i]+'$','ignore_case'], Selection)</l>
+<l>            ImageFiles := [ImageFiles,Selection]</l>
+<l>        endfor</l>
+<l>        tuple_regexp_replace (ImageFiles, ['\\\\','replace_all'], '/', ImageFiles)</l>
+<l>        tuple_regexp_replace (ImageFiles, ['//','replace_all'], '/', ImageFiles)</l>
+<l>        return ()</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="list_image_files">
+<abstract lang="en_US">This procedure returns all files in a given directory ImageDirectory with one of the suffixes specified in Extensions.
+
+If a tuple of directories is given in ImageDirectory, only the images in the first existing directory are returned. If a local directory is not found, the directory is searched under %HALCONIMAGES%/ImageDirectory. If %HALCONIMAGES% is not set, %HALCONROOT%/images is used instead.
+If Extensions is set to 'default' or the empty string '', all image suffixes supported by HALCON are used.
+The parameter Options is used as in the operator list_files, except that the 'files' option is always used. Note that the 'directories' option has no effect but increases runtime, because only files are returned.</abstract>
+<alternatives>
+<item>list_files</item>
+</alternatives>
+<chapters>
+<item>File</item>
+</chapters>
+<chapters lang="de_DE">
+<item>File</item>
+</chapters>
+<chapters lang="en_US">
+<item>File</item>
+</chapters>
+<example lang="en_US">list_image_files ('.',[] ,[] , ImageFiles)
+for Index := 1 to |ImageFiles|  by 1
+    read_image (Image,ImageFiles[Index-1])
+*     do something
+endfor</example>
+<keywords lang="de_DE">
+<item>Bilddateien auflisten</item>
+</keywords>
+<keywords lang="en_US">
+<item>list image files</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>list_files</item>
+</predecessor>
+<see_also>
+<item>list_files</item>
+</see_also>
+<short>Get all image files under the given path</short>
+<short lang="de_DE">Get all image files under the given path</short>
+<short lang="en_US">Get all image files under the given path</short>
+<successor>
+<item>read_image</item>
+</successor>
+<parameters>
+<parameter id="Extensions">
+<default_type>string</default_type>
+<default_value>'default'</default_value>
+<description lang="en_US">A string tuple containing the extensions to be found e.g. ['png','tif',jpg'] or others</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>'ima'</item>
+<item>'bmp'</item>
+<item>'jpg'</item>
+<item>'png'</item>
+<item>'tiff'</item>
+<item>'tif'</item>
+<item>'gif'</item>
+<item>'jpeg'</item>
+<item>'pcx'</item>
+<item>'pgm'</item>
+<item>'ppm'</item>
+<item>'pbm'</item>
+<item>'xwd'</item>
+<item>'pnm'</item>
+</values>
+</parameter>
+<parameter id="ImageDirectory">
+<default_type>string</default_type>
+<description lang="en_US">The image directory</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>filename.dir</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="ImageFiles">
+<default_type>string</default_type>
+<description lang="en_US">A tuple of all found image file names</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>filename.read</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Options">
+<default_type>string</default_type>
+<default_value>[]</default_value>
+<description lang="en_US">Processing options</description>
+<multivalue>optional</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>'recursive'</item>
+<item>'follow_links'</item>
+<item>'max_depth 5'</item>
+</values>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="parse_filename">
+<interface>
+<ic>
+<par name="FileName"/>
+</ic>
+<oc>
+<par name="BaseName"/>
+<par name="Extension"/>
+<par name="Directory"/>
+</oc>
+</interface>
+<body>
+<c>* This procedure gets a filename (with full path) as input</c>
+<c>* and returns the directory path, the base filename and the extension</c>
+<c>* in three different strings.</c>
+<c>* </c>
+<c>* In the output path the path separators will be replaced</c>
+<c>* by '/' in all cases.</c>
+<c>* </c>
+<c>* The procedure shows the possibilities of regular expressions in HALCON.</c>
+<c>* </c>
+<c>* Input parameters:</c>
+<c>* FileName: The input filename</c>
+<c>* </c>
+<c>* Output parameters:</c>
+<c>* BaseName: The filename without directory description and file extension</c>
+<c>* Extension: The file extension</c>
+<c>* Directory: The directory path</c>
+<c>* </c>
+<c>* Example:</c>
+<c>* basename('C:/images/part_01.png',...) returns</c>
+<c>* BaseName = 'part_01'</c>
+<c>* Extension = 'png'</c>
+<c>* Directory = 'C:\\images\\' (on Windows systems)</c>
+<c>* </c>
+<c>* Explanation of the regular expressions:</c>
+<c>* </c>
+<c>* '([^\\\\/]*?)(?:\\.[^.]*)?$':</c>
+<c>* To start at the end, the '$' matches the end of the string,</c>
+<c>* so it is best to read the expression from right to left.</c>
+<c>* The part in brackets (?:\\.[^.}*) denotes a non-capturing group.</c>
+<c>* That means, that this part is matched, but not captured</c>
+<c>* in contrast to the first bracketed group ([^\\\\/], see below.) </c>
+<c>* \\.[^.]* matches a dot '.' followed by as many non-dots as possible.</c>
+<c>* So (?:\\.[^.]*)? matches the file extension, if any.</c>
+<c>* The '?' at the end assures, that even if no extension exists,</c>
+<c>* a correct match is returned.</c>
+<c>* The first part in brackets ([^\\\\/]*?) is a capture group,</c>
+<c>* which means, that if a match is found, only the part in</c>
+<c>* brackets is returned as a result.</c>
+<c>* Because both HDevelop strings and regular expressions need a '\\'</c>
+<c>* to describe a backslash, inside regular expressions within HDevelop</c>
+<c>* a backslash has to be written as '\\\\'.</c>
+<c>* [^\\\\/] matches any character but a slash or backslash ('\\' in HDevelop)</c>
+<c>* [^\\\\/]*? matches a string od 0..n characters (except '/' or '\\')</c>
+<c>* where the '?' after the '*' switches the greediness off,</c>
+<c>* that means, that the shortest possible match is returned.</c>
+<c>* This option is necessary to cut off the extension</c>
+<c>* but only if (?:\\.[^.]*)? is able to match one.</c>
+<c>* To summarize, the regular expression matches that part of</c>
+<c>* the input string, that follows after the last '/' or '\\' and</c>
+<c>* cuts off the extension (if any) after the last '.'.</c>
+<c>* </c>
+<c>* '\\.([^.]*)$':</c>
+<c>* This matches everything after the last '.' of the input string.</c>
+<c>* Because ([^.]) is a capturing group,</c>
+<c>* only the part after the dot is returned.</c>
+<c>* </c>
+<c>* '.*[\\\\/]':</c>
+<c>* This matches the longest substring with a '/' or a '\\' at the end.</c>
+<c>* </c>
+<l>tuple_regexp_match (FileName, '([^\\\\/]*?)(?:\\.[^.]*)?$', BaseName)</l>
+<l>tuple_regexp_match (FileName, '\\.([^.]*)$', Extension)</l>
+<l>tuple_regexp_match (FileName, '.*[\\\\/]', DirectoryTmp)</l>
+<c>* </c>
+<c>* Finally all found backslashes ('\\') are converted</c>
+<c>* to a slash to get consistent paths</c>
+<l>tuple_regexp_replace (DirectoryTmp, ['\\\\','replace_all'], '/', Directory)</l>
+<l>return ()</l>
+</body>
+<docu id="parse_filename">
+<abstract lang="en_US">This procedure gets a filename (with full path) as input and returns the directory path (Directory), the base filename (BaseName) and the extension (Extension) in three different strings.</abstract>
+<alternatives>
+<item>tuple_regexp_select</item>
+<item>tuple_regexp_match</item>
+<item>tuple_regexp_match</item>
+</alternatives>
+<attention lang="en_US">In case of hidden files of the form '.name' (e.g. '.profile' etc.), an empty BaseName and Extension=name are returned.</attention>
+<chapters>
+<item>File</item>
+</chapters>
+<chapters lang="de_DE">
+<item>File</item>
+</chapters>
+<chapters lang="en_US">
+<item>File</item>
+</chapters>
+<example lang="en_US">FullFileNames:=['C:/images/image_01.png','C:/images/image_02.png','C:/training_image.png']
+parse_filename (FullFileName, BaseName, Extension, Directory)
+tuple_regexp_select(BaseName,'training',TrainingImages)</example>
+<keywords lang="de_DE">
+<item>Dateiname parsen</item>
+</keywords>
+<keywords lang="en_US">
+<item>parse file name</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>list_files</item>
+<item>list_image_files</item>
+</predecessor>
+<short>This procedure gets a filename (with full path) as input and returns the directory path, the base filename and the extension in three different strings.</short>
+<short lang="de_DE">Parse a filename into directory, base filename, and extension</short>
+<short lang="en_US">Parse a filename into directory, base filename, and extension</short>
+<successor>
+<item>tuple_regexp_select</item>
+</successor>
+<parameters>
+<parameter id="BaseName">
+<default_type>string</default_type>
+<description lang="en_US">The filename without directory description and file extension</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Directory">
+<default_type>string</default_type>
+<description lang="en_US">The directory path</description>
+<mixed_type>false</mixed_type>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Extension">
+<default_type>string</default_type>
+<description lang="en_US">The file extension</description>
+<mixed_type>false</mixed_type>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="FileName">
+<default_type>string</default_type>
+<description lang="en_US">The input filename</description>
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="scale_image_range">
+<interface>
+<io>
+<par name="Image"/>
+</io>
+<oo>
+<par name="ImageScaled"/>
+</oo>
+<ic>
+<par name="Min"/>
+<par name="Max"/>
+</ic>
+</interface>
+<body>
+<c>* Convenience procedure to scale the gray values of the</c>
+<c>* input image Image from the interval [Min,Max]</c>
+<c>* to the interval [0,255] (default).</c>
+<c>* Gray values &lt; 0 or &gt; 255 (after scaling) are clipped.</c>
+<c>* </c>
+<c>* If the image shall be scaled to an interval different from [0,255],</c>
+<c>* this can be achieved by passing tuples with 2 values [From, To]</c>
+<c>* as Min and Max.</c>
+<c>* Example:</c>
+<c>* scale_image_range(Image:ImageScaled:[100,50],[200,250])</c>
+<c>* maps the gray values of Image from the interval [100,200] to [50,250].</c>
+<c>* All other gray values will be clipped.</c>
+<c>* </c>
+<c>* input parameters:</c>
+<c>* Image: the input image</c>
+<c>* Min: the minimum gray value which will be mapped to 0</c>
+<c>*      If a tuple with two values is given, the first value will</c>
+<c>*      be mapped to the second value.</c>
+<c>* Max: The maximum gray value which will be mapped to 255</c>
+<c>*      If a tuple with two values is given, the first value will</c>
+<c>*      be mapped to the second value.</c>
+<c>* </c>
+<c>* output parameter:</c>
+<c>* ImageScale: the resulting scaled image</c>
+<c>* </c>
+<l>if (|Min|=2)</l>
+<l>    LowerLimit := Min[1]</l>
+<l>    Min := Min[0]</l>
+<l>else</l>
+<l>    LowerLimit := 0.0</l>
+<l>endif</l>
+<l>if (|Max|=2)</l>
+<l>    UpperLimit := Max[1]</l>
+<l>    Max := Max[0]</l>
+<l>else</l>
+<l>    UpperLimit := 255.0</l>
+<l>endif</l>
+<c>* </c>
+<c>* Calculate scaling parameters</c>
+<l>Mult := real(UpperLimit-LowerLimit)/(Max-Min)</l>
+<l>Add := -Mult*Min+LowerLimit</l>
+<c>* </c>
+<c>* Scale image</c>
+<l>scale_image (Image, Image, Mult, Add)</l>
+<c>* </c>
+<c>* Clip gray values if necessary</c>
+<c>* This must be done for each channel separately</c>
+<l>count_channels (Image, Channels)</l>
+<l>for Index := 1 to Channels by 1</l>
+<l>    access_channel (Image, SelectedChannel, Index)</l>
+<l>    min_max_gray (SelectedChannel, SelectedChannel, 0, MinGray, MaxGray, Range)</l>
+<l>    threshold (SelectedChannel, LowerRegion, min([MinGray, LowerLimit]), LowerLimit)</l>
+<l>    threshold (SelectedChannel, UpperRegion, UpperLimit, max([UpperLimit, MaxGray]))</l>
+<l>    paint_region (LowerRegion, SelectedChannel, SelectedChannel, LowerLimit, 'fill')</l>
+<l>    paint_region (UpperRegion, SelectedChannel, SelectedChannel, UpperLimit, 'fill')</l>
+<l>    if (Index = 1)</l>
+<l>        copy_obj (SelectedChannel, ImageScaled, 1, 1)</l>
+<l>    else</l>
+<l>        append_channel (ImageScaled, SelectedChannel, ImageScaled)</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="scale_image_range">
+<abstract lang="en_US">Convenience procedure to scale the gray values of the input image Image from the interval [Min,Max] to the interval [0,255] (default).
+Gray values &lt; 0 or &gt; 255 (after scaling) are clipped.
+If the image shall be scaled to an interval different from [0,255], this can be achieved by passing tuples with 2 values [From, To] as Min and Max.
+Example:
+scale_image_range(Image:ImageScaled:[100,50],[200,250])
+maps the gray values of Image from the interval [100,200] to [50,250].
+All other gray values will be clipped.
+</abstract>
+<alternatives>
+<item>scale_image</item>
+<item>scale_image_max</item>
+</alternatives>
+<chapters>
+<item>Filter</item>
+<item>Arithmetic</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Filter</item>
+<item>Arithmetic</item>
+</chapters>
+<chapters lang="en_US">
+<item>Filter</item>
+<item>Arithmetic</item>
+</chapters>
+<example lang="en_US">read_image (Image, 'fabrik')
+scale_image_range (Image:ImageScaled:[100,50],[200,250])</example>
+<keywords lang="de_DE">
+<item>Grauwerte skalieren</item>
+</keywords>
+<keywords lang="en_US">
+<item>scale gray values</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>scale_image</item>
+<item>scale_image_max</item>
+</see_also>
+<short>Scale the gray values of an image from the interval [Min,Max] to [0,255]</short>
+<short lang="de_DE">Scale the gray values of an image from the interval [Min,Max] to [0,255]</short>
+<short lang="en_US">Scale the gray values of an image from the interval [Min,Max] to [0,255]</short>
+<parameters>
+<parameter id="Image">
+<description lang="en_US">The input image to be scaled</description>
+<multichannel>optional</multichannel>
+<multivalue>optional</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+</type_list>
+</parameter>
+<parameter id="ImageScaled">
+<description lang="en_US">The scaled output image</description>
+<multichannel>optional</multichannel>
+<multivalue>optional</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+</type_list>
+</parameter>
+<parameter id="Max">
+<default_type>integer</default_type>
+<default_value>200</default_value>
+<description lang="en_US">The maximum gray value which will be mapped to 255. If a tuple with two values is given, the first value will be mapped to the second value.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Min">
+<default_type>integer</default_type>
+<default_value>100</default_value>
+<description lang="en_US">The minimum gray value which will be mapped to 0. If a tuple with two values is given, the first value will be mapped to the second value.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>true</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="set_display_font">
+<interface>
+<ic>
+<par name="WindowHandle"/>
+<par name="Size"/>
+<par name="Font"/>
+<par name="Bold"/>
+<par name="Slant"/>
+</ic>
+</interface>
+<body>
+<c>* This procedure sets the text font of the current window with</c>
+<c>* the specified attributes.</c>
+<c>* It is assumed that following fonts are installed on the system:</c>
+<c>* Windows: Courier New, Arial Times New Roman</c>
+<c>* Linux: courier, helvetica, times</c>
+<c>* Because fonts are displayed smaller on Linux than on Windows,</c>
+<c>* a scaling factor of 1.25 is used the get comparable results.</c>
+<c>* For Linux, only a limited number of font sizes is supported,</c>
+<c>* to get comparable results, it is recommended to use one of the</c>
+<c>* following sizes: 9, 11, 14, 16, 20, 27</c>
+<c>* (which will be mapped internally on Linux systems to 11, 14, 17, 20, 25, 34)</c>
+<c>* </c>
+<c>* input parameters:</c>
+<c>* WindowHandle: The graphics window for which the font will be set</c>
+<c>* Size: The font size. If Size=-1, the default of 16 is used.</c>
+<c>* Bold: If set to 'true', a bold font is used</c>
+<c>* Slant: If set to 'true', a slanted font is used</c>
+<c>* </c>
+<l>get_system ('operating_system', OS)</l>
+<l>if (Size=[] or Size=-1)</l>
+<l>    Size := 16</l>
+<l>endif</l>
+<l>if (OS{0:2}='Win')</l>
+<c>    * set font on Windows systems</c>
+<l>    if (Font = 'mono' or Font = 'Courier' or Font = 'courier')</l>
+<l>        Font := 'Courier New'</l>
+<l>    elseif (Font = 'sans')</l>
+<l>        Font := 'Arial'</l>
+<l>    elseif (Font = 'serif')</l>
+<l>        Font := 'Times New Roman'</l>
+<l>    endif</l>
+<l>    if (Bold='true')</l>
+<l>        Bold := 1</l>
+<l>    elseif (Bold='false')</l>
+<l>        Bold := 0</l>
+<l>    else</l>
+<l>        Exception := 'Wrong value of control parameter Bold'</l>
+<l>        throw (Exception)</l>
+<l>    endif</l>
+<l>    if (Slant='true')</l>
+<l>        Slant := 1</l>
+<l>    elseif (Slant='false')</l>
+<l>        Slant := 0</l>
+<l>    else</l>
+<l>        Exception := 'Wrong value of control parameter Slant'</l>
+<l>        throw (Exception)</l>
+<l>    endif</l>
+<l>    try</l>
+<l>        set_font (WindowHandle, '-' + Font + '-' + Size + '-*-' + Slant + '-*-*-' + Bold +'-')</l>
+<l>    catch (Exception)</l>
+<l>        throw (Exception)</l>
+<l>    endtry</l>
+<l>else</l>
+<c>    * set font for UNIX systems</c>
+<l>    Size := Size*1.25</l>
+<l>    AllowedFontSizes := [11,14,17,20,25,34]</l>
+<l>    if (find(AllowedFontSizes,Size)=-1)</l>
+<l>        Distances := abs(AllowedFontSizes-Size)</l>
+<l>        tuple_sort_index (Distances, Indices)</l>
+<l>        Size := AllowedFontSizes[Indices[0]]</l>
+<l>    endif</l>
+<l>    if (Font = 'mono' or Font = 'Courier')</l>
+<l>        Font := 'courier'</l>
+<l>    elseif (Font = 'sans')</l>
+<l>        Font := 'helvetica'</l>
+<l>    elseif (Font = 'serif')</l>
+<l>        Font := 'times'</l>
+<l>    endif</l>
+<l>    if (Bold='true')</l>
+<l>        Bold := 'bold'</l>
+<l>    elseif (Bold='false')</l>
+<l>        Bold := 'medium'</l>
+<l>    else</l>
+<l>        Exception := 'Wrong value of control parameter Bold'</l>
+<l>        throw (Exception)</l>
+<l>    endif</l>
+<l>    if (Slant='true')</l>
+<l>        if (Font='times')</l>
+<l>            Slant := 'i'</l>
+<l>        else</l>
+<l>            Slant := 'o'</l>
+<l>        endif    </l>
+<l>    elseif (Slant='false')</l>
+<l>        Slant := 'r'</l>
+<l>    else</l>
+<l>        Exception := 'Wrong value of control parameter Slant'</l>
+<l>        throw (Exception)</l>
+<l>    endif</l>
+<l>    try</l>
+<l>        set_font (WindowHandle, '-adobe-' + Font + '-' + Bold + '-' + Slant + '-normal-*-' + Size + '-*-*-*-*-*-*-*')</l>
+<l>    catch (Exception)</l>
+<l>        throw (Exception)</l>
+<l>    endtry</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="set_display_font">
+<abstract lang="en_US">This procedure sets the text font of the current window with the specified attributes Size, Bold and Slant. 
+As font, the font name or one of the strings 'mono', 'sans', 'serif' can be used. 'mono' will be mapped to 'Courier New' on Windows, and to 'courier' on Linux. 'sans' will be mapped to 'Arial' on Windows, and to 'helvetica' on Linux. 'serif' will be mapped to 'Times New Roman' on Windows, and to 'times' on Linux.
+It is assumed that following fonts are installed on the system:
+Windows: Courier New, Arial, Times New Roman
+Linux: courier, helvetica, times
+Because fonts are displayed smaller on Linux than on Windows, a scaling factor of 1.25 is used for the font size on Linux systems the get comparable results.
+For Linux, only a limited number of font sizes is supported. To get comparable results, it is recommended to use one of the following sizes: 9, 11, 14, 16, 20, 27 (which will be mapped internally on Linux systems to 11, 14, 17, 20, 25, 34)
+</abstract>
+<alternatives>
+<item>set_font</item>
+</alternatives>
+<attention lang="en_US">It is assumed that following fonts are installed on the system:
+Windows: Courier New, Arial, Times New Roman
+Linux: courier, helvetica, times
+Because fonts are displayed smaller on Linux than on Windows, a scaling factor of 1.25 is used for the font size on Linux systems the get comparable results.
+For Linux, only a limited number of font sizes is supported. To get comparable results, it is recommended to use one of the following sizes: 9, 11, 14, 16, 20, 27 (which will be mapped internally on Linux systems to 11, 14, 17, 20, 25, 34)</attention>
+<chapters>
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<chapters lang="en_US">
+<item>Graphics</item>
+<item>Text</item>
+</chapters>
+<example lang="en_US">dev_open_window_fit_image(Image,0 , 0, 400, 400, WindowHandle)
+set_display_font(WindowHandle, 16, 'mono', 'true', 'false')
+disp_message (WindowHandle,'Hello World!', 'window', 10, 10, 'black', 'true')
+</example>
+<keywords lang="de_DE">
+<item>Schriftart (Font) setzen</item>
+</keywords>
+<keywords lang="en_US">
+<item>set font</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<predecessor>
+<item>dev_open_window</item>
+<item>open_window</item>
+<item>dev_open_window_fit_image</item>
+<item>dev_open_window_fit_size</item>
+</predecessor>
+<see_also>
+<item>set_font</item>
+</see_also>
+<short>Set font independent of OS</short>
+<short lang="de_DE">Set font independent of OS</short>
+<short lang="en_US">Set font independent of OS</short>
+<successor>
+<item>disp_message</item>
+<item>disp_continue_message</item>
+<item>set_tposition</item>
+<item>write_string</item>
+</successor>
+<parameters>
+<parameter id="Bold">
+<default_type>string</default_type>
+<default_value>'true'</default_value>
+<description lang="en_US">If set to 'true', a bold font is used</description>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<value_list>
+<item>'true'</item>
+<item>'false'</item>
+</value_list>
+</parameter>
+<parameter id="Font">
+<default_type>string</default_type>
+<default_value>'mono'</default_value>
+<description lang="en_US">The font name. Either 'mono', 'sans' or 'serif' can be used, which use the fonts 'Courier New', 'Arial' and 'Times' on Windows systems, and 'courier', 'helvetica' and 'times' on Linux systems, or a specific font name can be used.
+</description>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<values>
+<item>'mono'</item>
+<item>'sans'</item>
+<item>'serif'</item>
+</values>
+</parameter>
+<parameter id="Size">
+<default_type>integer</default_type>
+<default_value>16</default_value>
+<description lang="en_US">The font size on Windows systems. If Size=-1, the default of 16 is used.
+On Linux systems, ALL values are multiplied with 1.25 and then mapped to [11, 14, 17, 20, 25, 34].</description>
+<multivalue>false</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>[9, 11, 14, 16, 20, 27]</item>
+</values>
+</parameter>
+<parameter id="Slant">
+<default_type>string</default_type>
+<default_value>'false'</default_value>
+<description lang="en_US">If set to 'true', a slanted font is used</description>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+<value_list>
+<item>'true'</item>
+<item>'false'</item>
+</value_list>
+</parameter>
+<parameter id="WindowHandle">
+<default_type>integer</default_type>
+<description lang="en_US">The window handle of the window, where the font will be set</description>
+<mixed_type>false</mixed_type>
+<sem_type>window</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="sort_pairs">
+<interface>
+<ic>
+<par name="T1"/>
+<par name="T2"/>
+<par name="SortMode"/>
+</ic>
+<oc>
+<par name="Sorted1"/>
+<par name="Sorted2"/>
+</oc>
+</interface>
+<body>
+<c>* Sort tuple pairs.</c>
+<c>* </c>
+<c>* input parameters:</c>
+<c>* T1: first tuple</c>
+<c>* T2: second tuple</c>
+<c>* SortMode: if set to '1', sort by the first tuple,</c>
+<c>*    if set to '2', sort by the second tuple</c>
+<c>* </c>
+<l>if (SortMode = '1' or SortMode = 1)</l>
+<l>    tuple_sort_index (T1, Indices1)</l>
+<l>    Sorted1 := subset(T1, Indices1)</l>
+<l>    Sorted2 := subset(T2, Indices1)</l>
+<l>elseif (SortMode = 'column' or SortMode = '2' or SortMode = 2)</l>
+<l>    tuple_sort_index (T2, Indices2)</l>
+<l>    Sorted1 := subset(T1, Indices2)</l>
+<l>    Sorted2 := subset(T2, Indices2)</l>
+<l>endif</l>
+<l>return ()</l>
+</body>
+<docu id="sort_pairs">
+<abstract lang="en_US">Sort tuple pairs.
+This procedure first sorts one of the tuples (which one is specified by the parameter SortMode) in ascending order. The second tuple is then ordered such, that their position in the output tuple is the same as the new position of the value of the first tuple, which had the same index before sorting.
+Example:
+Tuple1 := [5,4,3,2,1]
+Tuple2 := [105,204,303,402,501]
+sort_pairs (Tuple1, Tuple2, '1', Sorted1, Sorted2)
+
+returns:
+Sorted1 := [1,2,3,4,5]
+Sorted2 := [501,402,303,204,105]</abstract>
+<alternatives>
+<item>tuple_sort</item>
+<item>tuple_sort_index</item>
+</alternatives>
+<attention lang="en_US">Both tuples must have the same length.
+If the sorted tuple (T1, if SortMode='1' or T2, if SortMode='2') has more elements than the other, an error will occur. 
+If the sorted tuple (T1, if SortMode='1' or T2, if SortMode='2') has less elements than the other, the output tuples will have as many elements as the shorter one of the input tuples.</attention>
+<chapters>
+<item>Tools</item>
+<item>Geometry</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Tools</item>
+<item>Geometry</item>
+</chapters>
+<chapters lang="en_US">
+<item>Tools</item>
+<item>Geometry</item>
+</chapters>
+<example lang="en_US">Tuple1 := [5,4,3,2,1]
+Tuple2 := [105,204,303,402,501]
+sort_pairs (Tuple1, Tuple2, '1', Sorted1, Sorted2)</example>
+<keywords lang="de_DE">
+<item>Tupelpaare sortieren</item>
+</keywords>
+<keywords lang="en_US">
+<item>sort tuple pairs</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>tuple_sort</item>
+<item>tuple_sort_index</item>
+</see_also>
+<short>Sort tuple pairs.</short>
+<short lang="de_DE">Sort tuple pairs.</short>
+<short lang="en_US">Sort tuple pairs.</short>
+<parameters>
+<parameter id="SortMode">
+<default_type>string</default_type>
+<default_value>'1'</default_value>
+<description lang="en_US">If set to '1', sort by the first tuple, if set to '2', sort by the second tuple.
+</description>
+<multivalue>false</multivalue>
+<sem_type>attribute.value</sem_type>
+<type_list>
+<item>integer</item>
+<item>string</item>
+</type_list>
+<values>
+<item>'1'</item>
+<item>'2'</item>
+</values>
+</parameter>
+<parameter id="Sorted1">
+<default_type>integer</default_type>
+<description lang="en_US">The first sorted output tuple (corresponding to the input tuple T1)</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>any</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Sorted2">
+<default_type>integer</default_type>
+<description lang="en_US">The second sorted output tuple (corresponding to the input tuple T2)</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>any</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="T1">
+<default_type>integer</default_type>
+<description lang="en_US">First input tuple of the pair, which shall be sorted.</description>
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>any</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="T2">
+<default_type>integer</default_type>
+<description lang="en_US">Second input tuple of the pair, which shall be sorted.</description>
+<mixed_type>optional</mixed_type>
+<sem_type>any</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+<item>string</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+<procedure name="tuple_gen_sequence">
+<interface>
+<ic>
+<par name="Start"/>
+<par name="End"/>
+<par name="Step"/>
+</ic>
+<oc>
+<par name="Sequence"/>
+</oc>
+</interface>
+<body>
+<c>* </c>
+<c>* This procedure generates a tuple with a sequence of equidistant values.</c>
+<c>* [Start, Start + Step, Start + 2*Step, ... End]</c>
+<c>* </c>
+<c>* Input parameters:</c>
+<c>* Start: Start value of the tuple</c>
+<c>* End:   Maximum value for the last entry.</c>
+<c>*        Note that the last entry of the resulting tuple may be less than End</c>
+<c>* Step:  Increment value</c>
+<c>* Assure that Step#0 and sgn(Start-End)#sgn(Step), else an error occurs</c>
+<c>* </c>
+<c>* Output parameter:</c>
+<c>* Sequence: The resulting tuple [Start, Start + Step, Start + 2*Step, ... End]</c>
+<c>* </c>
+<l>Sequence := Start-Step+cumul(gen_tuple_const(int((End-Start)/Step)+1,Step))</l>
+<l>return ()</l>
+</body>
+<docu id="tuple_gen_sequence">
+<abstract lang="en_US">This procedure generates a tuple with a sequence of equidistant values.
+[Start, Start + Step, Start + 2*Step, ... End].
+Assure that Step#0 and sgn(Start-End)#sgn(Step), else an error occurs.</abstract>
+<alternatives>
+<item>tuple_gen_const</item>
+</alternatives>
+<attention lang="en_US">Assure that Step#0 and sgn(Start-End)#sgn(Step), else an error occurs.
+</attention>
+<chapters>
+<item>Tuple</item>
+<item>Creation</item>
+</chapters>
+<chapters lang="de_DE">
+<item>Tuple</item>
+<item>Creation</item>
+</chapters>
+<chapters lang="en_US">
+<item>Tuple</item>
+<item>Creation</item>
+</chapters>
+<example lang="en_US">tuple_gen_sequence (1, 10, 1, Sequence1)
+tuple_gen_sequence (10, 1, -.5, Sequence2)</example>
+<keywords lang="de_DE">
+<item>Tupel erzeugen</item>
+</keywords>
+<keywords lang="en_US">
+<item>create tuple</item>
+</keywords>
+<library lang="de_DE">MVTec Standard Procedures</library>
+<library lang="en_US">MVTec Standard Procedures</library>
+<see_also>
+<item>tuple_gen_const</item>
+</see_also>
+<short>This procedure generates a tuple with a sequence of equidistant values.</short>
+<short lang="de_DE">This procedure generates a tuple with a sequence of equidistant values.</short>
+<short lang="en_US">This procedure generates a tuple with a sequence of equidistant values.</short>
+<parameters>
+<parameter id="End">
+<default_type>real</default_type>
+<default_value>10.0</default_value>
+<description lang="en_US">Maximum value for the last entry.
+Note, that the last entry of the resulting tuple may be less than End.
+</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Sequence">
+<default_type>real</default_type>
+<description lang="en_US">The resulting tuple [Start, Start + Step, Start + 2*Step, ... End]. Note, that the last entry of the resulting tuple actually may be less than End.
+</description>
+<mixed_type>false</mixed_type>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Start">
+<default_type>real</default_type>
+<default_value>1.0</default_value>
+<description lang="en_US">Start value of the tuple</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Step">
+<default_type>real</default_type>
+<default_value>1.0</default_value>
+<description lang="en_US">Increment value</description>
+<multivalue>false</multivalue>
+<sem_type>number</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

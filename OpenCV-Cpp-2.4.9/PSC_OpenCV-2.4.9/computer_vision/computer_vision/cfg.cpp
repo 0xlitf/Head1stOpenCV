@@ -11,8 +11,8 @@ using namespace std;
 using namespace cv;
 
 SysParam mySysParam;    //系统参数
+
 bool m_useCountDebug;            // 0 - 关闭图像计数  && 非0 - 开启图像计数
-int m_halconDLModel = DL_CLASSIFICATION;     // halcon深度学习模型类型， 1-分类模型  && 2-目标检测模型 && 3-异常检测模型
 
 string  UrlUTF8(char* str);
 void GB2312ToUTF_8(string& pOut, char* pText, int pLen);
@@ -108,8 +108,6 @@ void  UnicodeToUTF_8(char* pOut, WCHAR* pText)
 bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
 {//读roi.xml文件
     string strFileName = strPath;
-	cout << "read roi from:" << strFileName << endl;
-
 
     TiXmlDocument doc;
     if (!doc.LoadFile(strFileName.c_str()))
@@ -117,8 +115,6 @@ bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
         cerr << doc.ErrorDesc() << endl;
         return false;
     }
-	cout << "read roi success!" << endl;
-
 
     TiXmlElement* root = doc.FirstChildElement();
     if (root == NULL)
@@ -127,31 +123,31 @@ bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
         doc.Clear();
         return false;
     }
-	cout << "load roi success!" << endl;
 
     TiXmlElement* roiElem = root->FirstChildElement("roi");
-	cout << "roi para:" << endl;
+
     const char* attr_name;
     const char* attr_rgb;
     const char* attr_enable;
     const char* attr_type;
     const char* attr_visible;
     attr_name = roiElem->Attribute("name");
-	cout << "    name:" << attr_name << endl;
     attr_rgb = roiElem->Attribute("rgb");
-	cout << "    rgb:" << attr_rgb << endl;
     attr_enable = roiElem->Attribute("enable");
-	cout << "    enable:" << attr_enable << endl;
     attr_type = roiElem->Attribute("type");
-	cout << "    type:" << attr_type << endl;
-    attr_visible = roiElem->Attribute("visible"); 
+    attr_visible = roiElem->Attribute("visible");
+    cout << "roi para:" << endl;
+    cout << "    name:" << attr_name << endl;
+    cout << "    rgb:" << attr_rgb << endl;
+    cout << "    enable:" << attr_enable << endl;
+    cout << "    type:" << attr_type << endl;
     cout << "    visible:" << attr_visible << endl;
 
     string strW;
-    GB2312ToUTF_8(strW, (char*)("width"), 8);
+    GB2312ToUTF_8(strW, (char*)("宽度"), 8);
     const char* pW = strW.data();
     string strH;
-    GB2312ToUTF_8(strH, (char*)("height"), 8);
+    GB2312ToUTF_8(strH, (char*)("高度"), 8);
     const char* pH = strH.data();
     for (TiXmlElement* valueElem = roiElem->FirstChildElement(); valueElem != NULL; valueElem = valueElem->NextSiblingElement())
     {
@@ -173,13 +169,13 @@ bool readRoiDataFromXml(const string strPath, RoiData* myRoiData)
         {
             TiXmlNode* eValue = valueElem->FirstChild();
             myRoiData->roiWidth = atoi(eValue->ToText()->Value());
-            cout << "    width:" << myRoiData->roiWidth << endl;
+            cout << "    宽度:" << myRoiData->roiWidth << endl;
         }
         if (strcmp(attr_Value, pH) == 0)
         {
             TiXmlNode* eValue = valueElem->FirstChild();
             myRoiData->roiHeight = atoi(eValue->ToText()->Value());
-            cout << "    height:" << myRoiData->roiHeight << endl;
+            cout << "    高度:" << myRoiData->roiHeight << endl;
         }
     }
 

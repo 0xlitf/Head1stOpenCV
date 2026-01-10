@@ -36,8 +36,8 @@ void HPDetectionPartsTrainer::init()
 
 		int width = mySysParam.imgWidth;
 		int height = mySysParam.imgHeight;
-		OpenWindow(0, 0, width, height, "root", "buffer", "", &m_pData->WindowHandle);
-		SetPart(m_pData->WindowHandle, 0, 0, height - 1, width - 1);
+		open_window(0, 0, width, height, "root", "buffer", "", &m_pData->WindowHandle);
+		set_part(m_pData->WindowHandle, 0, 0, height - 1, width - 1);
 		m_isDynamicHD = false;      // 默认手动训练模式
 		m_useCountDebug = false;     // 默认关闭视觉计数调试
 		m_pData->strError.clear();
@@ -48,8 +48,7 @@ void HPDetectionPartsTrainer::init()
 	}
 	catch (HException& e)
 	{
-		m_pData->strError = e.ErrorMessage();
-		cout << endl << e.ErrorMessage() << endl;
+		m_pData->strError = e.message;
 	}
 	catch (...)
 	{
@@ -72,7 +71,7 @@ void HPDetectionPartsTrainer::setTrainTarget(int num)
 
 void HPDetectionPartsTrainer::uninit()
 {
-	CloseWindow(m_pData->WindowHandle);
+	close_window(m_pData->WindowHandle);
 }
 
 std::string HPDetectionPartsTrainer::project()
@@ -99,8 +98,8 @@ bool HPDetectionPartsTrainer::start(std::string strProject, std::string roiPath)
 	m_pData->ModelHeightAll = HTuple();
 	m_pData->ModelGrayAll = HTuple();
 	m_pData->ModelIDs = HTuple();
-	GenEmptyObj(&m_pData->hModelRegions);
-	ClearAllShapeModels();
+	gen_empty_obj(&m_pData->hModelRegions);
+	clear_all_shape_models();
 
 	RoiData roiData;
 	if (readRoiDataFromXml(roiPath, &roiData))
@@ -110,7 +109,7 @@ bool HPDetectionPartsTrainer::start(std::string strProject, std::string roiPath)
 		m_roiWidth = roiData.roiWidth;
 		m_roiHeight = roiData.roiHeight;
 	}
-	GenRectangle1(&m_pData->RegionROI, m_roiLTY, m_roiLTX, m_roiLTY + m_roiHeight, m_roiLTX + m_roiWidth);
+	gen_rectangle1(&m_pData->RegionROI, m_roiLTY, m_roiLTX, m_roiLTY + m_roiHeight, m_roiLTX + m_roiWidth);
 
 
 	updateParam(mySysParam.threshValue, mySysParam.wdiffValue);
@@ -127,11 +126,11 @@ bool HPDetectionPartsTrainer::updateParam(int threshValue, int wdiffValue)
 		//更新参数
 		m_pData->hThreshold = threshValue;
 		m_pData->hWdiffValue = wdiffValue;
-		CloseWindow(m_pData->WindowHandle);
+		close_window(m_pData->WindowHandle);
 		int width = mySysParam.imgWidth;
 		int height = mySysParam.imgHeight;
-		OpenWindow(0, 0, width, height, "root", "buffer", "", &m_pData->WindowHandle);
-		SetPart(m_pData->WindowHandle, 0, 0, height - 1, width - 1);
+		open_window(0, 0, width, height, "root", "buffer", "", &m_pData->WindowHandle);
+		set_part(m_pData->WindowHandle, 0, 0, height - 1, width - 1);
 		return true;
 	}
 	catch (HDevEngineException& e)
@@ -140,8 +139,7 @@ bool HPDetectionPartsTrainer::updateParam(int threshValue, int wdiffValue)
 	}
 	catch (HException& e)
 	{
-		m_pData->strError = e.ErrorMessage();
-		cout << endl << e.ErrorMessage() << endl;
+		m_pData->strError = e.message;
 	}
 	catch (...)
 	{
@@ -149,8 +147,6 @@ bool HPDetectionPartsTrainer::updateParam(int threshValue, int wdiffValue)
 	}
 	return false;
 }
-
-
 
 void HPDetectionPartsTrainer::stop()
 {
@@ -196,20 +192,20 @@ std::string HPDetectionPartsTrainer::errorString()
 double HPDetectionPartsTrainer::getCalibFactor(cv::Mat& image)
 {
 	double s = 1.0;
-	HObject hImageCalib;
+	Hobject hImageCalib;
 	HTuple Channels, scaleFactor;
 	if (!matToHobject(image, hImageCalib))   // 将Mat转为halcon图像
 	{
 		m_pData->strError = "image error";
 		return false;
 	}
-	CountChannels(hImageCalib, &Channels);
+	count_channels(hImageCalib, &Channels);
 	if (Channels[0].I() == 3)
-		Rgb1ToGray(hImageCalib, &hImageCalib);
+		rgb1_to_gray(hImageCalib, &hImageCalib);
 
 	try
 	{
-//		get_calib_factor(hImageCalib, &scaleFactor);
+		get_calib_factor(hImageCalib, &scaleFactor);
 		s = scaleFactor[0].D();
 	}
 	catch (HDevEngineException& e)
@@ -218,8 +214,7 @@ double HPDetectionPartsTrainer::getCalibFactor(cv::Mat& image)
 	}
 	catch (HException& e)
 	{
-		m_pData->strError = e.ErrorMessage();
-		cout << endl << e.ErrorMessage() << endl;
+		m_pData->strError = e.message;
 	}
 
 	return s;
@@ -227,7 +222,7 @@ double HPDetectionPartsTrainer::getCalibFactor(cv::Mat& image)
 
 bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 {
-	HObject hImage, hImageResult, hModelRegionsOrigin;
+	Hobject hImage, hImageResult, hModelRegionsOrigin;
 	HTuple hModelID, hModelWidth, hModelHeight, hModelArea, hModelGrayVal, isTrained;
 	HTuple Channels;
 	trainResult.create(image.size(), image.type());
@@ -240,18 +235,17 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 		m_pData->strError = "image error";
 		return false;
 	}
-	CountChannels(hImage, &Channels);
+	count_channels(hImage, &Channels);
 	if (Channels[0].I() == 3)
-		Rgb1ToGray(hImage, &hImage);
+		rgb1_to_gray(hImage, &hImage);
 
 	try
 	{
 #ifdef HALCONCPlus
-		if (m_halconDLModel == DL_MODE_CLOSED)
-		{
 		/*generate_shape_model(hImage, m_pData->RegionROI, &hModelRegionsOrigin, m_pData->WindowHandle, m_pData->ModelWidthAll,
 			m_pData->ModelHeightAll, m_pData->hThreshold, &hModelID, &hModelWidth, &hModelHeight, &hModelArea, &isTrained);*/
-			
+
+
 		generate_shape_model_dynamic(hImage, m_pData->RegionROI,
 		m_pData->hModelRegions, &hModelRegionsOrigin, m_pData->WindowHandle,
 		m_pData->ModelIDs, m_pData->ModelWidthAll, m_pData->ModelHeightAll,
@@ -259,7 +253,6 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 		m_isDynamicHD, &hModelID,  &hModelWidth, &hModelHeight, &hModelArea, &hModelGrayVal,
 		&isTrained);
 
-		}
 #else
 		pDevProcedureCall->SetInputIconicParamObject("ImageModel", hImage);                      // 输入图像 image 类型
 		pDevProcedureCall->SetInputIconicParamObject("RegionROI", m_pData->RegionROI);           // ROI检测区域 region 类型
@@ -274,7 +267,6 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 		pDevProcedureCall->SetInputCtrlParamTuple("WdiffValue", m_pData->hWdiffValue);			 // 图像分割阈值参数 tuple 类型
 		pDevProcedureCall->SetInputCtrlParamTuple("IsDynamic", m_isDynamicHD);			 // 是否采用动态训练模式 tuple 类型
 		pDevProcedureCall->Execute();                                                            // 执行算法
-
 
 		hModelRegionsOrigin = pDevProcedureCall->GetOutputIconicParamObject("ModelRegionsOrigin");    // 获取算子的输出变量 ModelRegionsOrigin
 		hModelID = pDevProcedureCall->GetOutputCtrlParamTuple("ModelID");                  // 获取算子的输出变量 ModelID	
@@ -291,7 +283,7 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 		//disp_image(hImage, m_pData->WindowHandle);
 		//disp_region(hModelRegionsOrigin, m_pData->WindowHandle);
 		//disp_region(m_pData->RegionROI, m_pData->WindowHandle);
-		DumpWindowImage(&hImageResult, m_pData->WindowHandle);               // 把算子输出图像保存下来，转成QImage outImage
+		dump_window_image(&hImageResult, m_pData->WindowHandle);               // 把算子输出图像保存下来，转成QImage outImage
 		hobjectToMat(hImageResult, trainResult);
 
 		if (m_isOutBoundryHD > 0)
@@ -300,33 +292,39 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 		if (isTrained[0].I() == 1)
 		{
 			HTuple Area, CenterRow, CenterColumn, CenterRow2, CenterColumn2, AngleCheck, Score, Model, OriginalClipRegion;
-			AreaCenter(hModelRegionsOrigin, &Area, &CenterRow2, &CenterColumn2);
-			GetSystem("clip_region", &OriginalClipRegion);
-			SetSystem("clip_region", "false");
-			SetSystem("border_shape_models", "false");
-			FindShapeModels(hImage, hModelID, 0, HTuple(360).TupleRad(), 0.01, 1, 0.2, "least_squares", 0, 0.9, &CenterRow, &CenterColumn, &AngleCheck, &Score, &Model);
-			MoveRegion(hModelRegionsOrigin, &hModelRegionsOrigin, mySysParam.imgHeight/2 - CenterRow, mySysParam.imgWidth/2 - CenterColumn);
-			ConcatObj(m_pData->hModelRegions, hModelRegionsOrigin, &m_pData->hModelRegions);
+			area_center(hModelRegionsOrigin, &Area, &CenterRow2, &CenterColumn2);
+			get_system("clip_region", &OriginalClipRegion);
+			set_system("clip_region", "false");
+			set_system("border_shape_models", "false");
+			find_shape_models(hImage, hModelID, 0, HTuple(360).Rad(), 0.01, 1, 0.2, "least_squares", 0, 0.9, &CenterRow, &CenterColumn, &AngleCheck, &Score, &Model);
+			move_region(hModelRegionsOrigin, &hModelRegionsOrigin, mySysParam.imgHeight/2 - CenterRow, mySysParam.imgWidth/2 - CenterColumn);
+			concat_obj(m_pData->hModelRegions, hModelRegionsOrigin, &m_pData->hModelRegions);
 			m_pData->resultData.region = hModelRegionsOrigin;
 			m_pData->resultData.modelID = hModelID;
 			m_pData->resultData.modelWidth = hModelWidth;
 			m_pData->resultData.modelHeight = hModelHeight;
 			m_pData->resultData.modelArea = hModelArea;
 			m_pData->resultData.ModelGrayVal = hModelGrayVal;
-			TupleConcat(m_pData->ModelWidthAll, hModelWidth, &m_pData->ModelWidthAll);
-			TupleConcat(m_pData->ModelHeightAll, hModelHeight, &m_pData->ModelHeightAll);
-			TupleConcat(m_pData->ModelIDs, hModelID, &m_pData->ModelIDs);
-			TupleConcat(m_pData->ModelGrayAll, hModelGrayVal, &m_pData->ModelGrayAll);
+			tuple_concat(m_pData->ModelWidthAll, hModelWidth, &m_pData->ModelWidthAll);
+			tuple_concat(m_pData->ModelHeightAll, hModelHeight, &m_pData->ModelHeightAll);
+			tuple_concat(m_pData->ModelIDs, hModelID, &m_pData->ModelIDs);
+			tuple_concat(m_pData->ModelGrayAll, hModelGrayVal, &m_pData->ModelGrayAll);
 			m_pData->resultData.image = trainResult.clone();
 			m_pData->resultData.train_count = 0;   // 重置光纤计数器，掉下才计数，刚创建不计数
-			HP_matchID = hModelID;
+			matchID = hModelID[0].I();
 			saveTrainData();
 			return true;
 		}
 		else if (isTrained[0].I() == 2)
 		{
 
-			HP_matchID = hModelID;    // 返回匹配modelID
+			matchID = hModelID[0].I();    // 返回匹配modelID
+		//	m_pData->resultList[matchID].train_count++;
+		//	//cv::putText(trainResult, "检测到已训练物料 ID：" + to_string(matchID), Point(30, 30), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 225, 255), 2);
+		//	//cv::imshow("trainResult2", trainResult);
+		//	//cv::waitKey(0);
+		//	std::cout << "matchID: " << matchID << "  train_count:" << m_pData->resultList[matchID].train_count << std::endl;
+		//	 
 		}
 		else if (isTrained[0].I() == 3)
 		{
@@ -334,7 +332,7 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 				trainCountAdd();   // 调试时代替光纤计数
 		}
 
-		if (hModelID.Length() == 0)
+		if (hModelID.Num() == 0 || hModelID[0].ValType() != LongVal)
 		{
 			m_pData->strError = "result error";
 		}
@@ -346,8 +344,7 @@ bool HPDetectionPartsTrainer::train(cv::Mat& image, cv::Mat& trainResult)
 	}
 	catch (HException& e)
 	{
-		m_pData->strError = e.ErrorMessage();
-		cout << endl << e.ErrorMessage() << endl;
+		m_pData->strError = e.message;
 		return false;
 	}
 
@@ -369,11 +366,12 @@ void HPDetectionPartsTrainer::trainCountAdd()
 	{
 		for (int i = 0; i < m_pData->resultList.size(); ++i)
 		{
-			if (0 != (int(HTuple(m_pData->resultList[i].modelID) == HP_matchID)))
+			int model_id = m_pData->resultList[i].modelID[0].I();
+			if (matchID == model_id)
 			{
 				m_isOutBoundryHD = 4;
 				m_pData->resultList[i].train_count++;
-				std::cout << "HP_matchID: " << HP_matchID << "  train_count:" << m_pData->resultList[i].train_count << std::endl;
+				std::cout << "matchID: " << matchID << "  train_count:" << m_pData->resultList[i].train_count << std::endl;
 			}
 		}
 	}
@@ -384,23 +382,23 @@ cv::Mat HPDetectionPartsTrainer::getTrainedImage()
 	cv::Mat outImg;
 	for (int i = 0; i < m_pData->resultList.size(); ++i)
 	{
-		if (0 != (int(HTuple(m_pData->resultList[i].modelID) == HP_matchID)))
-		{
+		int model_id = m_pData->resultList[i].modelID[0].I();
+		if (matchID == model_id)
 			outImg = m_pData->resultList[i].image.clone();
-		}
 	}
 	return outImg;
 }
 
 cv::Size HPDetectionPartsTrainer::getTrainedSize()
 {
-	double width, height;
+	int width, height;
 	for (int i = 0; i < m_pData->resultList.size(); ++i)
 	{
-		if (0 != (int(HTuple(m_pData->resultList[i].modelID) == HP_matchID)))
+		int model_id = m_pData->resultList[i].modelID[0].I();
+		if (matchID == model_id)
 		{
-			width = m_pData->resultList[i].modelWidth[0].D();
-			height = m_pData->resultList[i].modelHeight[0].D();
+			width = m_pData->resultList[i].modelWidth[0].I();
+			height = m_pData->resultList[i].modelHeight[0].I();
 		}
 	}
 	return cv::Size(width, height);
@@ -436,40 +434,39 @@ bool HPDetectionPartsTrainer::finish()
 			{
 				string writePath = strPath + "/train_out_" + to_string(indexID) + ".jpg";
 				cv::imwrite(writePath.c_str(), m_pData->resultList[i].image);          // 保存训练图片 todo
-				WriteRegion(m_pData->resultList[i].region, (strPath + "/region_" + to_string(indexID) + ".reg").data());       // 保存所有物料区域 region
-				WriteShapeModel(m_pData->resultList[i].modelID, (strPath + "/model_" + to_string(indexID) + ".shm").data());  // 保存所有匹配模版 modelID
+				write_region(m_pData->resultList[i].region, (strPath + "/region_" + to_string(indexID) + ".reg").data());       // 保存所有物料区域 region
+				write_shape_model(m_pData->resultList[i].modelID, (strPath + "/model_" + to_string(indexID) + ".shm").data());  // 保存所有匹配模版 modelID
 				cv::Point dummyPoint;
 				dummyPoint.x = 1;
 				dummyPoint.y = 1;
 				std::vector<cv::Point> dummyPointVector;
 				dummyPointVector.push_back(dummyPoint);
 				train_result.trainContours.push_back(dummyPointVector);
-				train_result.trainArea.push_back(int(m_pData->resultList[i].modelArea[0].D()));
-				train_result.trainWidth.push_back(int(m_pData->resultList[i].modelWidth[0].D() * 2));
-				train_result.trainHeight.push_back(int(m_pData->resultList[i].modelHeight[0].D() * 2));
-				TupleConcat(ModelGraySave, m_pData->ModelGrayAll[i], &ModelGraySave);
+				train_result.trainArea.push_back(m_pData->resultList[i].modelArea[0].I());
+				train_result.trainWidth.push_back(m_pData->resultList[i].modelWidth[0].I() * 2);
+				train_result.trainHeight.push_back(m_pData->resultList[i].modelHeight[0].I() * 2);
+				tuple_concat(ModelGraySave, m_pData->ModelGrayAll[i], &ModelGraySave);
 				m_pData->resultList[i].train_count = 0;
 				indexID++;
 			}
-			ClearShapeModel(m_pData->resultList[i].modelID);    // 逐个清理已缓存的模版
+			clear_shape_model(m_pData->resultList[i].modelID);    // 逐个清理已缓存的模版
 		}
 		// 如果没保存过项目，就不保存trainData了
 		if (indexID > 1){
-			WriteTuple(ModelGraySave, (strPath + "/thresh.tup").data());
+			write_tuple(ModelGraySave, (strPath + "/thresh.tup").data());
 			saveTrainDataXML(train_result, strPath);
 		}
 	}
 	catch (HException& e)
 	{
-		m_pData->strError = e.ErrorMessage();
-		cout << endl << e.ErrorMessage() << endl;
+		m_pData->strError = e.message;
 		return false;
 	}
 	m_pData->resultList.clear();
 	m_pData->ModelWidthAll = HTuple();
 	m_pData->ModelHeightAll = HTuple();
 	m_pData->ModelGrayAll = HTuple();
-	GenEmptyObj(&m_pData->hModelRegions);
+	gen_empty_obj(&m_pData->hModelRegions);
 	m_pData->bTraining = false;
 	return true;
 }

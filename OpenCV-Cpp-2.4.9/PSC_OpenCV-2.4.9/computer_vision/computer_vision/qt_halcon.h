@@ -1,16 +1,13 @@
 ﻿#ifndef QT_HALCON_H
 #define QT_HALCON_H
 
-#pragma execution_character_set("utf-8")
-
 #include "cfg.h"
-#include "HalconCpp.h"
-#include "HDevEngineCpp.h"
+#include <HalconCpp.h>
+#include <HDevEngineCpp.h>
 
-
-
-using namespace HalconCpp;
+using namespace Halcon;
 using namespace HDevEngineCpp;
+namespace Halcon { class Hobject; }
 
 #if defined(TRANSPARENT_PART_LIBRARY)
 #  define HALCON_EXPORT //Q_DECL_EXPORT
@@ -20,8 +17,8 @@ using namespace HDevEngineCpp;
 
 using namespace cv;
 
-bool matToHobject(cv::Mat& image, HObject& hImage);
-bool hobjectToMat(HObject& Hobj, cv::Mat& rImage);
+bool matToHobject(cv::Mat& image, Hobject& hImage);
+bool hobjectToMat(Hobject& Hobj, cv::Mat& rImage);
 
 /*
     dataToHobject
@@ -37,8 +34,8 @@ bool hobjectToMat(HObject& Hobj, cv::Mat& rImage);
     isAlignment : 图像数据是否内存对齐，即每一行像素的字节数都是4的倍数
     isBgr       : 针对RGB图像使用，表明3个通道像素的存储顺序，true表示0xRRGGBB，false表示0xBBGGRR
 */
-HALCON_EXPORT bool dataToHobject(const uchar* pPixelBlock, int width, int height, int channels, bool isAlignment, bool isBgr, HObject* phImage);
-HALCON_EXPORT bool dataToHobject(const uchar* pRedBlock, const uchar* pGreenBlock, const uchar* pBlueBlock, int width, int height, bool isAlignment, HObject* phImage);
+HALCON_EXPORT bool dataToHobject(const uchar* pPixelBlock, int width, int height, int channels, bool isAlignment, bool isBgr, Halcon::Hobject* phImage);
+HALCON_EXPORT bool dataToHobject(const uchar* pRedBlock, const uchar* pGreenBlock, const uchar* pBlueBlock, int width, int height, bool isAlignment, Halcon::Hobject* phImage);
 
 /*
     dataOfHobject
@@ -52,7 +49,7 @@ HALCON_EXPORT bool dataToHobject(const uchar* pRedBlock, const uchar* pGreenBloc
     channels    : phImage 的图像通道数
     isAlignment : phImage 是否内存对齐，固定输出 false
 */
-HALCON_EXPORT bool dataOfHobject(const HObject* phImage, uchar*& pRed, uchar*& pGreen, uchar*& pBlue, int& width, int& height, int& channels, bool& isAlignment);
+HALCON_EXPORT bool dataOfHobject(const Halcon::Hobject* phImage, uchar*& pRed, uchar*& pGreen, uchar*& pBlue, int& width, int& height, int& channels, bool& isAlignment);
 
 /*
     createHobject deleteHobject
@@ -61,7 +58,7 @@ HALCON_EXPORT bool dataOfHobject(const HObject* phImage, uchar*& pRed, uchar*& p
     createHobject : return new Halcon::Hobject;
     deleteHobject : if (phImage != NULL) { delete phImage; phImage = NULL; }
 */
-HALCON_EXPORT HObject* createHobject();
-HALCON_EXPORT void deleteHobject(HObject*& phImage);
+HALCON_EXPORT Halcon::Hobject* createHobject();
+HALCON_EXPORT void deleteHobject(Halcon::Hobject*& phImage);
 
 #endif // QT_HALCON_H

@@ -76,7 +76,7 @@ PartsCounter::~PartsCounter()
 
 std::string PartsCounter::getVersion() {
 	std::string strVersion;
-	strVersion = "V2.6.13 20250921_DL+HP";//PSC_V2.4.25_20221217_alpha
+	strVersion = "PSC_V2.5.4_20250830_multiMatch";//PSC_V2.4.25_20221217_alpha
 	return strVersion;
 }
 
@@ -152,16 +152,6 @@ bool  PartsCounter::updateParam()
 	return true;
 }
 
-bool PartsCounter::updateDLMode(std::wstring strPath)
-{
-	return ptr_HPDetectionPartsCounter->updateDLMode(strPath);
-}
-
-bool PartsCounter::setDLMode(int halconDLModel)
-{
-	return ptr_HPDetectionPartsCounter->setDLMode(halconDLModel);
-}
-
 bool PartsCounter::updateProjectHP(std::string strPath, int trainID)
 {
 	m_projectState = false;
@@ -187,7 +177,7 @@ bool PartsCounter::updateProjectHP(std::string strPath, int trainID)
 	m_trainContours.insert(m_trainContours.end(), trainData.trainContours.begin(), trainData.trainContours.end());
 	vector<int> vec(trainData.trainWidth.size(), trainData.modelID);
 	m_trainID.insert(m_trainID.end(), vec.begin(), vec.end());
-	////更新系统参数	
+	//更新系统参数	
 	if (!updateParam())
 		return false;
 	m_sysparamState = true;
@@ -237,7 +227,6 @@ void PartsCounter::reset()
 
 bool PartsCounter::updateRoi(std::string strPath)
 {
-	cout << "read roi from:" << strPath << endl;
 	m_roiState = false;
 	//读取ROI文件
 	if (!readRoiDataFromXml(strPath, &m_roi))
@@ -544,7 +533,17 @@ void PartsCounter::segmentObj(Mat* image, bool showImg)
 	m_center.resize(num);
 	m_tempWidth.resize(num);
 
-
+	//Mat _imageResult;
+	//// 转换到BGR格式下，才能绘制彩色轮廓
+	//cvtColor(m_image, _imageResult, CV_GRAY2BGR);
+	////绘制ROI边框
+	//line(_imageResult, Point(m_roi.roiLTX, m_roi.roiLTY), Point((m_roi.roiLTX + m_roi.roiWidth), m_roi.roiLTY), Scalar(0, 255, 0));
+	//line(_imageResult, Point((m_roi.roiLTX + m_roi.roiWidth), m_roi.roiLTY), Point((m_roi.roiLTX + m_roi.roiWidth), m_roi.roiLTY + m_roi.roiHeight), Scalar(0, 255, 0));
+	//line(_imageResult, Point((m_roi.roiLTX + m_roi.roiWidth), m_roi.roiLTY + m_roi.roiHeight), Point(m_roi.roiLTX, m_roi.roiLTY + m_roi.roiHeight), Scalar(0, 255, 0));
+	//line(_imageResult, Point(m_roi.roiLTX, m_roi.roiLTY + m_roi.roiHeight), Point(m_roi.roiLTX, m_roi.roiLTY), Scalar(0, 255, 0));
+	//line(_imageResult, Point(m_roi.roiLTX + m_roi.roiWidth / 2, 0), Point(m_roi.roiLTX + m_roi.roiWidth / 2, mySysParam.imgHeight), Scalar(0, 0, 255));        // ROI中轴线-竖线
+	//line(_imageResult, Point(0, m_roi.roiLTY + (m_roi.roiHeight / 2)), Point(mySysParam.imgWidth, m_roi.roiLTY + (m_roi.roiHeight / 2)), Scalar(0, 0, 255));   // ROI中轴线-横线
+	
 
 	for (unsigned int i = 0; i < m_contours.size(); i++)
 	{
@@ -1402,8 +1401,6 @@ void PartsCounter::actionHPDetectionObjectMat(cv::Mat* image, bool showImg)
 {
 	m_targetNumber = 0;
 	m_errorNumber = 0;
-	m_num = 0;
-	m_obj_num = 0;
 	m_errorStatus = 0;
 
 	m_image = *image;
@@ -1443,44 +1440,23 @@ void PartsCounter::actionHPDetectionObjectMat(cv::Mat* image, bool showImg)
 		m_center[i].x = data[i].x;     // 物料坐标
 		m_center[i].y = data[i].y;
 		m_tempWidth[i] = data[i].width;    // 目标轮廓水平方向宽度
-		m_objArea[i] = data[i].area;     // 目标轮廓长轴方向宽度
+		m_objArea[i] = data[i].area;     // 目标轮廓面积
+		m_halcon_flag[i] = data[i].isOK_halcon;  // halcon 判断OK，NG信息，给到estimate函数判断m_flag
 		m_modelIDs[i] = 0;    // 默认是杂料，匹配id为0
-		
-		
-		if (m_halconDLModel == DL_ANOMALY_DETECTION)
+		if (data[i].model_id > 0)     // 合格料才进行id赋值
 		{
-			m_halcon_flag[i] = data[i].isOK_halcon;    // 异常检测，0为合格，1为不合格
-			m_modelIDs[i] = data[i].isOK_halcon;
+			m_modelIDs[i] = m_trainID[data[i].model_id];        // 获取匹配物料ID
 		}
-		else{
-			if (data[i].isOK_halcon > 0) // 分类和检测，modelID＞0都认为匹配到物料了，判断为OK，未匹配到判断为NG,modelID为0
-				m_halcon_flag[i] = 0;   //合格
-			else
-				m_halcon_flag[i] = 1;   //NG
-			
-			if (m_halconDLModel == DL_MODE_CLOSED)
-				m_modelIDs[i] = m_trainID[data[i].model_id];        // 获取匹配物料ID
-			else
-				m_modelIDs[i] = data[i].isOK_halcon;
-			
-		}
-		
-		if (m_halcon_flag[i] == 0)
-			m_obj_num++;         // 视野内合格料数量
 	}
 
-	//计算合格料和杂质料总数目
-	m_err_num = m_num - m_obj_num;   // 视野内杂料数量，进出视野的物料暂定归属于为不合格料
+	m_errorStatus = 100;
+	hPDetectionEstimateObj();
 
-	if ((m_useHardTriggerMode == false) && (m_halconDLModel == DL_MODE_CLOSED))
-	{
-		//*  硬触发模式 和 深度学习模式下，不需要跟踪   *//
-		m_errorStatus = 100;
-		hPDetectionEstimateObj();
+	// 绘制物料框
+	//drawObjData(image, showImg);
 
-		m_errorStatus = 200;
-		countObj();
-	}
-	
+	m_errorStatus = 200;
+	countObj();
+
 	m_errorStatus = 300;
 }

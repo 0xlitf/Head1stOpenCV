@@ -4,7 +4,6 @@
 #include "qt_halcon.h"
 #include "cfg.h"
 #include "halcon.h"
-#include "halconDLL.h"
 #include <HalconCpp.h>
 
 #ifdef __APPLE__
@@ -16,13 +15,13 @@
 #endif
 
 using namespace std;
-using namespace HalconCpp;
+using namespace Halcon;
 using namespace HDevEngineCpp;
 
 struct ResultData
 {
 	cv::Mat		image;
-	HObject		region;
+	Hobject		region;
 	HTuple		modelID;
 	HTuple		modelWidth;
 	HTuple		modelHeight;
@@ -33,8 +32,8 @@ struct ResultData
 
 struct MyTrainData
 {
-	HObject		       RegionROI;
-	HObject		       hModelRegions;
+	Hobject		       RegionROI;
+	Hobject		       hModelRegions;
 	HTuple             WindowHandle;
 	HTuple             ModelWidthAll;
 	HTuple             ModelHeightAll;
@@ -76,6 +75,7 @@ public:
 	cv::Size getTrainedSize();  // 获取当前正在训练的目标尺寸
 	double getCalibFactor(cv::Mat& image);  // 根据标定图片获取比例系数
 	std::string errorString();
+	
 
 private:
 	void init();
@@ -97,7 +97,7 @@ private:
 	int m_trainNumHD;              // 物料训练深度
 	int m_isDynamicHD;      // halcon动态训练模式
 	int m_isOutBoundryHD = 0;      // 出视野边界flag
-	HTuple HP_matchID;  // 当前检测到的modelID
+	int matchID;  // 当前检测到的modelID
 
 	struct MyTrainData* m_pData;
 };

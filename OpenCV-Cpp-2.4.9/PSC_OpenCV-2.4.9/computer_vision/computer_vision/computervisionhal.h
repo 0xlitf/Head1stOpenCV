@@ -39,8 +39,6 @@ public:
 	bool updateRoi(std::string strPath);
 	bool updateProject(std::string strPath, int trainID = 0);
 	bool updateProjectHP(std::string strPath, int trainID = 0);
-	bool updateDLMode(std::wstring strPath);
-	bool setDLMode(int halconDLModel);
 	void reset();
 	unsigned int getTargetNumber();
 	unsigned int getErrorNumber();
@@ -54,7 +52,6 @@ public:
 	int getErrorStatus();
 	bool getRetentionValue();
 	int getStatus();
-
 	void initialize();
 
 	void setHardTriggerMode(bool flag);                //打开硬触发模式，默认false不打开

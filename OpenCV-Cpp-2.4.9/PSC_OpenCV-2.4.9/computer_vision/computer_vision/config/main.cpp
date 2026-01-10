@@ -1,20 +1,19 @@
 // #include "stdafx.h"
 #include "computervisionhal.h"
-//#include "qt_halcon.h"
 #include <chrono>
 #include <iomanip>
 
 using namespace std;
 using namespace cv;
 
-#define OPENCV
+//#define OPENCV
 //#define TRAIN
 #define DEBUG
 
 bool showImg = true;   // false, true
 
-std::shared_ptr<PartsTrainerHal> ptr_partsTrainer;
-std::shared_ptr<PartsCounterHal> partsCounterHal;
+std::shared_ptr<PartsTrainerHal> ptr_partsTrainer, ptr_partsTrainer_02;
+std::shared_ptr<PartsCounterHal> partsCounterHal, partsCounterHal_02;
 int t_gap;         // 帧间隔时间，0为单帧运行
 int suspend_no;     // -1 则连续运行， 否则运行到该帧停下来
 int target_imageNO;   // -1 没有指定目标文件夹，否则只运行指定文件夹
@@ -36,7 +35,6 @@ int tObj, eObj;
 int OK_num = 0;
 int NG_num = 0;
 
-bool flag = true;     //项目参数更新flag
 int batchNumber = 0;
 int setNumberPerBatch = 4;
 int closeFlag = 0;
@@ -46,167 +44,132 @@ void run();
 
 int main(int argc, char** argv)
 {	
-	//cv::Mat image_calib, tmp;
-	//image_calib = cv::imread("E:/VC++  Project/1.PartsCounter/Counter_halcon/20240408/image/ok-8/20240306110219873.png", cv::IMREAD_COLOR);   //IMREAD_COLOR   // IMREAD_GRAYSCALE
-	//if (image_calib.empty())
-	//{
-	//	throw std::exception();
-	//}
-	//HObject hImage;
-	//matToHobject(image_calib, hImage);
-	//hobjectToMat(hImage, tmp);
-
-
 	ptr_partsTrainer = std::make_shared<PartsTrainerHal>();
 	partsCounterHal = std::make_shared<PartsCounterHal>();
+
+	ptr_partsTrainer_02 = std::make_shared<PartsTrainerHal>();
+	partsCounterHal_02 = std::make_shared<PartsCounterHal>();
 	std::string str = partsCounterHal->getVersion();
-	//ptr_partsTrainer->dynamicTrainModeOpen();    // 打开动态训练模式，连续训练统计物料数量达到目标才算训练成功
-	partsCounterHal->setHardTriggerMode(true);   // 设置硬触发模式，无结果跟踪效果
-	flag = partsCounterHal->setDLMode(DL_MODE_CLOSED);  // 设置深度学习检测模式，如果用传统halcon精细检测可以设置为DL_MODE_CLOSED
-	//*   halcon深度学习模型类型    *//
-	//	DL_CLASSIFICATION,          // 分类模型
-	//	DL_OBJECT_DETECTION,        // 目标检测模型
-	//	DL_ANOMALY_DETECTION,       // 异常检测模型
-	//	DL_OBJECT_DETECTION_HOR,    // 目标检测模型-水平框
-	//	DL_MODE_CLOSED              // 关闭DL模式，采用传统halcon精细检测模型
+	ptr_partsTrainer->dynamicTrainModeOpen();
 
-
-#ifdef DEBUG
-	ptr_partsTrainer->setCountDebug();    // 视觉算法调试开关
-#endif
-
-
-#ifndef OPENCV
-	ptr_partsTrainer->setHalonMode(true);    // 设置halcon模式
-	partsCounterHal->setNGEndingCountError(false);        // 关闭空降打杂
-#endif // OPENCV
-
-	//String s = "E:/VC++  Project/Counter_halcon/20210928/0928error/";
-	string root = "E:/VC++  Project/1.PartsCounter/Counter_halcon/20250921/20250921/";
-	//string root = "E:/DL/Halcon_DL/20250721轴对称/";
-	string roiPath = root + "/roi.xml";
-	t_gap = 1;         // 帧间隔时间，0为单帧运行
-	suspend_no = -1;     // -1 则连续运行， 否则运行到该帧停下来
-	target_imageNO = -1;   // -1 没有指定目标文件夹，否则只运行指定文件夹
-	//ptr_partsTrainer->dynamicTrainModeOpen();
 #ifdef DEBUG
 	ptr_partsTrainer->setCountDebug();
 #endif
 
-#ifdef TRAIN   
-	//cv::Mat image_calib;
-	//image_calib = cv::imread("E:/VC++  Project/Counter_halcon/20250109/1280x1024/0.png", cv::IMREAD_GRAYSCALE);
-	//if (image_calib.empty())
-	//{
-	//	throw std::exception();
-	//}
+#ifndef OPENCV
+	ptr_partsTrainer->setHalonMode(true);
+	ptr_partsTrainer_02->setHalonMode(false);
 
-	//scaleFactor = ptr_partsTrainer->getCalibFactor(image_calib);
+	partsCounterHal->setNGEndingCountError(false);
+#endif // OPENCV
+
+	string root = "E:/VC++  Project/Counter_halcon/20250607/";
+	string roiPath = root + "/roi.xml";
+	t_gap = 1;         // 帧间隔时间，0为单帧运行
+	suspend_no = -1;     // -1 则连续运行， 否则运行到该帧停下来
+	target_imageNO = -1;   // -1 没有指定目标文件夹，否则只运行指定文件夹
+	
+#ifdef DEBUG
+	ptr_partsTrainer->setCountDebug();
 #endif
-		
-	// 更新ROI参数
-	roiPath = root + "\\roi.xml";
-	if (!isFolderExist(roiPath.data()))
-		roiPath = root + "roi.xml";
-
-	//flag &= ptr_partsTrainer->HPDetection_start(g_strProject, roiPath);
-
-	flag = partsCounterHal->updateRoi(roiPath);
-
-	if (!flag) {
-		std::cout << "update roi failed! " << std::endl;
-		cv::waitKey(0);
-		return 0;
+	//string strProject = root + "22";
+	//String img_path = qToStdString(root) + "ng";
+#ifdef TRAIN   
+	cv::Mat image_calib;
+	image_calib = cv::imread("E:/VC++  Project/Counter_halcon/20250109/1280x1024/0.png", cv::IMREAD_GRAYSCALE);
+	if (image_calib.empty())
+	{
+		throw std::exception();
 	}
 
-
+	scaleFactor = ptr_partsTrainer->getCalibFactor(image_calib);
+#else
+	//partsCounterHal->setNGEndingCountError(false);    // 关闭空降打杂
+#endif
+	//cv::resize(image_sample, image_sample, cv::Size(320, 240));
+	//int roiLTX = 0;
+	//int roiLTY = 0;
+	//int roiWidth = 0;
+	//int roiHeight = 0;
+	//partsCounter.autoSetRoi(&image_sample, roiLTX, roiLTY, roiWidth, roiHeight);
+	//// 获取模型的特征点
+	//image_sample_roi = image_sample(Rect(roiLTX, roiLTY, roiWidth, roiHeight));
 
 	//设置文件过滤器
-	vector<string> dirLists, projectLists, projectDirsRoot, projectDirs, imageDirsRoot, imageDirs;
+	vector<string> dirLists, projectLists, projectDirs, imageDirs;
 	getFiles(root, dirLists);
-
-	//设置文件过滤格式,将过滤后的文件名称存入到列表中
-	projectDirsRoot = fileFilter(dirLists, "project");  //项目路径下没有project文件，说明路径无效
-	getFiles(projectDirsRoot[0], projectDirs);
-	//projectDirs = fileFilter(projectDirs, "project_");
-	if (projectDirs.size() == 0) 	
-		return 0;
-
-	//如果设置了目标物料编号则只检测该物料
-	//int imageNo = 0;
-	//try{
-	//	imageNo = std::stoi(strProject.substr(strProject.find_last_of("\\") + 1));
-	//}
-	//catch(...)
-	//{
-	//	cout << "Error: imageNo string to int. 目录结构异常,请重新检查" << endl;
-
-	//}
-	//if (target_imageNO >= 0 && imageNo != target_imageNO) continue;
-
-	// std::cout << "Path Error!  Found no projects! " << std::endl;
-	g_strProject = projectDirs[0]; //仅取第一个project
-
-
-
-
-#ifdef TRAIN            // 训练模块
+	for (auto& strProject : dirLists) {
+		projectLists.clear();
+		getFiles(strProject, projectLists);
+		//设置文件过滤格式,将过滤后的文件名称存入到列表中
+		projectDirs = fileFilter(projectLists, "project");  //项目路径下没有project文件，说明路径无效
+		if (projectDirs.size() == 0) 	
+			continue;
 		
-	for (int index = 0; index < projectDirs.size(); index++) {
+		//如果设置了目标物料编号则只检测该物料
+		//int imageNo = 0;
+		//try{
+		//	imageNo = std::stoi(strProject.substr(strProject.find_last_of("\\") + 1));
+		//}
+		//catch(...)
+		//{
+		//	cout << "Error: imageNo string to int. 目录结构异常,请重新检查" << endl;
 
-		g_strProject = projectDirs[index]; //imagePath 此时也是 project路径
-		std::cout << "g_strProject: " << g_strProject << std::endl;
-		g_img_path = g_strProject;
-#ifdef OPENCV
-		ptr_partsTrainer->reset(g_strProject, roiPath);
+		//}
+		//if (target_imageNO >= 0 && imageNo != target_imageNO) continue;
+
+		// std::cout << "Path Error!  Found no projects! " << std::endl;
+		g_strProject = projectDirs[0]; //仅取第一个project
+
+		std::cout << strProject << std::endl;
+		for (auto& imagePath : projectLists) {
+			OK_num = 0;
+			NG_num = 0;
+#ifdef TRAIN   
+			int pos0 = imagePath.find("image");
+			if (pos0 < 0) continue;
 #else
-		// 重新载入项目
-		//ptr_partsTrainer->updateParam_train();
-		//ptr_partsTrainer->dynamicTrainModeOpen();
-		flag &= ptr_partsTrainer->HPDetection_start(g_strProject, roiPath);
+			int pos0 = imagePath.find("ok");
+			if (pos0 >= 0) {
+				OK_num = std::stoi(imagePath.substr(imagePath.find_last_of("-") + 1));
+			}
+			int pos1 = imagePath.find("ng");
+			if (pos1 >= 0) {
+				NG_num = std::stoi(imagePath.substr(imagePath.find_last_of("-") + 1));
+			}			
+			if ((pos0 < 0) && (pos1 < 0)) continue;
+#endif
+
+			g_img_path = imagePath;
+
+			std::cout << "qimg_path: " << imagePath << std::endl;
+			g_fileName = imagePath;
+
+			//while (1){
+			bool flag = true;     //项目更新flag
+			roiPath = strProject + "\\roi.xml";
+			if(!isFolderExist(roiPath.data()))
+				roiPath = root + "roi.xml";
+
+
+
+#ifdef TRAIN            
+			// 训练
+#ifdef OPENCV
+			ptr_partsTrainer->reset(g_strProject, roiPath);
+#else
+			// 重新载入项目
+			//ptr_partsTrainer->updateParam_train();
+			//ptr_partsTrainer->dynamicTrainModeOpen();
+			flag &= ptr_partsTrainer->HPDetection_start(g_strProject, roiPath);
 #endif // OPENCV
 
-	ptr_partsTrainer->setTrainTarget(1); // 设置单个物料训练超过3次才保存结果
-
-	run();   //每个路径执行一轮训练
-
-
-		// 完成训练后保存数据
-#ifdef OPENCV
-		ptr_partsTrainer->writeTrainDataToXml();
-		ptr_partsTrainer->cleanData();
+			ptr_partsTrainer->setTrainTarget(1); // 设置单个物料训练超过3次才保存结果
 #else
-		ptr_partsTrainer->HPDetection_finish();
-#endif // OPENCV
-
-		std::cout << endl << endl << "train finish" << endl << endl;
-		cv::waitKey(500);
-
-	}
-
-#else   //检测模块
-	
-	if (m_halconDLModel == DL_MODE_CLOSED)     // 传统halcon精细检测算法更新模型
-	{
-		partsCounterHal->reset();   //清空已读取训练模型
-		//projectDirs = fileFilter(dirLists, "project");  //项目路径下没有project文件，说明路径无效
-		//if (projectDirs.size() == 0)
-		//	return 0;
-
-
-		////getFiles(projectDirsRoot[0], projectDirs);    // 同时获取多个项目
-		//projectDirs = fileFilter(projectDirs, "project_");
-		////projectDirs = fileFilter(dirLists, "image");
-		//if (projectDirs.size() == 0)
-		//	return 0;
-
-
-		//for (int index = 0; index < projectDirs.size(); index++) {
-
-		//	g_strProject = projectDirsRoot[0]; //imagePath 此时也是 project路径
-		//std::cout << g_strProject << std::endl;
-
-
+			// 检测
+			/*if(strProject.find("project1"))
+				strProject = "";*/
+			
 #ifdef OPENCV
 			flag &= partsCounterHal->updateProject(g_strProject);
 #else
@@ -217,35 +180,40 @@ int main(int argc, char** argv)
 				cv::waitKey(0);
 				return 0;
 			}
-		//}
-	}
-	else {  // 深度学习更新模型
-		std::wstring model_Path = L"./config/model_objDetector-250715.hdl";
-		// 执行检测模型
-		
-		flag &= partsCounterHal->updateDLMode(model_Path);
-	
-	}
-
-	imageDirsRoot = fileFilter(dirLists, "image");  //项目路径下没有project文件，说明路径无效
-	if (imageDirsRoot.size() == 0)
-		return 0;
-	getFiles(imageDirsRoot[0], imageDirs);
-
-	dirLists = fileFilter(imageDirs, "");
-	for (int No = 0; No < dirLists.size(); No++) {
-		g_img_path = dirLists[No];
-		std::cout << "qimg_path: " << g_img_path << std::endl;
-		g_fileName = g_img_path;
-
-		OK_num = 0;
-		NG_num = 0;
-
-		run();   //全部项目导入后才执行检测程序
-	}
 
 #endif // TRAIN
 
+			flag &= partsCounterHal->updateRoi(roiPath);
+
+			if (!flag) {
+				std::cout << "update roi failed! " << std::endl;
+				cv::waitKey(0);
+				return 0;
+			}
+
+			//cv::VideoCapture capture("H:/parts_counting_opencv_1015/parts_counting/x64/Debug/logimage/20161017/M001/a1/videotest.avi"); 
+
+			//flag = partsCounterHal->updateParam();
+			run();
+
+
+#ifdef TRAIN            
+#ifdef OPENCV
+			ptr_partsTrainer->writeTrainDataToXml();
+			ptr_partsTrainer->cleanData();
+#else
+			ptr_partsTrainer->HPDetection_finish();
+#endif // OPENCV
+			
+			cout << endl << endl << "train finish" << endl << endl;
+			cv::waitKey(0);
+#endif // TRAIN
+		//}
+
+	}
+
+	}
+	//while (1);
 	return 0;
 }
 
@@ -271,7 +239,7 @@ void run() {
 	ofstream out(resultName, ios::out | ios::binary);
 
 
-	int lastTimeStamp = 0;
+
 	int index = 1;
 	out << path << "\n";
 
@@ -284,38 +252,17 @@ void run() {
 	for (int j = 0; j < files.size(); j++)
 	{
 		string filePath = files[j];
-		sourceImg = cv::imread(filePath.c_str());
-
+		sourceImg = cv::imread(filePath.c_str(), cv::IMREAD_GRAYSCALE);
+		//sourceImg = cv::imread(filePath.c_str(), cv::IMREAD_COLOR);
 		//判断图像是否为空
 		if (sourceImg.empty())
 		{
 			continue;
 		}
 
-		std::cout << "filePath:" << filePath << std::endl;
 #ifndef TRAIN  
-		int pos = filePath.find_last_of("\\");
-		int pos_end = filePath.find_last_of(".");
-		//if (strcmp(filePath.substr(pos + 1, 2).c_str(), files[j - 1].substr(pos + 1, 2).c_str()))
-		//{
-		//	index = 1;
-		//}
-
-		sprintf_s(fileNo, "%04d", index);
-
-		// 统计帧间隔时间差
-		//string fileName = filePath.substr(pos + 1 + 12, 5);
-		//int timeStamp = std::stoi(fileName);
-		//if ((timeStamp - lastTimeStamp > 20) && (j > 1))
-		//{
-		//	std::cout << files[j-1] << std::endl;
-		//	std::cout << filePath << std::endl;
-		//	std::cout << "time interval: " << int(timeStamp - lastTimeStamp) << std::endl;
-		//}
-		//lastTimeStamp = timeStamp;
-
-
 		// 更改文件名,成功返回0，否则返回-1
+		//sprintf_s(fileNo, "%04d", index);
 		//filePath.replace(unsigned int(pos) + 1, unsigned int(pos_end - pos - 1), fileNo);
 		//int a = rename(files[j].c_str(), filePath.c_str());
 #endif  
@@ -333,20 +280,20 @@ void run() {
 #ifdef TRAIN     
 
 #ifdef OPENCV
-		bool bok = ptr_partsTrainer->training(&sourceImg, &trainResult, 200);   //OPENCV
+		ptr_partsTrainer->training(&sourceImg, &trainResult, 200);   //OPENCV
 		
 
 		cv::imshow("trainResult", trainResult);
 		cv::waitKey(50);
-		//if (m_isDynamic == 0)
-		//{
-		//	ptr_partsTrainer->saveData();
-		//}
+		if (m_isDynamic == 0)
+		{
+			ptr_partsTrainer->saveData();
+		}
 #else
-
+		
 		bool flag = ptr_partsTrainer->HPDetection_train(sourceImg, trainResult);      //HALCON训练
 
-
+#endif // OPENCV
 		cv::imshow("trainResult", trainResult);
 
 		int KEY = cv::waitKey(50);		
@@ -359,7 +306,6 @@ void run() {
 		int objNum = ptr_partsTrainer->getDetectObjNum();  // 获取已训练模型个数
 		out << "detected Obj num: " << objNum << ", trained Obj num: " << trainNum << ",   time: " << getTimeString() << std::endl;
 		std::cout << "detected Obj num: " << objNum << ", trained Obj num: " << trainNum << ",   time: " << getTimeString() << std::endl;
-
 
 		if (trainNum != lastTrainNum)
 		{
@@ -374,7 +320,7 @@ void run() {
 			cv::waitKey(500);
 		}
 		lastTrainNum = trainNum;
-#endif // OPENCV
+
 
 #else
 
@@ -394,12 +340,13 @@ void run() {
 		}
 #else
 		tTime = (double)cv::getTickCount();
-		partsCounterHal->actionHPDetectionObjectMat(&sourceImg, showImg);	
+		partsCounterHal->actionHPDetectionObjectMat(&sourceImg, showImg);
 		tTime = ((double)cv::getTickCount() - tTime) / cv::getTickFrequency();
+
 		if (showImg) {
 			putText(sourceImg, to_string(j), Point(30, 30), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 225, 255), 2);
 			cv::imshow("sourceImg", sourceImg);
-			cv::waitKey(10);
+			cv::waitKey(t_gap);
 		}
 #endif // OPENCV
 
@@ -408,24 +355,10 @@ void run() {
 
 		tObj = partsCounterHal->getTargetNumber();
 		eObj = partsCounterHal->getErrorNumber();
-		vector<int> matchIDs;
-		matchIDs = partsCounterHal->getMatchIDs();   // 获取物料编号，正常从1开始，全部都未匹配上的杂料，id为0
 		std::pair<unsigned int, unsigned int> mObj = partsCounterHal->getObjectNumber();
 		int ok_obj = mObj.first;
 		int ng_obj = mObj.second;
-		// 批次数统计
-		//if (tObj || eObj)
-		//{
-		//	out << endl << "time: " << tTime;
-		//Difference_time = j - LastCountTime;
-		//if (Difference_time < 0)
-		//{
-		//	Difference_time = max_image_num_per_path - LastCountTime + j;
-		//}
-		//LastCountTime = j;
 
-		//currentNumber++;
-		//}
 		if (tTime > 0.015){
 			std::cout << "frame: " << j << "   use time:" << tTime << endl;
 			//cv::waitKey(0);
@@ -433,20 +366,12 @@ void run() {
 		if ((ok_obj > 0) || (ng_obj > 0))
 		{
 			std::cout << "ok num: " << ok_obj << ",  ng num: " << ng_obj << ",   frame: " << j << "   use time:" << tTime << endl;
-			for (auto i : matchIDs)
-				std::cout << "  matchID: " << i << ", ";
-			std::cout << endl;
-			
-			if (m_halconDLModel == DL_MODE_CLOSED)     // 传统halcon精细检测算法更新模型
+			std::vector<ObjData> objData = partsCounterHal->getObjData();
+			for (int i = 0; i < objData.size(); i++)
 			{
-				std::vector<ObjData> objData = partsCounterHal->getObjData();
-				for (int i = 0; i < objData.size(); i++)
-				{
-					cv::imshow("ObjImg", objData[i].objRoiImage);
-					cv::waitKey(0);
-				}
+				cv::imshow("ObjImg", objData[i].objRoiImage);
+				cv::waitKey(0);
 			}
-			cv::waitKey(0);
 		}
 
 		int NGEndingNum = partsCounterHal->getNGEndingNumber();
@@ -474,9 +399,6 @@ void run() {
 				totalObj = totalObj + tObj;
 				out << "target num: " << tObj << "  in:" << g_fileName << ". frameID:" << index << ", use time: " << tTime << "  total obj: " << totalObj << endl;
 				cout << "target num: " << tObj << "  in:" << g_fileName << ". frameID:" << index << ", use time: " << tTime << "  total obj: " << totalObj << endl;
-				for (auto i : matchIDs)
-					std::cout << "  matchID: " << i << ", ";
-				std::cout << endl;
 			}
 			if (eObj)
 			{
@@ -488,7 +410,6 @@ void run() {
 				out << "error num: " << eObj << "  in:" << g_fileName << ". frameID:" << index << ", use time: " << tTime << endl;
 				cout << "error num: " << eObj << "  in:" << g_fileName << ". frameID:" << index << ", use time: " << tTime << endl;
 			}
-
 			if(tObj + eObj > 0)
 				cv::waitKey(0);
 		}

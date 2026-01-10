@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.0" halcon_version="10.0" cs="809911364">
+<procedure name="generate_shape_model_gray">
+<interface>
+<io>
+<par name="ImageModel"/>
+<par name="RegionROI"/>
+</io>
+<oo>
+<par name="ModelRegionsOrigin"/>
+</oo>
+<ic>
+<par name="WindowHandle"/>
+<par name="ModelWidthAll"/>
+<par name="ModelHeightAll"/>
+<par name="Threshold"/>
+</ic>
+<oc>
+<par name="ModelID"/>
+<par name="ModelWidth"/>
+<par name="ModelHeight"/>
+<par name="ModelArea"/>
+<par name="ModelGrayVal"/>
+<par name="isTrained"/>
+</oc>
+</interface>
+<xb>OGRL2LA+CDA4oY8IjPCReUmgvh1beId0LcZml0gPBc8BPbmThwNNIEJQzoNEoEjto3ecJSHwBNhUtDVLleElocbFl6/ZrB34axI3ftcmWuyZTqC/RgtcGRqLN5oWkShugJzUjsBMR9/XA9VWXqH5fAUL2xkCfIcCHGIWv0TBUcsFQY5oX4v5vhhaSpLuYkuclhT9YqeYK+Q6ec415xDaDKVG/pRi6Ff5sh3pMqlgqMQcYi3i22apo0mOykSLJFgWSidz9DM7BYcU7s+kvtDabpJK7ARaiBG51w4BHH8sS3qVHkseePMYn208Xczjqh/U68U1VbBQhdMQbiGBd80GygOmZc1jqcfxnysAD+xbLCCaiQSiEM9wbQCQCNLuQE7l8TPJ7XJErh0Rz/spyoJm54Cb5m/NlsKUyl3wokLpHCaVOsjd3zA+LFQnpzXRiznIFExYY5s19c+JsFU8WMaESokI5e3gHaUXO1uBlbZL1pXJUTQqDp7JZEeAlE2CmDIcqabzCGMxos44NlIn3o5k4N1TUCKWC0MBdIg8vYkD77JmSJ2jDPau7CaCQ3r8PgL3mdQiWAVtK7x9r6d/aIHi0umlw7uynMOz027i5SdOKgl/zDiZ2jWYSjyVhLH4a5u5auUceGahTdv9FPaJJJUxTE3SEPePYGONkTg8l+eUAfzMeVuyi/0Dk5f/iC+JaKBhCDYxL7rhW26IZFUJtRti3MUYJex5yeF52kSpoA1lBQNXxk5a20xu1EQAZJR2F9BixS8ddoBXT+gkibzsVHsZuSBxeQkrashx0zAFMGLbxz+q3g4fGxv7PkjjgRsvqzW2r5S0ckKV1AH+tUcjq+iCFO1O6M0kABOA83OrxRA7u2iauufCslaoYV5LlSCbJ38qtRDnq3sH7Is/c5kUV/hqLazFZjFSq+w2cAd6E5BJujE/kGIf3mhe4zJOlE1OqsmL5VOAlXdNtze9pPGTipdTgTCGR0NrAdVmraKvxI+eya7ZBLa7SdLyQLyQcnsqvGGkkEEsGwoF6LZq+17xf/JmJFTHFMj1lPEYlhEIXRj4CpAEtnI7MZRx3QU1tgCLQ2dnwAq4V+564fvgwb5BZay/xB6HqOER7f7YQtk9p8MfEWzTxxpL5Yj3L1sgFGgJFDyTmk949oCuXunrNS352wrXWBei2lg54wJRFlLoeKtUxTN56vvJuHq7bKOEhPr2fAjckCM1EoS4fRS5vPrsXzgbMGV1U17ChmYamaHTKgHjaHwBiNggvuAGciavoA0nTWUSDjRAydtKtR1VRcRJW51IRmdZUBVZKByjB+pvP58n/+Fnhwf7SLhsfX3Q1RLl40Qtdx7avzXdSwK2neegVMY38ZEh5Ut6s59LpVzvvawGqqZtwks8fYzwldOQMY1irNw1uhGMDAmKTIcfs8sProa8t2OepYbcjCucguq2Aj6e/CxIyPpJTTlTEUTSxmJrTOB0EJt7qTvOl7Id9YaPoDLuvxoUkTDUZq7HtzUtyoFmQfH03kJIaMJCv98NLqB+t2R2kXuTg2MdjeCpJFZiskxMwpShtUDNPFx6OFxpAJHWMiBaEOuYeDOQ9BAaTrfz5SNbXdSEobsTXkHn3gbvxxFT42qB9NMddBzALKLwbcb+gDChs79a8XDEzXepYuCdxNB/s0xEE2R/+yUsSPGSQ4a7F3YZ8igurF8DXmziIoYnNf7QIBR0oVtLPzAxIeLhomobiK8KNeyxCKUHFklX9Eq6OJ1C0iTNgX0eif94SSxEvKQDfpVSLEz3JFslFL16x+UHPv1zdO+dCCQuY5UaKfi4KvfZzDzgYuFI5JNkO2cynjCBJ42nBOwwTq3MuGUHVl6OeueGG8LsMrCNSGtKp0G/idtzSGW20Q9pnU9pP+egBgX5fAcDBE+Lk7SqO5kS/lYSEI6WaUUceRbiRYw0jvY1ZljryAQsmMs5Fl75JMIxAJzfHthqyTXGgwfujVOBIFZ0fiN1tqe4QWQFIKEmoJ02S+rHtc2UHzs9IIbfB5BbVcnJFJcNqcf/QV7IEEJcG/0NN/vCdlDEBfTrATSLhkp6KuRrem1lKjthzdDfk3Ov5/JkGmnNxP5z+uP+Leo112D3QGq6p2Zcz7MzL+/97I11YMTA+28QNj33r9aX/dIXc47mO9mdwvBCju78RqwGv6iLeoqFc+uQwdNGwi6oNsEciiuYpdI23VNTIKxMNe1bTf6mIsr+DJuK9Xn9yY8zbuya6pwhotH9P2oDa4ydehDemuXs9KUL1qtdrp1J3g2ghg/VHQZXfTz1MKik+EBujll2O1hOh/QTfHD6AKGrcehGlV9NVB3C0qOZDUurELk1/qsW3ApDITLAEtLBZGelwMInWwiEGoWWFk5dXvwUxKNF/6Q3xkhuFb2Lizv6ijFOh3ytY+I6S3cChUbo9Wn2KPw0a6PNrZTDXtK0f/lTzJMJ+QBOfVnel7CBypQ5ffg8D/RqIS8CDPfK/qDvtYW4bPmjLFk5EFFnxhNOSuhN5bGIg3llQU9SXnrexEIYCKQiwU0zJnfX22Grm9J/qqZD5sfngE2GTR/A2ZTWvVTzZAlLlTZzV/bWa2EGN8vwu3F/Y5SlZf8GB34WCM71v85JepRVjvkRvgzlQW1DQ92GYmHsQjb7Tbaot140Wmj3BgsC17LK+izkX6A1vgZtZJrHJMpIp2jF1/Z2JvM</xb>
+<docu id="generate_shape_model_gray">
+<parameters>
+<parameter id="ImageModel">
+<multichannel>optional</multichannel>
+<multivalue>false</multivalue>
+<sem_type>image</sem_type>
+<type_list>
+<item>byte</item>
+<item>int1</item>
+<item>int2</item>
+<item>uint2</item>
+<item>int4</item>
+<item>int8</item>
+<item>real</item>
+<item>cyclic</item>
+<item>direction</item>
+<item>complex</item>
+<item>vector_field</item>
+</type_list>
+</parameter>
+<parameter id="ModelArea">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelGrayVal">
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelHeight">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>real</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelHeightAll">
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelID">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="ModelRegionsOrigin">
+<multivalue>optional</multivalue>
+<sem_type>image</sem_type>
+</parameter>
+<parameter id="ModelWidth">
+<mixed_type>false</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="ModelWidthAll">
+<mixed_type>optional</mixed_type>
+<multivalue>optional</multivalue>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="RegionROI">
+<multivalue>optional</multivalue>
+<sem_type>xld</sem_type>
+</parameter>
+<parameter id="Threshold">
+<default_value>200</default_value>
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+</parameter>
+<parameter id="WindowHandle">
+<default_value>3600</default_value>
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<values>
+<item>WindowHandle</item>
+</values>
+</parameter>
+<parameter id="isTrained">
+<mixed_type>false</mixed_type>
+<sem_type>integer</sem_type>
+<type_list>
+<item>integer</item>
+</type_list>
+<value_max>1</value_max>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
