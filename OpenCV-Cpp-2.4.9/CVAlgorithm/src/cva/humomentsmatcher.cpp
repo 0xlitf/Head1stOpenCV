@@ -390,7 +390,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
             if (qAbs(areaDifferencePercent) > m_areaThreshold) {
                 continue;
             } else {
-                qDebug() << "templateName:" << templateName << "areaDifferencePercent:" << areaDifferencePercent;
+                qDebug() << "面积初筛通过 templateName:" << templateName << "areaDifferencePercent:" << areaDifferencePercent;
             }
 
             double score = cv::matchShapes(templateContour, objContourInScene,
@@ -447,6 +447,9 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
                 break;
             } else {
                 // cv::drawContours(resultImg, contours, (int)i, cv::Scalar(0, 0, 255), 1);
+
+                // 不能加这行代码
+                // resultList.append(std::make_tuple(QString(""), objContourInScene, center, 100, -100., QString("")));
             }
         }
 
