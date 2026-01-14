@@ -1,4 +1,4 @@
-﻿#include "humomentsmatcher.h"
+﻿﻿#include "humomentsmatcher.h"
 
 #include <QElapsedTimer>
 #include <QImageReader>
@@ -466,7 +466,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
 }
 
 cv::Mat HuMomentsMatcher::drawResultOnImage(const cv::Mat &inputImage,
-                                             const MatchResult &result) {
+                                            const MatchResult &result) {
     // 创建输出图像（复制原始图像）
     cv::Mat outputImage = inputImage.clone();
 
@@ -517,7 +517,7 @@ cv::Mat HuMomentsMatcher::drawResultOnImage(const cv::Mat &inputImage,
 }
 
 cv::Mat HuMomentsMatcher::drawResultsOnImage(const cv::Mat &inputImage,
-                                     const QList<MatchResult> &resultList) {
+                                             const QList<MatchResult> &resultList) {
     // 创建输出图像（复制原始图像）
     cv::Mat outputImage = inputImage.clone();
 
