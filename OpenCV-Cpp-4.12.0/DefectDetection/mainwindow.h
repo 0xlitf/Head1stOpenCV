@@ -53,9 +53,11 @@ private:
     cv::Mat resizeImageForDisplay(const cv::Mat &image, QLabel *label);
 
     bool useHSV{true}; // true false
-    int m_threshold{40};
+    int m_threshold{70};
 
-    int m_thickness{13};
+    int m_removeOuterBorder{4};
+
+    int m_thickness{10};
 };
 
 #endif // MAINWINDOW_H

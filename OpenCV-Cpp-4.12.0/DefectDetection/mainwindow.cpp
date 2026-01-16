@@ -2,8 +2,9 @@
 #include "bgr2hsvconverter.h"
 #include "minimumbounding.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
-{
+#include <QElapsedTimer>
+
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // 设置窗口属性
     setWindowTitle("HSV缺陷检测系统");
     setMinimumSize(1200, 800);
@@ -59,23 +60,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     // 连接信号槽
     connect(m_loadNormalButton, &QPushButton::clicked, this, &MainWindow::onLoadNormalImage);
     connect(m_loadDefectButton, &QPushButton::clicked, this, &MainWindow::onLoadDefectImage);
-    connect(m_detectButton, &QPushButton::clicked, this, &MainWindow::onDetectDefect);
+    connect(m_detectButton, &QPushButton::clicked, this, [=]() {
+        QElapsedTimer timer;
+        timer.start();
+        this->onDetectDefect();
+        // qDebug() << "onDetectDefect elapsed:" << timer.elapsed();
+    });
 
     // this->loadDefaultImages();
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() {}
 
 void MainWindow::loadDefaultImages() {
     // 加载默认图像（可选）
 
-    // cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ok/2026-01-15_16-07-45_741.png");
-    // cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
+    // cv::Mat tInput =
+    // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ok/2026-01-15_16-07-45_741.png");
+    // cv::Mat dInput =
+    // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
 
-    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/ok/2026-01-15_16-00-15_517.png");
-    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/ng/2026-01-15_16-03-11_149.png");
+    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/"
+                                "ok/2026-01-15_16-00-15_517.png");
+    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/"
+                                "ng/2026-01-15_16-03-11_149.png");
 
     MinimumBounding mini;
     tInput = mini.findAndCropObject(tInput);
@@ -120,19 +128,8 @@ void MainWindow::loadDefaultImages() {
         cv::imshow("thresholdDiff", thresholdDiff);
     }
 
-
-
-    if (useHSV) {
-        BGR2HSVConverter cvt;
-        cv::Mat tInputHSV = cvt.convertBGR2HSV(tInput);
-        cv::Mat dInputHSV = cvt.convertBGR2HSV(dInput);
-
-        m_normalImage = tInputHSV;
-        m_defectImage = dInputHSV;
-    } else {
-        m_normalImage = tInput;
-        m_defectImage = dInput;
-    }
+    m_normalImage = tInput;
+    m_defectImage = dInput;
 
     if (!m_normalImage.empty()) {
         displayImageOnLabel(m_normalImageLabel, m_normalImage);
@@ -143,10 +140,8 @@ void MainWindow::loadDefaultImages() {
     }
 }
 
-void MainWindow::onLoadNormalImage()
-{
-    QString fileName = QFileDialog::getOpenFileName(this, "选择正常图像", "",
-                                                    "图像文件 (*.png *.jpg *.bmp *.jpeg)");
+void MainWindow::onLoadNormalImage() {
+    QString fileName = QFileDialog::getOpenFileName(this, "选择正常图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
     if (!fileName.isEmpty()) {
         cv::Mat tInput = cv::imread(fileName.toStdString());
 
@@ -155,12 +150,7 @@ void MainWindow::onLoadNormalImage()
 
         BGR2HSVConverter cvt;
 
-        if (useHSV) {
-            m_normalImage = cvt.convertBGR2HSV(objMat);
-        } else {
-            m_normalImage = objMat;
-        }
-
+        m_normalImage = objMat;
         if (!m_normalImage.empty()) {
             displayImageOnLabel(m_normalImageLabel, m_normalImage);
             m_normalImageLabel->setText("");
@@ -175,23 +165,15 @@ void MainWindow::onLoadNormalImage()
     }
 }
 
-void MainWindow::onLoadDefectImage()
-{
-    QString fileName = QFileDialog::getOpenFileName(this, "选择缺陷图像", "",
-                                                    "图像文件 (*.png *.jpg *.bmp *.jpeg)");
+void MainWindow::onLoadDefectImage() {
+    QString fileName = QFileDialog::getOpenFileName(this, "选择缺陷图像", "", "图像文件 (*.png *.jpg *.bmp *.jpeg)");
     if (!fileName.isEmpty()) {
         cv::Mat dInput = cv::imread(fileName.toStdString());
 
         MinimumBounding mini;
         cv::Mat objMat = mini.findAndCropObject(dInput);
 
-        BGR2HSVConverter cvt;
-        if (useHSV) {
-            m_defectImage = cvt.convertBGR2HSV(objMat);
-        } else {
-            m_defectImage = objMat;
-        }
-
+        m_defectImage = objMat;
         if (!m_defectImage.empty()) {
             displayImageOnLabel(m_defectImageLabel, m_defectImage);
             m_defectImageLabel->setText("");
@@ -206,8 +188,7 @@ void MainWindow::onLoadDefectImage()
     }
 }
 
-void MainWindow::displayImageOnLabel(QLabel *label, const cv::Mat &image)
-{
+void MainWindow::displayImageOnLabel(QLabel *label, const cv::Mat &image) {
     if (image.empty()) {
         label->setText("图像为空");
         qDebug() << "图像为空";
@@ -232,8 +213,7 @@ void MainWindow::displayImageOnLabel(QLabel *label, const cv::Mat &image)
     QPixmap originalPixmap = QPixmap::fromImage(qImage);
 
     // 3. 关键步骤：缩放Pixmap以适应Label大小，同时保持长宽比[5,8](@ref)
-    QPixmap scaledPixmap = originalPixmap.scaled(label->size(),
-                                                 Qt::KeepAspectRatio,
+    QPixmap scaledPixmap = originalPixmap.scaled(label->size(), Qt::KeepAspectRatio,
                                                  Qt::SmoothTransformation); // 使用平滑变换以获得更好质量
 
     // 4. 显示图像
@@ -242,13 +222,13 @@ void MainWindow::displayImageOnLabel(QLabel *label, const cv::Mat &image)
     label->setScaledContents(false);
 }
 
-cv::Mat MainWindow::resizeImageForDisplay(const cv::Mat &image, QLabel *label)
-{
-    if (image.empty()) return cv::Mat();
+cv::Mat MainWindow::resizeImageForDisplay(const cv::Mat &image, QLabel *label) {
+    if (image.empty())
+        return cv::Mat();
 
     // 获取标签的可用大小
     QSize labelSize = label->size();
-    int maxWidth = labelSize.width() - 20;  // 留出边距
+    int maxWidth = labelSize.width() - 20; // 留出边距
     int maxHeight = labelSize.height() - 20;
 
     // 如果图像尺寸小于标签尺寸，直接返回原图
@@ -257,8 +237,7 @@ cv::Mat MainWindow::resizeImageForDisplay(const cv::Mat &image, QLabel *label)
     }
 
     // 计算缩放比例，保持宽高比 [3](@ref)
-    double scale = std::min(static_cast<double>(maxWidth) / image.cols,
-                            static_cast<double>(maxHeight) / image.rows);
+    double scale = std::min(static_cast<double>(maxWidth) / image.cols, static_cast<double>(maxHeight) / image.rows);
 
     int newWidth = static_cast<int>(image.cols * scale);
     int newHeight = static_cast<int>(image.rows * scale);
@@ -268,8 +247,7 @@ cv::Mat MainWindow::resizeImageForDisplay(const cv::Mat &image, QLabel *label)
     return resizedImage;
 }
 
-void MainWindow::onDetectDefect()
-{
+void MainWindow::onDetectDefect() {
     if (m_normalImage.empty() || m_defectImage.empty()) {
         QMessageBox::warning(this, "错误", "请先加载正常图像和缺陷图像!");
         return;
@@ -280,17 +258,11 @@ void MainWindow::onDetectDefect()
     cv::Mat tInput = m_normalImage.clone();
     cv::Mat dInput = m_defectImage.clone();
 
-    // if (useHSV) {
-    //     BGR2HSVConverter cvt;
-    //     cv::Mat tInputHSV = cvt.convertBGR2HSV(tInput);
-    //     cv::Mat dInputHSV = cvt.convertBGR2HSV(dInput);
+    cv::blur(tInput, tInput, cv::Size(3, 3));
+    cv::blur(dInput, dInput, cv::Size(3, 3));
 
-    //     m_normalImage = tInputHSV;
-    //     m_defectImage = dInputHSV;
-    // } else {
-    //     m_normalImage = tInput;
-    //     m_defectImage = dInput;
-    // }
+    cv::imshow("m_normalImage origin", m_normalImage);
+    cv::imshow("m_defectImage origin", m_defectImage);
 
     if (!m_normalImage.empty()) {
         displayImageOnLabel(m_normalImageLabel, m_normalImage);
@@ -300,42 +272,110 @@ void MainWindow::onDetectDefect()
         m_detectButton->setEnabled(true);
     }
 
-    cv::imshow("m_normalImage", m_normalImage);
-    cv::imshow("m_defectImage", m_defectImage);
+    if (useHSV) {
+        BGR2HSVConverter cvt;
+        tInput = cvt.convertBGR2HSV(tInput);
+        dInput = cvt.convertBGR2HSV(dInput);
+    }
 
+    cv::imshow("m_normalImage hsv", tInput);
+    cv::imshow("m_defectImage hsv", dInput);
 
-
-    tInput = mini.removeOuterBorder(tInput, 2);
-    dInput = mini.removeOuterBorder(dInput, 2);
+    tInput = mini.removeOuterBorder(tInput, m_removeOuterBorder);
+    dInput = mini.removeOuterBorder(dInput, m_removeOuterBorder);
 
     cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
     tInput = mini.fillCenterWithWhite(tInput, m_thickness);
     dInput = mini.fillCenterWithWhite(dInput, m_thickness);
 
-    if (bool showDiff = true) {
-        cv::Mat diff;
-        cv::absdiff(tInput, dInput, diff);
+    std::vector<cv::Mat> thsvChannels;
+    cv::split(tInput, thsvChannels);
+    cv::Mat thChannel = thsvChannels[0]; // H通道
+    cv::Mat tsChannel = thsvChannels[1]; // S通道
+    cv::Mat tvChannel = thsvChannels[2]; // V通道
 
-        cv::imshow("diff", diff);
+    // cv::imshow("th", thChannel);
+    // cv::imshow("ts", tsChannel);
+    // cv::imshow("tv", tvChannel);
+
+    std::vector<cv::Mat> dhsvChannels;
+    cv::split(dInput, dhsvChannels);
+    cv::Mat dhChannel = dhsvChannels[0]; // H通道
+    cv::Mat dsChannel = dhsvChannels[1]; // S通道
+    cv::Mat dvChannel = dhsvChannels[2]; // V通道
+
+    // cv::imshow("dh", dhChannel);
+    // cv::imshow("ds", dsChannel);
+    // cv::imshow("dv", dvChannel);
+
+    cv::Mat tH_BGR, tS_BGR, tV_BGR, dH_BGR, dS_BGR, dV_BGR;
+    cv::cvtColor(thChannel, tH_BGR, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(tsChannel, tS_BGR, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(tvChannel, tV_BGR, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(dhChannel, dH_BGR, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(dsChannel, dS_BGR, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(dvChannel, dV_BGR, cv::COLOR_GRAY2BGR);
+    cv::putText(tH_BGR, "T-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+    cv::putText(tS_BGR, "T-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+    cv::putText(tV_BGR, "T-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
+    cv::putText(dH_BGR, "D-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+    cv::putText(dS_BGR, "D-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+    cv::putText(dV_BGR, "D-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
+
+    // 3. 分别拼接左右两侧（每侧3个通道垂直堆叠）
+    cv::Mat leftCol, rightCol;
+    cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR}, leftCol); // 左侧垂直拼接
+    cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR}, rightCol); // 右侧垂直拼接
+
+    // 4. 将左右两侧水平拼接为最终图像
+    cv::Mat concatResult;
+    cv::hconcat(leftCol, rightCol, concatResult);
+
+    // 5. 显示最终拼接结果
+    cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
+
+
+    if (bool showDiff = true) {
+        cv::Mat concatDiffResult;
+
+        cv::Mat sdiff;
+        cv::absdiff(tsChannel, dsChannel, sdiff);
+
+        cv::Mat vdiff;
+        cv::absdiff(tvChannel, dvChannel, vdiff);
+
+        cv::Mat combinedDiff;
+        cv::add(sdiff, vdiff, combinedDiff);
+
+        // cv::imshow("combinedDiff", combinedDiff);
 
         cv::Mat grayDiff;
-        if (diff.channels() == 3) {
-            cv::cvtColor(diff, grayDiff, cv::COLOR_BGR2GRAY);
+        if (combinedDiff.channels() == 3) {
+            cv::cvtColor(combinedDiff, grayDiff, cv::COLOR_BGR2GRAY);
         } else {
-            grayDiff = diff;
+            grayDiff = combinedDiff;
         }
 
-        cv::imshow("grayDiff", grayDiff);
+        // cv::imshow("grayDiff", grayDiff);
 
         cv::Mat thresholdDiff;
-        // 将差异明显的像素设为255（白色），无差异或差异小的设为0（黑色）
+        // 1. 阈值化处理，得到二值图像
         cv::threshold(grayDiff, thresholdDiff, m_threshold, 255, cv::THRESH_BINARY);
 
-        int whitePixelCount = cv::countNonZero(thresholdDiff);
-        qDebug() << "白色像素点的个数为: " << whitePixelCount;
+        // 2. 形态学开运算去除小噪点
+        int kernalSize = 5;
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize)); // 创建3x3矩形结构元素
+        cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
+                         kernel); // 执行开运算
 
-        cv::imshow("thresholdDiff", thresholdDiff);
+        // 3. 统计过滤后的白色像素点
+        int whitePixelCount = cv::countNonZero(thresholdDiff);
+        qDebug() << "过滤后白色像素点的个数为: " << whitePixelCount;
+        // cv::imshow("thresholdDiff", thresholdDiff);
+
+        cv::vconcat(std::vector<cv::Mat>{combinedDiff, grayDiff, thresholdDiff}, concatDiffResult);
+        cv::imshow("concatDiffResult", concatDiffResult);
     }
 
     return;
