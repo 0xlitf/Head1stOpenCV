@@ -1,4 +1,5 @@
 ﻿#include "MainWindow.h"
+#include "bgr2hsvconverter.h"
 #include "minimumbounding.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -93,7 +94,10 @@ void MainWindow::onLoadNormalImage()
         cv::Mat tInput = cv::imread(fileName.toStdString());
 
         MinimumBounding mini;
-        m_normalImage = mini.findAndCropObject(tInput);
+        cv::Mat objMat = mini.findAndCropObject(tInput);
+
+        BGR2HSVConverter cvt;
+        m_normalImage = cvt.convertBGR2HSV(objMat);
 
         if (!m_normalImage.empty()) {
             displayImageOnLabel(m_normalImageLabel, m_normalImage);
@@ -117,7 +121,10 @@ void MainWindow::onLoadDefectImage()
         cv::Mat dInput = cv::imread(fileName.toStdString());
 
         MinimumBounding mini;
-        m_defectImage = mini.findAndCropObject(dInput);
+        cv::Mat objMat = mini.findAndCropObject(dInput);
+
+        BGR2HSVConverter cvt;
+        m_defectImage = cvt.convertBGR2HSV(objMat);
 
         if (!m_defectImage.empty()) {
             displayImageOnLabel(m_defectImageLabel, m_defectImage);
