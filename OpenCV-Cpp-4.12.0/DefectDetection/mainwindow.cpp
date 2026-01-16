@@ -61,14 +61,78 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(m_loadDefectButton, &QPushButton::clicked, this, &MainWindow::onLoadDefectImage);
     connect(m_detectButton, &QPushButton::clicked, this, &MainWindow::onDetectDefect);
 
+    // this->loadDefaultImages();
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::loadDefaultImages() {
     // 加载默认图像（可选）
 
-    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ok/2026-01-15_16-07-45_741.png");
-    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
+    // cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ok/2026-01-15_16-07-45_741.png");
+    // cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
+
+    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/ok/2026-01-15_16-00-15_517.png");
+    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/ng/2026-01-15_16-03-11_149.png");
 
     MinimumBounding mini;
-    m_normalImage = mini.findAndCropObject(tInput);
-    m_defectImage = mini.findAndCropObject(dInput);
+    tInput = mini.findAndCropObject(tInput);
+    dInput = mini.findAndCropObject(dInput);
+
+    tInput = mini.removeOuterBorder(tInput, 2);
+    dInput = mini.removeOuterBorder(dInput, 2);
+
+    qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
+    qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
+
+    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+
+    qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
+    qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
+
+    tInput = mini.fillCenterWithWhite(tInput, m_thickness);
+    dInput = mini.fillCenterWithWhite(dInput, m_thickness);
+
+    if (bool showDiff = true) {
+        cv::Mat diff;
+        cv::absdiff(tInput, dInput, diff);
+
+        cv::imshow("diff", diff);
+
+        cv::Mat grayDiff;
+        if (diff.channels() == 3) {
+            cv::cvtColor(diff, grayDiff, cv::COLOR_BGR2GRAY);
+        } else {
+            grayDiff = diff;
+        }
+
+        cv::imshow("grayDiff", grayDiff);
+
+        cv::Mat thresholdDiff;
+        // 将差异明显的像素设为255（白色），无差异或差异小的设为0（黑色）
+        cv::threshold(grayDiff, thresholdDiff, 60, 255, cv::THRESH_BINARY);
+
+        int whitePixelCount = cv::countNonZero(thresholdDiff);
+        qDebug() << "白色像素点的个数为: " << whitePixelCount;
+
+        cv::imshow("thresholdDiff", thresholdDiff);
+    }
+
+
+
+    if (useHSV) {
+        BGR2HSVConverter cvt;
+        cv::Mat tInputHSV = cvt.convertBGR2HSV(tInput);
+        cv::Mat dInputHSV = cvt.convertBGR2HSV(dInput);
+
+        m_normalImage = tInputHSV;
+        m_defectImage = dInputHSV;
+    } else {
+        m_normalImage = tInput;
+        m_defectImage = dInput;
+    }
 
     if (!m_normalImage.empty()) {
         displayImageOnLabel(m_normalImageLabel, m_normalImage);
@@ -77,14 +141,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         displayImageOnLabel(m_defectImageLabel, m_defectImage);
         m_detectButton->setEnabled(true);
     }
-
 }
-
-MainWindow::~MainWindow()
-{
-}
-
-void MainWindow::loadDefaultImages() {}
 
 void MainWindow::onLoadNormalImage()
 {
@@ -97,7 +154,12 @@ void MainWindow::onLoadNormalImage()
         cv::Mat objMat = mini.findAndCropObject(tInput);
 
         BGR2HSVConverter cvt;
-        m_normalImage = cvt.convertBGR2HSV(objMat);
+
+        if (useHSV) {
+            m_normalImage = cvt.convertBGR2HSV(objMat);
+        } else {
+            m_normalImage = objMat;
+        }
 
         if (!m_normalImage.empty()) {
             displayImageOnLabel(m_normalImageLabel, m_normalImage);
@@ -124,7 +186,11 @@ void MainWindow::onLoadDefectImage()
         cv::Mat objMat = mini.findAndCropObject(dInput);
 
         BGR2HSVConverter cvt;
-        m_defectImage = cvt.convertBGR2HSV(objMat);
+        if (useHSV) {
+            m_defectImage = cvt.convertBGR2HSV(objMat);
+        } else {
+            m_defectImage = objMat;
+        }
 
         if (!m_defectImage.empty()) {
             displayImageOnLabel(m_defectImageLabel, m_defectImage);
@@ -209,8 +275,75 @@ void MainWindow::onDetectDefect()
         return;
     }
 
+    MinimumBounding mini;
+
+    cv::Mat tInput = m_normalImage.clone();
+    cv::Mat dInput = m_defectImage.clone();
+
+    // if (useHSV) {
+    //     BGR2HSVConverter cvt;
+    //     cv::Mat tInputHSV = cvt.convertBGR2HSV(tInput);
+    //     cv::Mat dInputHSV = cvt.convertBGR2HSV(dInput);
+
+    //     m_normalImage = tInputHSV;
+    //     m_defectImage = dInputHSV;
+    // } else {
+    //     m_normalImage = tInput;
+    //     m_defectImage = dInput;
+    // }
+
+    if (!m_normalImage.empty()) {
+        displayImageOnLabel(m_normalImageLabel, m_normalImage);
+    }
+    if (!m_defectImage.empty()) {
+        displayImageOnLabel(m_defectImageLabel, m_defectImage);
+        m_detectButton->setEnabled(true);
+    }
+
+    cv::imshow("m_normalImage", m_normalImage);
+    cv::imshow("m_defectImage", m_defectImage);
+
+
+
+    tInput = mini.removeOuterBorder(tInput, 2);
+    dInput = mini.removeOuterBorder(dInput, 2);
+
+    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+
+    tInput = mini.fillCenterWithWhite(tInput, m_thickness);
+    dInput = mini.fillCenterWithWhite(dInput, m_thickness);
+
+    if (bool showDiff = true) {
+        cv::Mat diff;
+        cv::absdiff(tInput, dInput, diff);
+
+        cv::imshow("diff", diff);
+
+        cv::Mat grayDiff;
+        if (diff.channels() == 3) {
+            cv::cvtColor(diff, grayDiff, cv::COLOR_BGR2GRAY);
+        } else {
+            grayDiff = diff;
+        }
+
+        cv::imshow("grayDiff", grayDiff);
+
+        cv::Mat thresholdDiff;
+        // 将差异明显的像素设为255（白色），无差异或差异小的设为0（黑色）
+        cv::threshold(grayDiff, thresholdDiff, m_threshold, 255, cv::THRESH_BINARY);
+
+        int whitePixelCount = cv::countNonZero(thresholdDiff);
+        qDebug() << "白色像素点的个数为: " << whitePixelCount;
+
+        cv::imshow("thresholdDiff", thresholdDiff);
+    }
+
+    return;
+
     // 执行缺陷检测
     DefectDetector::DefectResult result = m_detector->detectDefect(m_normalImage, m_defectImage);
+
+    cv::imshow("result.defectMap", result.defectMap);
 
     // 显示结果
     QString resultText = QString("缺陷检测结果:\n"

@@ -51,6 +51,11 @@ private:
     // 图像显示方法
     void displayImageOnLabel(QLabel *label, const cv::Mat &image);
     cv::Mat resizeImageForDisplay(const cv::Mat &image, QLabel *label);
+
+    bool useHSV{true}; // true false
+    int m_threshold{40};
+
+    int m_thickness{13};
 };
 
 #endif // MAINWINDOW_H

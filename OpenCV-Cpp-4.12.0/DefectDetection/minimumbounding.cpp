@@ -79,8 +79,8 @@ cv::Mat MinimumBounding::findAndCropObject(const cv::Mat& inputImage)
                       minRect.center, cropped);
 
     // 10. 创建纯色背景 [6,8](@ref)
-    // cv::Mat blackBackground = cv::Mat::zeros(cropped.size(), cropped.type());
-    cv::Mat whiteBackground(cropped.size(), cropped.type(), cv::Scalar(255, 255, 255));
+    cv::Mat blackBackground = cv::Mat::zeros(cropped.size(), cropped.type());
+    // cv::Mat whiteBackground(cropped.size(), cropped.type(), cv::Scalar(255, 255, 255));
 
     // 11. 提取前景物体并放置到黑色背景上
     if (cropped.channels() == 3) {
@@ -99,20 +99,92 @@ cv::Mat MinimumBounding::findAndCropObject(const cv::Mat& inputImage)
         cv::morphologyEx(foregroundMask, foregroundMask, cv::MORPH_CLOSE, kernel);
 
         // 将前景物体复制到黑色背景上
-        cropped.copyTo(whiteBackground, foregroundMask);
+        cropped.copyTo(blackBackground, foregroundMask);
     } else {
         // 对于灰度图像，直接使用阈值处理
         cv::Mat foregroundMask;
         cv::threshold(cropped, foregroundMask, 250, 255, cv::THRESH_BINARY);
         cv::bitwise_not(foregroundMask, foregroundMask);
-        cropped.copyTo(whiteBackground, foregroundMask);
+        cropped.copyTo(blackBackground, foregroundMask);
     }
 
     // 12. 最终验证：确保输出图像不为空
-    if (whiteBackground.empty()) {
+    if (blackBackground.empty()) {
         qWarning() << "处理后的图像为空！";
         return cv::Mat();
     }
 
-    return whiteBackground;
+    return blackBackground;
+}
+
+cv::Mat MinimumBounding::fillCenterWithWhite(const cv::Mat& inputImage, int borderWidth) {
+    if (inputImage.empty()) {
+        return cv::Mat();
+    }
+
+    // 创建原图的副本
+    cv::Mat result = inputImage.clone();
+
+    // 计算中心矩形的坐标[1,3](@ref)
+    int centerWidth = inputImage.cols - 2 * borderWidth;
+    int centerHeight = inputImage.rows - 2 * borderWidth;
+
+    // 确保中心矩形有有效的尺寸[6](@ref)
+    if (centerWidth <= 0 || centerHeight <= 0) {
+        // 如果边框宽度太大，直接返回全白图像
+        result = cv::Mat::ones(inputImage.size(), inputImage.type()) * 255;
+        return result;
+    }
+
+    // 计算中心矩形的左上角和右下角坐标[1,3](@ref)
+    cv::Point topLeft(borderWidth, borderWidth);
+    cv::Point bottomRight(inputImage.cols - borderWidth, inputImage.rows - borderWidth);
+
+    // 使用白色填充中心矩形区域[1,6,7](@ref)
+    // thickness参数设置为-1表示填充矩形[3,4](@ref)
+    cv::rectangle(result, topLeft, bottomRight, cv::Scalar(255, 255, 255), -1);
+
+    return result;
+}
+
+cv::Mat MinimumBounding::removeOuterBorder(const cv::Mat& inputImage, int borderWidth) {
+    // 检查输入图像是否有效
+    if (inputImage.empty()) {
+        qDebug() << "错误：输入图像为空。";
+        return cv::Mat();
+    }
+
+    // 检查边框宽度是否有效[1](@ref)
+    int imgWidth = inputImage.cols;
+    int imgHeight = inputImage.rows;
+
+    // 计算移除边框后新图像的尺寸
+    int newWidth = imgWidth - 2 * borderWidth;
+    int newHeight = imgHeight - 2 * borderWidth;
+
+    // 有效性检查：确保新图像的宽和高都大于0[1](@ref)
+    if (borderWidth <= 0 || newWidth <= 0 || newHeight <= 0) {
+        qDebug() << "错误：边框宽度" << borderWidth << "无效。"
+                 << "图像尺寸(" << imgWidth << "x" << imgHeight << ")"
+                 << "减去边框后尺寸(" << newWidth << "x" << newHeight << ")无效。";
+        return cv::Mat();
+    }
+
+    // 定义要保留的矩形区域 (ROI)[2](@ref)
+    // 参数说明: Rect(x, y, width, height)
+    // x, y: 矩形左上角坐标，从原图的 (borderWidth, borderWidth) 开始
+    // width, height: 新图像的宽度和高度
+    cv::Rect roi(borderWidth, borderWidth, newWidth, newHeight);
+
+    // 检查ROI是否在图像边界内[1](@ref)
+    if (roi.x < 0 || roi.y < 0 || roi.x + roi.width > imgWidth || roi.y + roi.height > imgHeight) {
+        qDebug() << "错误：计算的ROI区域超出了图像边界。";
+        return cv::Mat();
+    }
+
+    // 使用cv::Mat的拷贝构造函数创建ROI的副本[2](@ref)
+    // 注意：这里使用.clone()确保返回的是深拷贝，独立于原图
+    cv::Mat croppedImage = inputImage(roi).clone();
+
+    return croppedImage;
 }
