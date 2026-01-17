@@ -247,8 +247,10 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     // cv::bilateralFilter(tInput, tInput, 9, 50, 10);
     // cv::bilateralFilter(dInput, dInput, 9, 50, 10);
 
-    cv::imshow("m_normalImage origin", tInput);
-    cv::imshow("m_defectImage origin", dInput);
+    if (m_debugImageFlag) {
+        cv::imshow("m_normalImage origin", tInput);
+        cv::imshow("m_defectImage origin", dInput);
+    }
 
     if (m_useHSV) {
         BGR2HSVConverter cvt;
@@ -256,9 +258,10 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         dInput = cvt.convertBGR2HSV(dInput);
     }
 
-    cv::imshow("m_normalImage hsv", tInput);
-    cv::imshow("m_defectImage hsv", dInput);
-
+    if (m_debugImageFlag) {
+        cv::imshow("m_normalImage hsv", tInput);
+        cv::imshow("m_defectImage hsv", dInput);
+    }
     tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
     dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
@@ -304,7 +307,10 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         cv::hconcat(leftCol, rightCol, concatResult);
 
         // 5. 显示最终拼接结果
-        cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
+
+        if (m_debugImageFlag) {
+            cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
+        }
     }
 
     cv::Mat sdiff;
@@ -339,7 +345,7 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     qDebug() << "过滤后白色像素点的个数为: " << whitePixelCount;
     // cv::imshow("thresholdDiff", thresholdDiff);
 
-    if (bool showDiff = true) {
+    if (m_debugImageFlag) {
         cv::Mat concatDiffResult;
 
         cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);

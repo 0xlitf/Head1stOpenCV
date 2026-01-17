@@ -58,11 +58,29 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     m_detector = new DefectDetector(this);
 
     // 连接信号槽
-    connect(m_loadNormalButton, &QPushButton::clicked, this, &MainWindow::onLoadNormalImage);
-    connect(m_loadDefectButton, &QPushButton::clicked, this, &MainWindow::onLoadDefectImage);
+    connect(m_loadNormalButton, &QPushButton::clicked, this, [=]() {
+        // this->onLoadNormalImage();
+
+        QList<QString> imageList;
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (1).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (2).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (3).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (4).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (5).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (6).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (7).png";
+        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (8).png";
+
+        MinimumBounding mini;
+        for (auto& imageDir: imageList) {
+            cv::Mat tInput = cv::imread(imageDir.toStdString());
+            tInput = mini.findAndCropObjectOnNan(tInput);
+            cv::imwrite(imageDir.replace(".png", "_template.png").toStdString(), tInput);
+        }
+    });
+    connect(m_loadDefectButton, &QPushButton::clicked, this, [=]() { this->onLoadDefectImage(); });
     connect(m_detectButton, &QPushButton::clicked, this, [=]() {
         QElapsedTimer timer;
-        // this->onDetectDefect();
 
         DefectDetector detector;
         QStringList descList;
@@ -71,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black";
         detector.setTemplateFolder(descList, folderList);
 
-        cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
+        cv::Mat dInput = m_defectImage; // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
 
         MinimumBounding mini;
         dInput = mini.findAndCropObjectOnNan(dInput);

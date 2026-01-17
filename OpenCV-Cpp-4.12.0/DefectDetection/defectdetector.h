@@ -60,6 +60,8 @@ private:
     bool m_useHSV{true};
     int m_removeOuterBorderThickness{3};
     int m_detectThickness{6};
+
+    bool m_debugImageFlag{false};
 };
 
 #endif // DEFECTDETECTOR_H
