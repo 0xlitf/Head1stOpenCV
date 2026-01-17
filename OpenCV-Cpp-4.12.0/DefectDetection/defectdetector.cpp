@@ -1,104 +1,148 @@
 ﻿#include "DefectDetector.h"
 #include <QDebug>
+#include <QDir>
+#include <QElapsedTimer>
+#include <QFileInfo>
+#include <QImageReader>
+#include <QMap>
+#include <QString>
 #include <opencv2/imgproc.hpp>
 
-DefectDetector::DefectDetector(QObject *parent) : QObject(parent)
-{
-}
+DefectDetector::DefectDetector(QObject *parent) : QObject(parent) {}
 
-DefectDetector::DefectResult DefectDetector::detectDefect(
-    const cv::Mat& normalImage, const cv::Mat& defectImage)
-{
-    DefectResult result;
-
-    // 输入验证
-    if (normalImage.empty() || defectImage.empty()) {
-        qWarning() << "输入图像为空!";
-        result.totalLoss = 1.0;
-        result.hasDefect = true;
-        return result;
+std::tuple<int, cv::Mat>
+DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage) {
+    if (inputImage.empty()) {
+        cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+        cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        return std::make_tuple(0, emptyResult);
     }
 
-    // 统一图像尺寸
-    cv::Mat resizedDefect;
-    cv::resize(defectImage, resizedDefect, normalImage.size());
+    // 2. 创建输出图像
+    cv::Mat outputImage;
+    if (inputImage.channels() == 1) {
+        cv::cvtColor(inputImage, outputImage, cv::COLOR_GRAY2BGR);
+    } else {
+        outputImage = inputImage.clone();
+    }
 
-    // 转换为HSV颜色空间[1,6](@ref)
-    cv::Mat hsvNormal, hsvDefect;
-    cv::cvtColor(normalImage, hsvNormal, cv::COLOR_BGR2HSV);
-    cv::cvtColor(resizedDefect, hsvDefect, cv::COLOR_BGR2HSV);
+    // 3. 转换为灰度图
+    cv::Mat grayImage;
+    if (inputImage.channels() == 3) {
+        cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
+    } else {
+        grayImage = inputImage.clone();
+    }
 
-    // 计算不同方法的损失值[7](@ref)
-    double correlation = compareHSVHistograms(hsvNormal, hsvDefect, cv::HISTCMP_CORREL);
-    double chiSquare = compareHSVHistograms(hsvNormal, hsvDefect, cv::HISTCMP_CHISQR);
-    double bhattacharyya = compareHSVHistograms(hsvNormal, hsvDefect, cv::HISTCMP_BHATTACHARYYA);
+    // 4. 二值化处理
+    cv::Mat binaryImage;
+    cv::threshold(grayImage, binaryImage, 200, 255, cv::THRESH_BINARY_INV);
 
-    // 归一化损失值 (0-1范围，越大表示缺陷越严重)
-    result.correlationLoss = 1.0 - correlation;  // 相关性：1最好，0最差
-    result.chiSquareLoss = std::min(chiSquare / 10.0, 1.0);  // 卡方：0最好，归一化
-    result.bhattacharyyaLoss = bhattacharyya;  // 巴氏距离：0最好，1最差
+    // cv::imshow("binaryImage", binaryImage);
 
-    // 计算综合损失值 (加权平均)
-    result.totalLoss = (result.correlationLoss * 0.4 +
-                        result.chiSquareLoss * 0.3 +
-                        result.bhattacharyyaLoss * 0.3);
+    // 5. 查找轮廓
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    // 生成缺陷热力图
-    result.defectMap = generateDefectMap(normalImage, resizedDefect);
+    qDebug() << "contours.size()" << contours.size();
 
-    // 判断是否有缺陷
-    result.hasDefect = result.totalLoss > m_threshold;
+    int contourCount = static_cast<int>(contours.size());
 
-    qDebug() << "缺陷检测结果:";
-    qDebug() << "相关性损失:" << result.correlationLoss;
-    qDebug() << "卡方损失:" << result.chiSquareLoss;
-    qDebug() << "巴氏距离损失:" << result.bhattacharyyaLoss;
-    qDebug() << "综合损失:" << result.totalLoss;
-    qDebug() << "是否有缺陷:" << result.hasDefect;
+    // 6. 根据轮廓数量选择颜色
+    cv::Scalar contourColor;
+    if (contourCount > 1) {
+        contourColor = cv::Scalar(0, 0, 255); // 红色 (BGR) - 多个轮廓
+    } else if (contourCount == 1) {
+        contourColor = cv::Scalar(0, 255, 0); // 绿色 (BGR) - 单个轮廓
+    } else {
+        contourColor = cv::Scalar(255, 255, 255); // 白色 - 无轮廓
+    }
 
-    return result;
+    // 7. 绘制轮廓线
+    for (size_t i = 0; i < contours.size(); ++i) {
+        if (contours[i].empty() || contours[i].size() < 3)
+            continue;
+
+        // 绘制轮廓线
+        cv::drawContours(outputImage, contours, static_cast<int>(i),
+                         contourColor, // 轮廓颜色
+                         2,            // 线宽
+                         cv::LINE_AA);       // 抗锯齿
+
+        if (bool drawContourInfo = false) {
+            // 可选：添加轮廓信息
+            double area = cv::contourArea(contours[i]);
+
+            // 计算轮廓中心点
+            cv::Moments m = cv::moments(contours[i]);
+            if (m.m00 != 0) {
+                int centerX = static_cast<int>(m.m10 / m.m00);
+                int centerY = static_cast<int>(m.m01 / m.m00);
+
+                std::string info = "C" + std::to_string(i + 1) + " A:" + std::to_string(static_cast<int>(area));
+
+                // 绘制中心点
+                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor, -1);
+
+                // 添加文本信息
+                cv::Point textPos(centerX + 10, centerY);
+
+                // 绘制文本背景
+                int baseline = 0;
+                cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
+                cv::rectangle(outputImage, textPos - cv::Point(2, textSize.height + 2), textPos + cv::Point(textSize.width + 2, 2), cv::Scalar(0, 0, 0), -1);
+
+                cv::putText(outputImage, info, textPos, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(125, 125, 125), 1);
+            }
+        }
+    }
+
+    std::string statusText;
+    if (contourCount > 1) {
+        statusText = "检测到 " + std::to_string(contourCount) + " 个轮廓 (红色)";
+    } else if (contourCount == 1) {
+        statusText = "检测到 1 个轮廓 (绿色)";
+    } else {
+        statusText = "未检测到轮廓";
+    }
+
+    // cv::putText(outputImage, statusText, cv::Point(10, 30),
+    //             cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(125, 125, 125), 2);
+
+    return std::make_tuple(contourCount, outputImage);
 }
 
-double DefectDetector::compareHSVHistograms(const cv::Mat& hsv1, const cv::Mat& hsv2, int method)
-{
-    // 直方图参数设置[1,6](@ref)
-    int histSize[] = { m_hBins, m_sBins };
-    float hRanges[] = { 0, 180 };  // H通道范围: 0-180[2](@ref)
-    float sRanges[] = { 0, 256 };  // S通道范围: 0-256
-    const float* ranges[] = { hRanges, sRanges };
-    int channels[] = { 0, 1 };     // 使用H和S通道，忽略V通道减少光照影响[1](@ref)
+void DefectDetector::setTemplateFolder(const QStringList &descStrs, const QStringList &folderNames) {
+    if (descStrs.size() != folderNames.size()) {
+        qFatal("setTemplateFolder descStrs.size != folderNames.size");
+        return;
+    }
 
-    // 计算直方图
-    cv::Mat hist1, hist2;
-    cv::calcHist(&hsv1, 1, channels, cv::Mat(), hist1, 2, histSize, ranges, true, false);
-    cv::calcHist(&hsv2, 1, channels, cv::Mat(), hist2, 2, histSize, ranges, true, false);
+    m_huMomentsList.clear();
 
-    // 归一化直方图[6](@ref)
-    cv::normalize(hist1, hist1, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-    cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
+    for (int i = 0; i < descStrs.size(); ++i) {
+        auto &desc = descStrs[i];
+        auto &folderName = folderNames[i];
+        QDir templateDir(folderName);
+        if (!templateDir.exists()) {
+            qWarning() << "警告：模板文件夹不存在: " << folderName;
+            continue;
+        }
 
-    // 比较直方图[7](@ref)
-    return cv::compareHist(hist1, hist2, method);
-}
+        QDir dir(folderName);
+        QStringList imageFiles;
+        QStringList filters;
+        foreach (const QString &format, QImageReader::supportedImageFormats()) {
+            filters << "*." + format;
+        }
 
-cv::Mat DefectDetector::generateDefectMap(const cv::Mat& normalImage, const cv::Mat& defectImage)
-{
-    // 转换为灰度图
-    cv::Mat grayNormal, grayDefect;
-    cv::cvtColor(normalImage, grayNormal, cv::COLOR_BGR2GRAY);
-    cv::cvtColor(defectImage, grayDefect, cv::COLOR_BGR2GRAY);
+        imageFiles.append(dir.entryList(filters, QDir::Files));
+        for (int i = 0; i < imageFiles.size(); ++i) {
+            imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
+        }
 
-    // 计算绝对差异
-    cv::Mat diff;
-    cv::absdiff(grayNormal, grayDefect, diff);
-
-    // 应用阈值突出差异区域
-    cv::Mat defectMap;
-    cv::threshold(diff, defectMap, 30, 255, cv::THRESH_BINARY);
-
-    // 形态学操作去除噪声
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
-    cv::morphologyEx(defectMap, defectMap, cv::MORPH_OPEN, kernel);
-
-    return defectMap;
+        for (auto &filename : imageFiles) {
+            this->addTemplate(desc, filename);
+        }
+    }
 }

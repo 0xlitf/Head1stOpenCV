@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         // qDebug() << "onDetectDefect elapsed:" << timer.elapsed();
     });
 
-    // this->loadDefaultImages();
+    this->loadDefaultImages();
 }
 
 MainWindow::~MainWindow() {}
@@ -80,53 +80,51 @@ void MainWindow::loadDefaultImages() {
     // cv::Mat dInput =
     // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
 
-    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/"
-                                "ok/2026-01-15_16-00-15_517.png");
-    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/"
-                                "ng/2026-01-15_16-03-11_149.png");
+    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (1).png");
+    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (3).png");
 
     MinimumBounding mini;
-    tInput = mini.findAndCropObject(tInput);
-    dInput = mini.findAndCropObject(dInput);
+    tInput = mini.findAndCropObjectOnNan(tInput);
+    dInput = mini.findAndCropObjectOnNan(dInput);
 
-    tInput = mini.removeOuterBorder(tInput, 2);
-    dInput = mini.removeOuterBorder(dInput, 2);
+    // tInput = mini.removeOuterBorder(tInput, 2);
+    // dInput = mini.removeOuterBorder(dInput, 2);
 
-    qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
-    qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
+    // qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
+    // qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
 
-    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+    // cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-    qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
-    qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
+    // qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
+    // qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
 
-    tInput = mini.fillCenterWithWhite(tInput, m_thickness);
-    dInput = mini.fillCenterWithWhite(dInput, m_thickness);
+    // tInput = mini.fillCenterWithWhite(tInput, m_thickness);
+    // dInput = mini.fillCenterWithWhite(dInput, m_thickness);
 
-    if (bool showDiff = true) {
-        cv::Mat diff;
-        cv::absdiff(tInput, dInput, diff);
+    // if (bool showDiff = true) {
+    //     cv::Mat diff;
+    //     cv::absdiff(tInput, dInput, diff);
 
-        cv::imshow("diff", diff);
+    //     cv::imshow("diff", diff);
 
-        cv::Mat grayDiff;
-        if (diff.channels() == 3) {
-            cv::cvtColor(diff, grayDiff, cv::COLOR_BGR2GRAY);
-        } else {
-            grayDiff = diff;
-        }
+    //     cv::Mat grayDiff;
+    //     if (diff.channels() == 3) {
+    //         cv::cvtColor(diff, grayDiff, cv::COLOR_BGR2GRAY);
+    //     } else {
+    //         grayDiff = diff;
+    //     }
 
-        cv::imshow("grayDiff", grayDiff);
+    //     cv::imshow("grayDiff", grayDiff);
 
-        cv::Mat thresholdDiff;
-        // 将差异明显的像素设为255（白色），无差异或差异小的设为0（黑色）
-        cv::threshold(grayDiff, thresholdDiff, 60, 255, cv::THRESH_BINARY);
+    //     cv::Mat thresholdDiff;
+    //     // 将差异明显的像素设为255（白色），无差异或差异小的设为0（黑色）
+    //     cv::threshold(grayDiff, thresholdDiff, 60, 255, cv::THRESH_BINARY);
 
-        int whitePixelCount = cv::countNonZero(thresholdDiff);
-        qDebug() << "白色像素点的个数为: " << whitePixelCount;
+    //     int whitePixelCount = cv::countNonZero(thresholdDiff);
+    //     qDebug() << "白色像素点的个数为: " << whitePixelCount;
 
-        cv::imshow("thresholdDiff", thresholdDiff);
-    }
+    //     cv::imshow("thresholdDiff", thresholdDiff);
+    // }
 
     m_normalImage = tInput;
     m_defectImage = dInput;
@@ -146,7 +144,7 @@ void MainWindow::onLoadNormalImage() {
         cv::Mat tInput = cv::imread(fileName.toStdString());
 
         MinimumBounding mini;
-        cv::Mat objMat = mini.findAndCropObject(tInput);
+        cv::Mat objMat = mini.findAndCropObjectOnNan(tInput);
 
         BGR2HSVConverter cvt;
 
@@ -171,7 +169,7 @@ void MainWindow::onLoadDefectImage() {
         cv::Mat dInput = cv::imread(fileName.toStdString());
 
         MinimumBounding mini;
-        cv::Mat objMat = mini.findAndCropObject(dInput);
+        cv::Mat objMat = mini.findAndCropObjectOnNan(dInput);
 
         m_defectImage = objMat;
         if (!m_defectImage.empty()) {
@@ -258,6 +256,9 @@ void MainWindow::onDetectDefect() {
     cv::Mat tInput = m_normalImage.clone();
     cv::Mat dInput = m_defectImage.clone();
 
+    cv::pyrDown(tInput, tInput);
+    cv::pyrDown(dInput, dInput);
+
     if (bool showRectification = false) {
         // 图像配准
         cv::Mat alignedDefect;
@@ -269,9 +270,16 @@ void MainWindow::onDetectDefect() {
         cv::imshow("tInput vs alignedDefect", comparison);
     }
 
+    // blur GaussianBlur medianBlur bilateralFilter
+    // cv::blur(tInput, tInput, cv::Size(3, 3));
+    // cv::blur(dInput, dInput, cv::Size(3, 3));
+    cv::GaussianBlur(tInput, tInput, cv::Size(5, 5), 0, 0);
+    cv::GaussianBlur(dInput, dInput, cv::Size(5, 5), 0, 0);
+    // cv::medianBlur(tInput, tInput, 5);
+    // cv::medianBlur(dInput, dInput, 5);
+    // cv::bilateralFilter(tInput, tInput, 9, 50, 10);
+    // cv::bilateralFilter(dInput, dInput, 9, 50, 10);
 
-    cv::blur(tInput, tInput, cv::Size(5, 5));
-    cv::blur(dInput, dInput, cv::Size(5, 5));
 
     cv::imshow("m_normalImage origin", m_normalImage);
     cv::imshow("m_defectImage origin", m_defectImage);
@@ -358,15 +366,15 @@ void MainWindow::onDetectDefect() {
         cv::absdiff(tvChannel, dvChannel, vdiff);
 
         cv::Mat combinedDiff;
-        cv::add(sdiff, vdiff, combinedDiff);
+        // cv::add(sdiff, vdiff, combinedDiff);
 
         // cv::imshow("combinedDiff", combinedDiff);
 
         cv::Mat grayDiff;
-        if (combinedDiff.channels() == 3) {
-            cv::cvtColor(combinedDiff, grayDiff, cv::COLOR_BGR2GRAY);
+        if (vdiff.channels() == 3) {
+            cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
         } else {
-            grayDiff = combinedDiff;
+            grayDiff = vdiff;
         }
 
         // cv::imshow("grayDiff", grayDiff);
@@ -376,7 +384,7 @@ void MainWindow::onDetectDefect() {
         cv::threshold(grayDiff, thresholdDiff, m_threshold, 255, cv::THRESH_BINARY);
 
         // 2. 形态学开运算去除小噪点
-        int kernalSize = 5;
+        int kernalSize = 3;
         cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize)); // 创建3x3矩形结构元素
         cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
                          kernel); // 执行开运算
@@ -386,7 +394,7 @@ void MainWindow::onDetectDefect() {
         qDebug() << "过滤后白色像素点的个数为: " << whitePixelCount;
         // cv::imshow("thresholdDiff", thresholdDiff);
 
-        cv::vconcat(std::vector<cv::Mat>{combinedDiff, grayDiff, thresholdDiff}, concatDiffResult);
+        cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
         cv::imshow("concatDiffResult", concatDiffResult);
     }
 
