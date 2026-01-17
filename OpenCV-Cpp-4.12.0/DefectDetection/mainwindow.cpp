@@ -62,9 +62,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(m_loadDefectButton, &QPushButton::clicked, this, &MainWindow::onLoadDefectImage);
     connect(m_detectButton, &QPushButton::clicked, this, [=]() {
         QElapsedTimer timer;
+        // this->onDetectDefect();
+
+        DefectDetector detector;
+        QStringList descList;
+        descList << "ok";
+        QStringList folderList;
+        folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black";
+        detector.setTemplateFolder(descList, folderList);
+
+        cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
+
+        MinimumBounding mini;
+        dInput = mini.findAndCropObjectOnNan(dInput);
+
         timer.start();
-        this->onDetectDefect();
-        // qDebug() << "onDetectDefect elapsed:" << timer.elapsed();
+        double defectScore = detector.fullMatchMat(dInput);
+
+        qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
     });
 
     this->loadDefaultImages();

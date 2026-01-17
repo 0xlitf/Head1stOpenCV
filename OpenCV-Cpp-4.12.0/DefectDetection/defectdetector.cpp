@@ -160,13 +160,7 @@ void DefectDetector::addTemplate(const QString &desc,
                           QString("templateImg is empty: %1").arg(fileName));
         return;
     } else {
-        // auto folderBaseName = FileUtils::getFolderBaseName(fileName);
-
-        cv::threshold(templateImg, templateImg, m_whiteThreshold, 255,
-                      cv::THRESH_BINARY);
-
         cv::Mat tInput = templateImg.clone();
-        cv::pyrDown(tInput, tInput);
 
         this->addTemplateIntoMap(desc, fileName, tInput);
     }
@@ -211,7 +205,7 @@ double DefectDetector::fullMatchMat(cv::Mat sceneImg) {
         cv::Mat templateInput = std::get<2>(templateTuple);
 
         double defectScore = this->matchMat(templateInput, sceneImg);
-        if (defectScore > 0) {
+        if (defectScore >= 0) {
             results.append(defectScore);
         }
     }
