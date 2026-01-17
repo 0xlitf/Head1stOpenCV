@@ -2,11 +2,28 @@
 #define DEFECTDETECTOR_H
 
 #include <QObject>
+#include <QMessageBox>
 #include <opencv2/opencv.hpp>
 
 class DefectDetector : public QObject
 {
     Q_OBJECT
+
+public:
+    enum ErrorCode {
+        SUCCESS = 0,           // 成功
+        FILE_NOT_FOUND = 1,    // 文件不存在
+        IMAGE_LOAD_FAILED = 2, // 图像加载失败
+        INVALID_IMAGE = 3,     // 无效图像
+        NO_CONTOURS_FOUND = 4, // 未找到轮廓
+        TEMPLATE_NOT_SET = 5,  // 模板未设置
+        MATCH_FAILED = 6       // 匹配失败
+    };
+    Q_ENUM(ErrorCode) // 启用Qt元对象系统
+
+signals:
+    void sendLog(const QString &logStr);
+    void errorOccured(ErrorCode errorCode, const QString &errorStr);
 
 public:
     explicit DefectDetector(QObject *parent = nullptr);
@@ -16,12 +33,33 @@ public:
 
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
+
+    double fullMatchImage(const QString &fileName);
+
+    double fullMatchMat(cv::Mat sceneImg);
+
+    double matchMat(cv::Mat templateInput, cv::Mat defectInput);
+
+    double scoreThreshold() const;
+    void setScoreThreshold(double newScoreThreshold);
+
+    int whiteThreshold() const;
+    void setWhiteThreshold(int newWhiteThreshold);
+
+    void addTemplateIntoMap(const QString &desc, const QString &fileName, cv::Mat tInput);
+
 private:
     void addTemplate(const QString &desc, const QString &fileName);
 
 private:
-    QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>>
+    QList<std::tuple<QString, QString, cv::Mat>>
         m_huMomentsList;
+    double m_scoreThreshold{0.1};
+    int m_whiteThreshold{40};
+    int m_precision{2}; // 取决于进行几次下采样，暂时不可更改
+    bool m_useHSV{true};
+    int m_removeOuterBorderThickness{3};
+    int m_detectThickness{6};
 };
 
 #endif // DEFECTDETECTOR_H

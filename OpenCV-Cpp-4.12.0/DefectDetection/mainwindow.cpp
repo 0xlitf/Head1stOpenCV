@@ -80,12 +80,15 @@ void MainWindow::loadDefaultImages() {
     // cv::Mat dInput =
     // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
 
-    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (1).png");
-    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (3).png");
+    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (2).png");
+    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
 
     MinimumBounding mini;
     tInput = mini.findAndCropObjectOnNan(tInput);
     dInput = mini.findAndCropObjectOnNan(dInput);
+
+    cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/tInput.png", tInput);
+    cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/5ok.png", dInput);
 
     // tInput = mini.removeOuterBorder(tInput, 2);
     // dInput = mini.removeOuterBorder(dInput, 2);
@@ -98,8 +101,8 @@ void MainWindow::loadDefaultImages() {
     // qDebug() << "tInput.cols rows" << tInput.cols << tInput.rows;
     // qDebug() << "dInput.cols rows" << dInput.cols << dInput.rows;
 
-    // tInput = mini.fillCenterWithWhite(tInput, m_thickness);
-    // dInput = mini.fillCenterWithWhite(dInput, m_thickness);
+    // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
+    // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
 
     // if (bool showDiff = true) {
     //     cv::Mat diff;
@@ -301,13 +304,13 @@ void MainWindow::onDetectDefect() {
     cv::imshow("m_normalImage hsv", tInput);
     cv::imshow("m_defectImage hsv", dInput);
 
-    tInput = mini.removeOuterBorder(tInput, m_removeOuterBorder);
-    dInput = mini.removeOuterBorder(dInput, m_removeOuterBorder);
+    tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
+    dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
     cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-    tInput = mini.fillCenterWithWhite(tInput, m_thickness);
-    dInput = mini.fillCenterWithWhite(dInput, m_thickness);
+    tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
+    dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
 
     std::vector<cv::Mat> thsvChannels;
     cv::split(tInput, thsvChannels);
@@ -381,7 +384,7 @@ void MainWindow::onDetectDefect() {
 
         cv::Mat thresholdDiff;
         // 1. 阈值化处理，得到二值图像
-        cv::threshold(grayDiff, thresholdDiff, m_threshold, 255, cv::THRESH_BINARY);
+        cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
         // 2. 形态学开运算去除小噪点
         int kernalSize = 3;
@@ -396,35 +399,5 @@ void MainWindow::onDetectDefect() {
 
         cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
         cv::imshow("concatDiffResult", concatDiffResult);
-    }
-
-    return;
-
-    // 执行缺陷检测
-    DefectDetector::DefectResult result = m_detector->detectDefect(m_normalImage, m_defectImage);
-
-    cv::imshow("result.defectMap", result.defectMap);
-
-    // 显示结果
-    QString resultText = QString("缺陷检测结果:\n"
-                                 "综合损失值: %1\n"
-                                 "相关性损失: %2\n"
-                                 "卡方损失: %3\n"
-                                 "巴氏距离损失: %4\n"
-                                 "检测结果: %5")
-                             .arg(result.totalLoss, 0, 'f', 3)
-                             .arg(result.correlationLoss, 0, 'f', 3)
-                             .arg(result.chiSquareLoss, 0, 'f', 3)
-                             .arg(result.bhattacharyyaLoss, 0, 'f', 3)
-                             .arg(result.hasDefect ? "有缺陷" : "正常");
-
-    m_resultLabel->setText(resultText);
-
-    // 保存并显示缺陷热力图
-    if (!result.defectMap.empty()) {
-        cv::imwrite("defect_map.jpg", result.defectMap);
-
-        // 可选：在另一个标签中显示缺陷热力图
-        // displayImageOnLabel(new QLabel("缺陷热力图"), result.defectMap);
     }
 }
