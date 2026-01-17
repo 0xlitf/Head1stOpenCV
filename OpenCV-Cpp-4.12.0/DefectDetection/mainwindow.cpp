@@ -86,8 +86,8 @@ void MainWindow::loadDefaultImages() {
                                 "ng/2026-01-15_16-03-11_149.png");
 
     MinimumBounding mini;
-    tInput = mini.findAndCropObject(tInput);
-    dInput = mini.findAndCropObject(dInput);
+    tInput = mini.findAndCropObjectOnNan(tInput);
+    dInput = mini.findAndCropObjectOnNan(dInput);
 
     tInput = mini.removeOuterBorder(tInput, 2);
     dInput = mini.removeOuterBorder(dInput, 2);
@@ -258,8 +258,20 @@ void MainWindow::onDetectDefect() {
     cv::Mat tInput = m_normalImage.clone();
     cv::Mat dInput = m_defectImage.clone();
 
-    cv::blur(tInput, tInput, cv::Size(3, 3));
-    cv::blur(dInput, dInput, cv::Size(3, 3));
+    if (bool showRectification = false) {
+        // 图像配准
+        cv::Mat alignedDefect;
+        cv::Mat H = Rectification().alignImageWithORB(tInput, dInput, alignedDefect, true);
+
+        // 显示配准结果
+        cv::Mat comparison;
+        cv::hconcat(tInput, alignedDefect, comparison);
+        cv::imshow("tInput vs alignedDefect", comparison);
+    }
+
+
+    cv::blur(tInput, tInput, cv::Size(5, 5));
+    cv::blur(dInput, dInput, cv::Size(5, 5));
 
     cv::imshow("m_normalImage origin", m_normalImage);
     cv::imshow("m_defectImage origin", m_defectImage);

@@ -10,6 +10,7 @@
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
 #include "DefectDetector.h"
+#include "rectification.h"
 
 class MainWindow : public QMainWindow
 {

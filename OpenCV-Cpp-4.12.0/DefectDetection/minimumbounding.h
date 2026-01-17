@@ -17,6 +17,7 @@ public:
 
     cv::Mat removeOuterBorder(const cv::Mat& inputImage, int borderWidth);
 
+    cv::Mat findAndCropObjectOnNan(const cv::Mat& inputImage);
 signals:
     // 可以添加处理进度或完成信号
     // void processingFinished(const cv::Mat& result);
