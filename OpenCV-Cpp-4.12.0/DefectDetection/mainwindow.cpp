@@ -86,8 +86,8 @@ void MainWindow::loadDefaultImages() {
                                 "ng/2026-01-15_16-03-11_149.png");
 
     MinimumBounding mini;
-    tInput = mini.findAndCropObjectOnNan(tInput);
-    dInput = mini.findAndCropObjectOnNan(dInput);
+    tInput = mini.findAndCropObject(tInput);
+    dInput = mini.findAndCropObject(dInput);
 
     tInput = mini.removeOuterBorder(tInput, 2);
     dInput = mini.removeOuterBorder(dInput, 2);
