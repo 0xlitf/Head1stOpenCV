@@ -18,9 +18,6 @@ public:
     cv::Mat fillCenterWithWhite(const cv::Mat& inputImage, int borderWidth);
 
     cv::Mat removeOuterBorder(const cv::Mat& inputImage, int borderWidth);
-
-    // opencv 2.4.9不能调用此接口
-    cv::Mat findAndCropObjectOnNan(const cv::Mat& inputImage);
 };
 
 #endif // MINIMUMBOUNDING_H
