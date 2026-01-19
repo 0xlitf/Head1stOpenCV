@@ -14,18 +14,10 @@ public:
 
 public:
     // 基本BGR到HSV转换
-    static cv::Mat convertBGR2HSV(const cv::Mat& bgrImage) {
-        cv::Mat hsvImage;
-        cv::cvtColor(bgrImage, hsvImage, cv::COLOR_BGR2HSV);
-        return hsvImage;
-    }
+    static cv::Mat convertBGR2HSV(const cv::Mat& bgrImage);
 
     // 反向转换：HSV到BGR
-    static cv::Mat convertHSV2BGR(const cv::Mat& hsvImage) {
-        cv::Mat bgrImage;
-        cv::cvtColor(hsvImage, bgrImage, cv::COLOR_HSV2BGR);
-        return bgrImage;
-    }
+    static cv::Mat convertHSV2BGR(const cv::Mat& hsvImage);
 };
 
 #endif // BGR2HSVCONVERTER_H

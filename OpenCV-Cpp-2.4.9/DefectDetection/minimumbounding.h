@@ -19,10 +19,8 @@ public:
 
     cv::Mat removeOuterBorder(const cv::Mat& inputImage, int borderWidth);
 
+    // opencv 2.4.9不能调用此接口
     cv::Mat findAndCropObjectOnNan(const cv::Mat& inputImage);
-signals:
-    // 可以添加处理进度或完成信号
-    // void processingFinished(const cv::Mat& result);
 };
 
 #endif // MINIMUMBOUNDING_H
