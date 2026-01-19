@@ -86,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         QStringList descList;
         descList << "ok";
         QStringList folderList;
-        folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black";
+        folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black"; // template_brown template_black
         detector.setTemplateFolder(descList, folderList);
 
         cv::Mat dInput = m_defectImage; // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
