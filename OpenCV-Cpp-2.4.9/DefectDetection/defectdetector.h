@@ -45,9 +45,21 @@ public:
     int whiteThreshold() const;
     void setWhiteThreshold(int newWhiteThreshold);
 
+    int detectThickness() const;
+    void setDetectThickness(int newDetectThickness);
+
+    int removeOuterBorderThickness() const;
+    void setRemoveOuterBorderThickness(int newRemoveOuterBorderThickness);
+
     bool hasDefect(double scoreThreshold){
         return scoreThreshold > m_scoreThreshold;
     }
+
+    int precision() const;
+    void setPrecision(int newPrecision);
+
+    bool debugImageFlag() const;
+    void setDebugImageFlag(bool newDebugImageFlag);
 
 private:
     void addTemplate(const QString &desc, const QString &fileName);
@@ -57,7 +69,7 @@ private:
     double matchMat(cv::Mat templateInput, cv::Mat defectInput);
 
 private:
-    QList<std::tuple<QString, QString, cv::Mat>> m_huMomentsList;
+    QList<std::tuple<QString, QString, cv::Mat>> m_templateList;
     int m_removeOuterBorderThickness{3}; // 比对时忽略的边缘厚度
     int m_detectThickness{6}; // 比对时检测的边缘厚度
     int m_whiteThreshold{35}; // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40

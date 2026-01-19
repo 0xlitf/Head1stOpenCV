@@ -119,7 +119,7 @@ void DefectDetector::setTemplateFolder(const QStringList &descStrs, const QStrin
         return;
     }
 
-    m_huMomentsList.clear();
+    m_templateList.clear();
 
     for (int i = 0; i < descStrs.size(); ++i) {
         auto &desc = descStrs[i];
@@ -170,7 +170,7 @@ void DefectDetector::addTemplateIntoMap(const QString &desc,
                                           cv::Mat tInput) {
 
     auto tuple = std::make_tuple(desc, fileName, tInput);
-    m_huMomentsList.append(tuple);
+    m_templateList.append(tuple);
 }
 
 double DefectDetector::fullMatchImage(const QString &fileName) {
@@ -197,8 +197,8 @@ double DefectDetector::fullMatchMat(cv::Mat sceneImg) {
     timer.start();
 
     QList<double> results;
-    for (int i = 0; i < m_huMomentsList.size(); ++i) {
-        std::tuple<QString, QString, cv::Mat> templateTuple = m_huMomentsList[i];
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        std::tuple<QString, QString, cv::Mat> templateTuple = m_templateList[i];
         QString templateName = std::get<0>(templateTuple);
         QString templateFileName = std::get<1>(templateTuple);
         cv::Mat templateInput = std::get<2>(templateTuple);
@@ -339,6 +339,38 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     }
 
     return whitePixelCount;
+}
+
+bool DefectDetector::debugImageFlag() const {
+    return m_debugImageFlag;
+}
+
+void DefectDetector::setDebugImageFlag(bool newDebugImageFlag) {
+    m_debugImageFlag = newDebugImageFlag;
+}
+
+int DefectDetector::precision() const {
+    return m_precision;
+}
+
+void DefectDetector::setPrecision(int newPrecision) {
+    m_precision = newPrecision;
+}
+
+int DefectDetector::removeOuterBorderThickness() const {
+    return m_removeOuterBorderThickness;
+}
+
+void DefectDetector::setRemoveOuterBorderThickness(int newRemoveOuterBorderThickness) {
+    m_removeOuterBorderThickness = newRemoveOuterBorderThickness;
+}
+
+int DefectDetector::detectThickness() const {
+    return m_detectThickness;
+}
+
+void DefectDetector::setDetectThickness(int newDetectThickness) {
+    m_detectThickness = newDetectThickness;
 }
 
 double DefectDetector::scoreThreshold() const {

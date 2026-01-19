@@ -43,16 +43,16 @@ RC_ICONS = $$PWD/opencv.ico
 RESOURCES += \
 
 HEADERS += \
-    # $$PWD/../share/layoutbuilder.h \
-    # $$PWD/../share/messageinstaller.h \
+    $$PWD/../share/layoutbuilder.h \
+    $$PWD/../share/messageinstaller.h \
     $$PWD/bgr2hsvconverter.h \
     $$PWD/defectdetector.h \
     $$PWD/minimumbounding.h \
     mainwindow.h
 
 SOURCES += \
-    # $$PWD/../share/layoutbuilder.cpp \
-    # $$PWD/../share/messageinstaller.cpp \
+    $$PWD/../share/layoutbuilder.cpp \
+    $$PWD/../share/messageinstaller.cpp \
     $$PWD/bgr2hsvconverter.cpp \
     $$PWD/defectdetector.cpp \
     $$PWD/main.cpp \
