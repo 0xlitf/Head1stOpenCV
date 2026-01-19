@@ -6,7 +6,6 @@
 #include <QImageReader>
 #include <QMap>
 #include <QString>
-#include <opencv2/imgproc.hpp>
 #include "minimumbounding.h"
 #include "bgr2hsvconverter.h"
 
@@ -69,7 +68,7 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage) {
         cv::drawContours(outputImage, contours, static_cast<int>(i),
                          contourColor, // 轮廓颜色
                          2,            // 线宽
-                         cv::LINE_AA);       // 抗锯齿
+                         CV_AA);       // 抗锯齿
 
         if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
@@ -217,7 +216,7 @@ double DefectDetector::fullMatchMat(cv::Mat sceneImg) {
                 defectScoreResult = value;
             }
         }
-        qDebug() << results << "最小值:" << defectScoreResult;
+        // qDebug() << results << "最小值:" << defectScoreResult;
     }
 
     return defectScoreResult;
@@ -297,16 +296,12 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         cv::putText(dS_BGR, "D-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
         cv::putText(dV_BGR, "D-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
 
-        // 3. 分别拼接左右两侧（每侧3个通道垂直堆叠）
         cv::Mat leftCol, rightCol;
         cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR}, leftCol);  // 左侧垂直拼接
         cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR}, rightCol); // 右侧垂直拼接
 
-        // 4. 将左右两侧水平拼接为最终图像
         cv::Mat concatResult;
         cv::hconcat(leftCol, rightCol, concatResult);
-
-        // 5. 显示最终拼接结果
 
         if (m_debugImageFlag) {
             cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
@@ -319,10 +314,6 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat vdiff;
     cv::absdiff(tvChannel, dvChannel, vdiff);
 
-    // cv::Mat combinedDiff;
-    // cv::add(sdiff, vdiff, combinedDiff);
-    // cv::imshow("combinedDiff", combinedDiff);
-
     cv::Mat grayDiff;
     if (vdiff.channels() == 3) {
         cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
@@ -331,19 +322,14 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     }
 
     cv::Mat thresholdDiff;
-    // 1. 阈值化处理，得到二值图像
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    // 2. 形态学开运算去除小噪点
     int kernalSize = 3;
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize)); // 创建3x3矩形结构元素
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize));
     cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
-                     kernel); // 执行开运算
+                     kernel);
 
-    // 3. 统计过滤后的白色像素点
     int whitePixelCount = cv::countNonZero(thresholdDiff);
-    qDebug() << "过滤后白色像素点的个数为: " << whitePixelCount;
-    // cv::imshow("thresholdDiff", thresholdDiff);
 
     if (m_debugImageFlag) {
         cv::Mat concatDiffResult;

@@ -178,7 +178,9 @@ cv::Mat MinimumBounding::findAndCropObjectOnNan(const cv::Mat &inputImage) {
     cv::Mat imageFloat;
     croppedClone.convertTo(imageFloat, CV_32FC3); // 转换为32位浮点型，3通道
     cv::Mat nanBackground(imageFloat.size(), imageFloat.type(), cv::Scalar::all(std::nan("")));
+    qDebug() << "1" << cropped.type() << cropped.rows << cropped.cols << CV_8U;
     nanBackground.setTo(0, cropped);
+    qDebug() << "2";
 
     // 11. 提取前景物体并放置到黑色背景上
     if (cropped.channels() == 3) {

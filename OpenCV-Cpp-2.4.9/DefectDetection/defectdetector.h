@@ -1,6 +1,8 @@
 ﻿#ifndef DEFECTDETECTOR_H
 #define DEFECTDETECTOR_H
 
+#pragma execution_character_set("utf-8")
+
 #include <QObject>
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
@@ -64,7 +66,7 @@ private:
     int m_removeOuterBorderThickness{3};
     int m_detectThickness{6};
 
-    bool m_debugImageFlag{true};
+    bool m_debugImageFlag{true}; // false true
 };
 
 #endif // DEFECTDETECTOR_H
