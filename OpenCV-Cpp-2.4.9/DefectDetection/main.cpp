@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     DefectDetector detector;
 
     // cv::Mat objMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1-1.png");
-    cv::Mat objMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1-2.png");
+    cv::Mat objMat = cv::imread(QString(PROJECT_DIR).append("/1-2.png").toStdString());
     // cv::Mat objMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2.png");
     auto r = detector.analyzeAndDrawContour(objMat);
     qDebug() << "count " << std::get<0>(r);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     QStringList descList;
     descList << "ok";
     QStringList folderList;
-    folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black"; // template_brown template_black
+    folderList << QString(PROJECT_DIR).append("/template_black"); // template_brown template_black
     detector.setTemplateFolder(descList, folderList);
 
     cv::Mat dInput = objMat;
