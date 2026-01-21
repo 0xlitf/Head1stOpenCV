@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 初始化设置</c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, 800, 600, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 读取第一张标准图像，并打开窗口</c>
+<l>read_image (StandardImage, 'C:/GitHub/Head1stOpenCV/Halcon24.05/DefectDetect/ok_back/standard_01.png')</l>
+<l>get_image_size (StandardImage, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>* 2. 创建形状匹配模板（用于精确定位积木）</c>
+<c>* 假设积木是暗色，背景是白色。根据实际情况调整阈值。</c>
+<l>threshold (StandardImage, Region, 0, 120)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<c></c>
+<c> * 选择面积最大的区域作为积木</c>
+<l>select_shape_std (ConnectedRegions, SelectedRegion, 'max_area', 10)</l>
+<l>shape_trans (SelectedRegion, ModelRegion, 'convex')</l>
+<c></c>
+<c> * 膨胀区域，确保包含整个积木边缘</c>
+<l>dilation_circle (ModelRegion, RegionDilation, 8.5)</l>
+<l>reduce_domain (StandardImage, RegionDilation, ImageReduced)</l>
+<c></c>
+<c> * 获取参考区域中心点，作为模板原点</c>
+<l>area_center (RegionDilation, Area, RowRef, ColumnRef)</l>
+<c></c>
+<c>* 创建形状模板</c>
+<l>create_shape_model (ImageReduced, 'auto', rad(-10), rad(20), 'auto', 'none', 'use_polarity', 'auto', 'auto', ShapeModelID)</l>
+<c></c>
+<c>* 3. 创建并训练差异模型</c>
+<c>* 创建模型</c>
+<l>create_variation_model (Width, Height, 'byte', 'standard', VariationModelID)</l>
+<c></c>
+<c>* 使用多张标准图像训练模型（假设有5张标准图）</c>
+<l>NumTrainingImages := 4</l>
+<l>for I := 1 to NumTrainingImages by 1</l>
+<l>    FilePath := 'C:/GitHub/Head1stOpenCV/Halcon24.05/DefectDetect/ok_back/standard_0' + I + '.png'</l>
+<l>    read_image (TrainImage, FilePath)</l>
+<c>    </c>
+<c>    * 定位积木</c>
+<l>    find_shape_model (TrainImage, ShapeModelID, rad(-10), rad(20), 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row, Column, Angle, Score)</l>
+<l>    if (|Score| == 1)</l>
+<c>        * 通过仿射变换将图像对齐到模板位置</c>
+<l>        vector_angle_to_rigid (Row, Column, Angle, RowRef, ColumnRef, 0, HomMat2D)</l>
+<l>        affine_trans_image (TrainImage, ImageAligned, HomMat2D, 'constant', 'false')</l>
+<c>        * 训练差异模型</c>
+<l>        train_variation_model (ImageAligned, VariationModelID)</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* 获取并准备差异模型（设置阈值）</c>
+<l>get_variation_model (MeanImage, VarImage, VariationModelID)</l>
+<c>* 调整以下阈值参数至关重要，直接影响检测灵敏度</c>
+<c> * AbsThreshold和VarThreshold需根据实际情况调整[1,6](@ref)</c>
+<l>prepare_variation_model (VariationModelID, 15, 2)</l>
+<c></c>
+<c>* 4. 对待检测图像进行缺陷检测</c>
+<l>read_image (TestImage, 'C:/GitHub/Head1stOpenCV/Halcon24.05/DefectDetect/ng/2026-01-15_16-09-37_766.png')</l>
+<c></c>
+<c>* 定位待检积木</c>
+<l>find_shape_model (TestImage, ShapeModelID, rad(-10), rad(20), 0.5, 1, 0.5, 'least_squares', 0, 0.9, RowTest, ColumnTest, AngleTest, ScoreTest)</l>
+<l>if (|ScoreTest| == 1)</l>
+<c>    * 将待检图像对齐到标准位置</c>
+<l>    vector_angle_to_rigid (RowTest, ColumnTest, AngleTest, RowRef, ColumnRef, 0, HomMat2DTest)</l>
+<l>    affine_trans_image (TestImage, TestImageAligned, HomMat2DTest, 'constant', 'false')</l>
+<c>    </c>
+<c>    * 将比较范围限制在积木区域</c>
+<l>    reduce_domain (TestImageAligned, RegionDilation, ImageTestReduced)</l>
+<c>    </c>
+<c>    * 与差异模型进行比较，找出异常区域</c>
+<l>    compare_variation_model (ImageTestReduced, DefectRegion, VariationModelID)</l>
+<c>    </c>
+<c>    * 对检测出的缺陷区域进行后处理</c>
+<l>    connection (DefectRegion, ConnectedDefects)</l>
+<c>    * 根据缺陷特征（如面积）筛选，避免噪声干扰</c>
+<l>    select_shape (ConnectedDefects, FinalDefects, 'area', 'and', 50, 999999)</l>
+<c>    * 面积阈值根据实际情况调整</c>
+<c>    </c>
+<l>    count_obj (FinalDefects, NumDefects)</l>
+<c>    </c>
+<c>    * 5. 显示检测结果</c>
+<l>    dev_clear_window ()</l>
+<l>    dev_display (TestImageAligned)</l>
+<l>    if (NumDefects &gt; 0)</l>
+<l>        dev_set_color ('red')</l>
+<l>        dev_display (FinalDefects)</l>
+<l>        disp_message (WindowHandle, '检测结果: NG (发现缺陷)', 'window', 12, 12, 'red', 'true')</l>
+<c>        * 可以进一步分析缺陷特征（如面积、位置）</c>
+<l>        area_center (FinalDefects, DefectArea, DefectRow, DefectColumn)</l>
+<l>    else</l>
+<l>        disp_message (WindowHandle, '检测结果: OK (无缺陷)', 'window', 12, 12, 'green', 'true')</l>
+<l>    endif</l>
+<l>else</l>
+<l>    disp_message (WindowHandle, '未找到积木', 'window', 12, 12, 'red', 'true')</l>
+<l>endif</l>
+<c></c>
+<c>* 6. 清理资源</c>
+<l>clear_shape_model (ShapeModelID)</l>
+<l>clear_variation_model (VariationModelID)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
