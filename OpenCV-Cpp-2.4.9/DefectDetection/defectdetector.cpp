@@ -12,10 +12,11 @@
 DefectDetector::DefectDetector(QObject *parent) : QObject(parent) {}
 
 std::tuple<int, cv::Mat>
-DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage) {
+DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold) {
     if (inputImage.empty()) {
-        cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
-        cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+        // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        cv::Mat emptyResult;
         return std::make_tuple(0, emptyResult);
     }
 
@@ -37,9 +38,9 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage) {
 
     // 4. 二值化处理
     cv::Mat binaryImage;
-    cv::threshold(grayImage, binaryImage, 200, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
-    // cv::imshow("binaryImage", binaryImage);
+    cv::imshow("binaryImage", binaryImage);
 
     // 5. 查找轮廓
     std::vector<std::vector<cv::Point>> contours;

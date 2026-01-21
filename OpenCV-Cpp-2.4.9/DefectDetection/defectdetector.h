@@ -31,7 +31,7 @@ public:
     explicit DefectDetector(QObject *parent = nullptr);
 
     // 首先调用这个接口，分析图片中有几个物料，多的直接吹掉
-    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage);
+    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage, int whiteThreshold = 240);
 
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
