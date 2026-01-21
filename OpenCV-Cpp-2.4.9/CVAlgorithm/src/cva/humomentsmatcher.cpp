@@ -6,7 +6,7 @@
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
 std::tuple<int, cv::Mat>
-HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage) {
+HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold) {
     if (inputImage.empty()) {
         cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
         cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150),
@@ -32,7 +32,7 @@ HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage) {
 
     // 4. 二值化处理
     cv::Mat binaryImage;
-    cv::threshold(grayImage, binaryImage, 200, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
     // cv::imshow("binaryImage", binaryImage);
 
