@@ -12,7 +12,7 @@
 DefectDetector::DefectDetector(QObject *parent) : QObject(parent) {}
 
 std::tuple<int, cv::Mat>
-DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold) {
+DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
     if (inputImage.empty()) {
         // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
         // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
@@ -40,15 +40,28 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThresh
     cv::Mat binaryImage;
     cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
-    cv::imshow("binaryImage", binaryImage);
+    // cv::imshow("binaryImage", binaryImage);
 
     // 5. 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    qDebug() << "contours.size()" << contours.size();
+    // 过滤小面积轮廓
+    std::vector<std::vector<cv::Point>> filteredContours;
+    for (const auto& contour : contours) {
+        if (contour.empty() || contour.size() < 3) {
+            continue;
+        }
 
-    int contourCount = static_cast<int>(contours.size());
+        double area = cv::contourArea(contour);
+        if (area >= areaThreshold) {  // 只保留面积大于阈值的轮廓
+            filteredContours.push_back(contour);
+        }
+    }
+
+    // qDebug() << "filteredContours.size()" << filteredContours.size();
+
+    int contourCount = static_cast<int>(filteredContours.size());
 
     // 6. 根据轮廓数量选择颜色
     cv::Scalar contourColor;
@@ -61,22 +74,22 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThresh
     }
 
     // 7. 绘制轮廓线
-    for (size_t i = 0; i < contours.size(); ++i) {
-        if (contours[i].empty() || contours[i].size() < 3)
+    for (size_t i = 0; i < filteredContours.size(); ++i) {
+        if (filteredContours[i].empty() || filteredContours[i].size() < 3)
             continue;
 
         // 绘制轮廓线
-        cv::drawContours(outputImage, contours, static_cast<int>(i),
+        cv::drawContours(outputImage, filteredContours, static_cast<int>(i),
                          contourColor, // 轮廓颜色
                          2,            // 线宽
                          CV_AA);       // 抗锯齿
 
         if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
-            double area = cv::contourArea(contours[i]);
+            double area = cv::contourArea(filteredContours[i]);
 
             // 计算轮廓中心点
-            cv::Moments m = cv::moments(contours[i]);
+            cv::Moments m = cv::moments(filteredContours[i]);
             if (m.m00 != 0) {
                 int centerX = static_cast<int>(m.m10 / m.m00);
                 int centerY = static_cast<int>(m.m01 / m.m00);

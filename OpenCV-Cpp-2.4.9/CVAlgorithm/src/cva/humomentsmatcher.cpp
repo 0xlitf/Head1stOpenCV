@@ -6,11 +6,11 @@
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
 std::tuple<int, cv::Mat>
-HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold) {
+HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
     if (inputImage.empty()) {
-        cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
-        cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150),
-                    cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+        // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        cv::Mat emptyResult;
         return std::make_tuple(0, emptyResult);
     }
 
@@ -38,12 +38,24 @@ HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThre
 
     // 5. 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL,
-                     cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    qDebug() << "contours.size()" << contours.size();
+    // 过滤小面积轮廓
+    std::vector<std::vector<cv::Point>> filteredContours;
+    for (const auto& contour : contours) {
+        if (contour.empty() || contour.size() < 3) {
+            continue;
+        }
 
-    int contourCount = static_cast<int>(contours.size());
+        double area = cv::contourArea(contour);
+        if (area >= areaThreshold) {  // 只保留面积大于阈值的轮廓
+            filteredContours.push_back(contour);
+        }
+    }
+
+    // qDebug() << "filteredContours.size()" << filteredContours.size();
+
+    int contourCount = static_cast<int>(filteredContours.size());
 
     // 6. 根据轮廓数量选择颜色
     cv::Scalar contourColor;
@@ -56,46 +68,40 @@ HuMomentsMatcher::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThre
     }
 
     // 7. 绘制轮廓线
-    for (size_t i = 0; i < contours.size(); ++i) {
-        if (contours[i].empty() || contours[i].size() < 3)
+    for (size_t i = 0; i < filteredContours.size(); ++i) {
+        if (filteredContours[i].empty() || filteredContours[i].size() < 3)
             continue;
 
         // 绘制轮廓线
-        cv::drawContours(outputImage, contours, static_cast<int>(i),
+        cv::drawContours(outputImage, filteredContours, static_cast<int>(i),
                          contourColor, // 轮廓颜色
                          2,            // 线宽
                          CV_AA);       // 抗锯齿
 
         if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
-            double area = cv::contourArea(contours[i]);
+            double area = cv::contourArea(filteredContours[i]);
 
             // 计算轮廓中心点
-            cv::Moments m = cv::moments(contours[i]);
+            cv::Moments m = cv::moments(filteredContours[i]);
             if (m.m00 != 0) {
                 int centerX = static_cast<int>(m.m10 / m.m00);
                 int centerY = static_cast<int>(m.m01 / m.m00);
 
-                std::string info = "C" + std::to_string(i + 1) +
-                                   " A:" + std::to_string(static_cast<int>(area));
+                std::string info = "C" + std::to_string(i + 1) + " A:" + std::to_string(static_cast<int>(area));
 
                 // 绘制中心点
-                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor,
-                           -1);
+                cv::circle(outputImage, cv::Point(centerX, centerY), 4, contourColor, -1);
 
                 // 添加文本信息
                 cv::Point textPos(centerX + 10, centerY);
 
                 // 绘制文本背景
                 int baseline = 0;
-                cv::Size textSize =
-                    cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
-                cv::rectangle(outputImage, textPos - cv::Point(2, textSize.height + 2),
-                              textPos + cv::Point(textSize.width + 2, 2),
-                              cv::Scalar(0, 0, 0), -1);
+                cv::Size textSize = cv::getTextSize(info, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseline);
+                cv::rectangle(outputImage, textPos - cv::Point(2, textSize.height + 2), textPos + cv::Point(textSize.width + 2, 2), cv::Scalar(0, 0, 0), -1);
 
-                cv::putText(outputImage, info, textPos, cv::FONT_HERSHEY_SIMPLEX, 0.4,
-                            cv::Scalar(125, 125, 125), 1);
+                cv::putText(outputImage, info, textPos, cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(125, 125, 125), 1);
             }
         }
     }

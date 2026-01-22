@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         BGR2HSVConverter converter;
         DefectDetector detector;
 
-        cv::Mat bgMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/ok/2026-01-15_16-00-04_629.png");
+        cv::Mat bgMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/test.png");
 
         int count{0};
         cv::Mat res;
