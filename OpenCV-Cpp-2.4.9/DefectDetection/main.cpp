@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         extractor.setParameters(1000.0, true, 3, 11);
 
         // 2. 读取白背景物料图像
-        cv::Mat image = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/test.png");
+        cv::Mat image = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/异形物料/OK/1_20260122153531310_5_52.png").toStdString());
 
         if (image.empty()) {
             qDebug() << "无法读取图像！";
