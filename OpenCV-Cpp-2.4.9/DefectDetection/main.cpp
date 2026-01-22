@@ -4,6 +4,9 @@
 #include "minimumbounding.h"
 #include "opencv2/opencv.hpp"
 #include "bgr2hsvconverter.h"
+#include "contourextractor.h"
+
+#pragma execution_character_set("utf-8")
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +17,7 @@ int main(int argc, char *argv[])
     // window.resize(1200, 900);
     // window.show();
 
-    if (bool test = true) {
+    if (bool test = false) {
         MinimumBounding mini;
         BGR2HSVConverter converter;
         DefectDetector detector;
@@ -53,6 +56,52 @@ int main(int argc, char *argv[])
 
         // qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
 
+    }
+
+    if (bool testContour = true) {
+        // 1. 创建轮廓提取器
+        ContourExtractor extractor;
+
+        // 设置参数（面积阈值 > 1000）
+        extractor.setParameters(1000.0, true, 3, 11);
+
+        // 2. 读取白背景物料图像
+        cv::Mat image = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1/test.png");
+
+        if (image.empty()) {
+            qDebug() << "无法读取图像！";
+            return -1;
+        }
+
+        // 3. 提取轮廓（基础版本）
+        std::vector<std::vector<cv::Point>> contours =
+            extractor.extractWhiteBackgroundContour(image);
+
+        // 4. 或者使用调试版本（返回轮廓+可视化结果）
+        std::vector<std::vector<cv::Point>> contoursDebug;
+        cv::Mat debugImage;
+        std::tie(contoursDebug, debugImage) = extractor.extractContourWithDebug(image);
+
+        // 5. 处理提取的轮廓
+        if (!contoursDebug.empty()) {
+            qDebug() << "提取到 " << contoursDebug.size() << " 个轮廓：";
+
+            for (size_t i = 0; i < contoursDebug.size(); ++i) {
+                double area = cv::contourArea(contoursDebug[i]);
+                cv::Rect bbox = cv::boundingRect(contoursDebug[i]);
+
+                qDebug() << "轮廓 " << i + 1 << ": "
+                          << "面积 = " << area
+                          << ", 边界框 = " << bbox.width << bbox.height
+                          << ", 点数 = " << contoursDebug[i].size();
+            }
+
+            // 显示调试图像
+            cv::imshow("轮廓提取结果", debugImage);
+            cv::waitKey(0);
+        } else {
+            qDebug() << "未找到符合条件的轮廓";
+        }
     }
 
     return a.exec();

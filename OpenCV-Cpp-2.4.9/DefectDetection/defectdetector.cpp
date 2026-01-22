@@ -38,6 +38,7 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThresh
 
     // 4. 二值化处理
     cv::Mat binaryImage;
+    // cv::adaptiveThreshold(grayImage, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, m_adaptiveBlockSize, 2);
     cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
 
     // cv::imshow("binaryImage", binaryImage);

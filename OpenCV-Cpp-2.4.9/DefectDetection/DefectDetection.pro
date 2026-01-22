@@ -48,6 +48,8 @@ HEADERS += \
     $$PWD/bgr2hsvconverter.h \
     $$PWD/defectdetector.h \
     $$PWD/minimumbounding.h \
+    contourdefectdetector.h \
+    contourextractor.h \
     mainwindow.h
 
 SOURCES += \
@@ -57,6 +59,8 @@ SOURCES += \
     $$PWD/defectdetector.cpp \
     $$PWD/main.cpp \
     $$PWD/minimumbounding.cpp \
+    contourdefectdetector.cpp \
+    contourextractor.cpp \
     mainwindow.cpp
 
 CODECFORTR = UTF-8
