@@ -89,11 +89,13 @@ int main(int argc, char *argv[])
         // folderList << QString(PROJECT_DIR).append("/template_black"); // template_brown template_black
         // detector.setTemplateFolder(descList, folderList);
 
-        cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153531310_5_52.png").toStdString());
-        cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153759941_30_51.png").toStdString());
+        // 黑色异形
+        // cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153531310_5_52.png").toStdString());
+        // cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153759941_30_51.png").toStdString());
 
-        // cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black/1ok.png").toStdString());
-        // cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-20_925.png").toStdString());
+        // 黑色矩形
+        cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black/1ok.png").toStdString());
+        cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-20_925.png").toStdString());
 
         cv::Mat tInput = tInputMat;
         tInput = mini.findAndCropObject(tInput);
@@ -102,17 +104,17 @@ int main(int argc, char *argv[])
         dInput = mini.findAndCropObject(dInput);
 
 
-        auto tContour = detector.findContours(tInput);
-        auto tEdge = detector.processOuterEdge(tInput, tContour, 20);
+        // auto tContour = detector.findContours(tInput);
+        // tInput = detector.processOuterEdge(tInput, tContour, 20);
 
-        auto dContour = detector.findContours(dInput);
-        auto dEdge = detector.processOuterEdge(dInput, dContour, 20);
+        // auto dContour = detector.findContours(dInput);
+        // dInput = detector.processOuterEdge(dInput, dContour, 20);
 
 
         QElapsedTimer timer;
         timer.start();
         // double defectScore = detector.fullMatchMat(dInput);
-        double defectScore = detector.matchMat(tEdge, dEdge);
+        double defectScore = detector.matchMat(tInput, dInput);
 
         qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
 
