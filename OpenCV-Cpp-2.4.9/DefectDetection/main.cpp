@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         cv::Mat tInputMat;
         cv::Mat dInputMat;
 
-        switch (0) {
+        switch (2) {
         case 0: {
             // 黑色异形
             tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
                                            "Irregular/OK/1_20260122153531310_5_52.png")
                                        .toStdString());
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
-                                           "Irregular/OK/1_20260122153759941_30_51.png")
+                                           "Irregular/NG/1_20260122154531014_38_51.png")
                                        .toStdString());
         } break;
         case 3: {
