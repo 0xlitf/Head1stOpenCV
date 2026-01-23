@@ -11,21 +11,12 @@
 
 DefectDetector::DefectDetector(QObject *parent) : QObject(parent) {}
 
-std::tuple<int, cv::Mat>
-DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
+std::vector<std::vector<cv::Point>> DefectDetector::findContours(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
     if (inputImage.empty()) {
         // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
         // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
         cv::Mat emptyResult;
-        return std::make_tuple(0, emptyResult);
-    }
-
-    // 2. 创建输出图像
-    cv::Mat outputImage;
-    if (inputImage.channels() == 1) {
-        cv::cvtColor(inputImage, outputImage, cv::COLOR_GRAY2BGR);
-    } else {
-        outputImage = inputImage.clone();
+        return std::vector<std::vector<cv::Point>>();
     }
 
     // 3. 转换为灰度图
@@ -60,7 +51,25 @@ DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThresh
         }
     }
 
-    // qDebug() << "filteredContours.size()" << filteredContours.size();
+    // 按轮廓面积从大到小排序
+    std::sort(filteredContours.begin(), filteredContours.end(),
+              [](const std::vector<cv::Point>& contour1, const std::vector<cv::Point>& contour2) {
+                  return cv::contourArea(contour1) > cv::contourArea(contour2);
+              });
+
+    return filteredContours;
+}
+
+std::tuple<int, cv::Mat>
+DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
+    auto filteredContours = DefectDetector::findContours(inputImage, whiteThreshold, areaThreshold);
+
+    cv::Mat outputImage;
+    if (inputImage.channels() == 1) {
+        cv::cvtColor(inputImage, outputImage, cv::COLOR_GRAY2BGR);
+    } else {
+        outputImage = inputImage.clone();
+    }
 
     int contourCount = static_cast<int>(filteredContours.size());
 
@@ -248,14 +257,17 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat tInput = templateInput.clone();
     cv::Mat dInput = defectInput.clone();
 
-    cv::pyrDown(tInput, tInput);
-    cv::pyrDown(dInput, dInput);
+    // cv::pyrDown(tInput, tInput);
+    // cv::pyrDown(dInput, dInput);
 
     // blur GaussianBlur medianBlur bilateralFilter
     // cv::blur(tInput, tInput, cv::Size(3, 3));
     // cv::blur(dInput, dInput, cv::Size(3, 3));
-    cv::GaussianBlur(tInput, tInput, cv::Size(5, 5), 0, 0);
-    cv::GaussianBlur(dInput, dInput, cv::Size(5, 5), 0, 0);
+    int blurCoreSize = 3;
+    cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    // cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    // cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
     // cv::medianBlur(tInput, tInput, 5);
     // cv::medianBlur(dInput, dInput, 5);
     // cv::bilateralFilter(tInput, tInput, 9, 50, 10);
@@ -272,17 +284,18 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         dInput = cvt.convertBGR2HSV(dInput);
     }
 
-    if (m_debugImageFlag) {
-        cv::imshow("m_normalImage hsv", tInput);
-        cv::imshow("m_defectImage hsv", dInput);
-    }
-    tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
-    dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
+    // tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
+    // dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
     cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-    tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
-    dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
+    // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
+    // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
+
+    if (m_debugImageFlag) {
+        cv::imshow("tEdge hsv", tInput);
+        cv::imshow("dEdge hsv", dInput);
+    }
 
     std::vector<cv::Mat> thsvChannels;
     cv::split(tInput, thsvChannels);
@@ -339,7 +352,7 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat thresholdDiff;
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    int kernalSize = 3;
+    int kernalSize = 5; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize));
     cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
                      kernel);
