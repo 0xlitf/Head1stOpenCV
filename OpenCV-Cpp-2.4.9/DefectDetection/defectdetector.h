@@ -224,7 +224,7 @@ private:
 
     // 以下参数不改
     int m_precision{2}; // 取决于进行几次下采样，暂时不可更改
-    bool m_useHSV{true};
+    bool m_useHSV{false}; // false true
 
     bool m_debugImageFlag{true}; // false true 是否输出调试结果图片
 };

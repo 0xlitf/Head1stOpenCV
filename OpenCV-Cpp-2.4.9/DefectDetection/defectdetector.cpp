@@ -343,11 +343,26 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::absdiff(tvChannel, dvChannel, vdiff);
 
     cv::Mat grayDiff;
-    if (vdiff.channels() == 3) {
-        cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
+
+    if (bool useHSVDiff = false) {
+        if (vdiff.channels() == 3) {
+            cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
+        } else {
+            grayDiff = vdiff;
+        }
     } else {
-        grayDiff = vdiff;
+        cv::Mat grayTemplate, grayTest;
+        cv::cvtColor(tInput, grayTemplate, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(dInput, grayTest, cv::COLOR_BGR2GRAY);
+
+        cv::imshow("grayTemplate", grayTemplate);
+        cv::imshow("grayTest", grayTest);
+
+        // 2. 计算绝对差异
+        cv::absdiff(grayTemplate, grayTest, grayDiff);
+        cv::imshow("grayDiff", grayDiff);
     }
+
 
     cv::Mat thresholdDiff;
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
