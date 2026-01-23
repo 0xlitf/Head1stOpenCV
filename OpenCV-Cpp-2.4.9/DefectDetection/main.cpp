@@ -89,13 +89,40 @@ int main(int argc, char *argv[])
         // folderList << QString(PROJECT_DIR).append("/template_black"); // template_brown template_black
         // detector.setTemplateFolder(descList, folderList);
 
-        // 黑色异形
-        // cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153531310_5_52.png").toStdString());
-        // cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1_20260122153759941_30_51.png").toStdString());
+        cv::Mat tInputMat;
+        cv::Mat dInputMat;
 
-        // 黑色矩形
-        cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black/1ok.png").toStdString());
-        cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-20_925.png").toStdString());
+        switch (0) {
+        case 0: {
+            // 黑色异形
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "Irregular/OK/1_20260122153531310_5_52.png")
+                                       .toStdString());
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "Irregular/OK/1_20260122153759941_30_51.png")
+                                       .toStdString());
+        } break;
+        case 1: {
+            // 黑色矩形
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                                           "DefectDetection/template_black/1ok.png")
+                                       .toStdString());
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                                           "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
+                                       .toStdString());
+        } break;
+        case 2: {
+            // 黑色异形
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "Irregular/OK/1_20260122153531310_5_52.png")
+                                       .toStdString());
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "Irregular/OK/1_20260122153759941_30_51.png")
+                                       .toStdString());
+        } break;
+        case 3: {
+        } break;
+        }
 
         cv::Mat tInput = tInputMat;
         tInput = mini.findAndCropObject(tInput);

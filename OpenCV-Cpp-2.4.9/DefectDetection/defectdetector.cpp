@@ -257,8 +257,8 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat tInput = templateInput.clone();
     cv::Mat dInput = defectInput.clone();
 
-    // cv::pyrDown(tInput, tInput);
-    // cv::pyrDown(dInput, dInput);
+    cv::pyrDown(tInput, tInput);
+    cv::pyrDown(dInput, dInput);
 
     // blur GaussianBlur medianBlur bilateralFilter
     // cv::blur(tInput, tInput, cv::Size(3, 3));
