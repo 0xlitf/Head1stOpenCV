@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
 
         detector.setRemoveOuterBorderThickness(3);
         detector.setDetectThickness(6);
-        detector.setWhiteThreshold(30);
         detector.setScoreThreshold(15);
 
         // cv::Mat objMat = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/1-1.png");
@@ -91,6 +90,8 @@ int main(int argc, char *argv[])
 
         cv::Mat tInputMat;
         cv::Mat dInputMat;
+        int outterWidth = 4;
+        int innerWidth = 10;
 
         switch (1) {
         case 0: {
@@ -101,6 +102,8 @@ int main(int argc, char *argv[])
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
                                            "Irregular/OK/1_20260122153759941_30_51.png")
                                        .toStdString());
+            outterWidth = 4;
+            innerWidth = 10;
         } break;
         case 1: {
             // 黑色矩形
@@ -108,22 +111,25 @@ int main(int argc, char *argv[])
                                            "DefectDetection/template_black/1ok.png")
                                        .toStdString());
             // 缺角
-            // dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-            //                                "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
-            //                            .toStdString());
-
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                                           "DefectDetection/template_black/5ok.png")
+                                           "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
                                        .toStdString());
+
+            // dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+            //                                "DefectDetection/template_black/5ok.png")
+            //                            .toStdString());
+            outterWidth = 3;
+            innerWidth = 9;
+            detector.setWhiteThreshold(50);
         } break;
         case 2: {
             // 黑色异形
-            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
-                                           "Irregular/OK/1_20260122153531310_5_52.png")
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1ok (1).png")
                                        .toStdString());
-            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
-                                           "Irregular/NG/1_20260122154531014_38_51.png")
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (5).png")
                                        .toStdString());
+            outterWidth = 4;
+            innerWidth = 10;
         } break;
         case 3: {
             // 橙色矩形
@@ -133,10 +139,16 @@ int main(int argc, char *argv[])
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
                                            "1/NG/2026-01-15_16-03-25_173.png")
                                        .toStdString());
+            outterWidth = 4;
+            innerWidth = 10;
         } break;
         }
 
-        for (int i = 0; i < 10; ++i) {
+        cv::pyrDown(tInputMat, tInputMat);
+        cv::pyrDown(dInputMat, dInputMat);
+
+
+        for (int i = 0; i < 2; ++i) {
             int blurCoreSize = 3;
             // blur GaussianBlur medianBlur bilateralFilter
             switch (1) {
@@ -172,10 +184,10 @@ int main(int argc, char *argv[])
 
 
         auto tContour = detector.findContours(tInput);
-        tInput = detector.processOuterEdge(tInput, tContour, 10);
+        tInput = detector.processRingEdge(tInput, tContour, outterWidth, innerWidth);
 
         auto dContour = detector.findContours(dInput);
-        dInput = detector.processOuterEdge(dInput, tContour, 10);
+        dInput = detector.processRingEdge(dInput, tContour, outterWidth, innerWidth);
 
 
         QElapsedTimer timer;
