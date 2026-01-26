@@ -240,7 +240,7 @@ double DefectDetector::fullMatchMat(cv::Mat sceneImg) {
                 defectScoreResult = value;
             }
         }
-        // qDebug() << results << "最小值:" << defectScoreResult;
+        qDebug() << results << "最小值:" << defectScoreResult;
     }
 
     return defectScoreResult;
@@ -257,26 +257,36 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat tInput = templateInput.clone();
     cv::Mat dInput = defectInput.clone();
 
-    cv::pyrDown(tInput, tInput);
-    cv::pyrDown(dInput, dInput);
+    // cv::pyrDown(tInput, tInput);
+    // cv::pyrDown(dInput, dInput);
 
-    // blur GaussianBlur medianBlur bilateralFilter
-    // cv::blur(tInput, tInput, cv::Size(3, 3));
-    // cv::blur(dInput, dInput, cv::Size(3, 3));
-    int blurCoreSize = 3;
-    cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    // cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    // cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    // cv::medianBlur(tInput, tInput, 5);
-    // cv::medianBlur(dInput, dInput, 5);
-    // cv::bilateralFilter(tInput, tInput, 9, 50, 10);
-    // cv::bilateralFilter(dInput, dInput, 9, 50, 10);
+    // for (int i = 0; i < 10; ++i) {
+    //     int blurCoreSize = 3;
+    //     // blur GaussianBlur medianBlur bilateralFilter
+    //     switch (1) {
+    //     case 0: { // blur
+    //         cv::blur(tInput, tInput, cv::Size(3, 3));
+    //         cv::blur(dInput, dInput, cv::Size(3, 3));
+    //     } break;
+    //     case 1: { // GaussianBlur
+    //         cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    //         cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    //     } break;
+    //     case 2: { // medianBlur
+    //         cv::medianBlur(tInput, tInput, 5);
+    //         cv::medianBlur(dInput, dInput, 5);
+    //     } break;
+    //     case 3: { // bilateralFilter
+    //         cv::bilateralFilter(tInput, tInput, 9, 50, 10);
+    //         cv::bilateralFilter(dInput, dInput, 9, 50, 10);
+    //     } break;
+    //     }
+    // }
 
-    if (m_debugImageFlag) {
-        cv::imshow("m_normalImage origin", tInput);
-        cv::imshow("m_defectImage origin", dInput);
-    }
+    // if (m_debugImageFlag) {
+    //     cv::imshow("m_normalImage origin", tInput);
+    //     cv::imshow("m_defectImage origin", dInput);
+    // }
 
     if (m_useHSV) {
         BGR2HSVConverter cvt;
@@ -287,7 +297,8 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     // tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
     // dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
-    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+    // resize转移到函数外部
+    // cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
     // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
     // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
@@ -344,7 +355,7 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
 
     cv::Mat grayDiff;
 
-    if (bool useHSVDiff = false) {
+    if (bool useHSVDiff = true) {
         if (vdiff.channels() == 3) {
             cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
         } else {
@@ -367,10 +378,10 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat thresholdDiff;
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    int kernalSize = 5; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize));
-    cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
-                     kernel);
+    // int kernalSize = 5; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
+    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize));
+    // cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
+    //                  kernel);
 
     int whitePixelCount = cv::countNonZero(thresholdDiff);
 

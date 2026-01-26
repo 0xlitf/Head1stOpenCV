@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     // window.resize(1200, 900);
     // window.show();
 
-    if (bool test = true) {
+    if (bool test = true) { // true false
         MinimumBounding mini;
         BGR2HSVConverter converter;
         DefectDetector detector;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         cv::Mat tInputMat;
         cv::Mat dInputMat;
 
-        switch (2) {
+        switch (1) {
         case 0: {
             // 黑色异形
             tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
@@ -107,8 +107,13 @@ int main(int argc, char *argv[])
             tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
                                            "DefectDetection/template_black/1ok.png")
                                        .toStdString());
+            // 缺角
+            // dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+            //                                "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
+            //                            .toStdString());
+
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                                           "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
+                                           "DefectDetection/template_black/5ok.png")
                                        .toStdString());
         } break;
         case 2: {
@@ -121,8 +126,41 @@ int main(int argc, char *argv[])
                                        .toStdString());
         } break;
         case 3: {
+            // 橙色矩形
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "template_brown/1ok (2)_template.png")
+                                       .toStdString());
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
+                                           "1/NG/2026-01-15_16-03-25_173.png")
+                                       .toStdString());
         } break;
         }
+
+        for (int i = 0; i < 10; ++i) {
+            int blurCoreSize = 3;
+            // blur GaussianBlur medianBlur bilateralFilter
+            switch (1) {
+            case 0: { // blur
+                cv::blur(tInputMat, tInputMat, cv::Size(3, 3));
+                cv::blur(dInputMat, dInputMat, cv::Size(3, 3));
+            } break;
+            case 1: { // GaussianBlur
+                cv::GaussianBlur(tInputMat, tInputMat, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+                cv::GaussianBlur(dInputMat, dInputMat, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+            } break;
+            case 2: { // medianBlur
+                cv::medianBlur(tInputMat, tInputMat, 5);
+                cv::medianBlur(dInputMat, dInputMat, 5);
+            } break;
+            case 3: { // bilateralFilter
+                cv::bilateralFilter(tInputMat, tInputMat, 9, 50, 10);
+                cv::bilateralFilter(dInputMat, dInputMat, 9, 50, 10);
+            } break;
+            }
+        }
+
+        cv::imshow("tInputMat", tInputMat);
+        cv::imshow("dInputMat", dInputMat);
 
         cv::Mat tInput = tInputMat;
         tInput = mini.findAndCropObject(tInput);
@@ -130,12 +168,14 @@ int main(int argc, char *argv[])
         cv::Mat dInput = dInputMat;
         dInput = mini.findAndCropObject(dInput);
 
+        cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-        // auto tContour = detector.findContours(tInput);
-        // tInput = detector.processOuterEdge(tInput, tContour, 20);
 
-        // auto dContour = detector.findContours(dInput);
-        // dInput = detector.processOuterEdge(dInput, dContour, 20);
+        auto tContour = detector.findContours(tInput);
+        tInput = detector.processOuterEdge(tInput, tContour, 10);
+
+        auto dContour = detector.findContours(dInput);
+        dInput = detector.processOuterEdge(dInput, tContour, 10);
 
 
         QElapsedTimer timer;
