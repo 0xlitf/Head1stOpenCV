@@ -93,14 +93,12 @@ int main(int argc, char *argv[])
         int outterWidth = 4;
         int innerWidth = 10;
 
-        switch (1) {
+        switch (3) {
         case 0: {
             // 黑色异形
-            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
-                                           "Irregular/OK/1_20260122153531310_5_52.png")
+            tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1ok (1).png")
                                        .toStdString());
-            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
-                                           "Irregular/OK/1_20260122153759941_30_51.png")
+            dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (3).png")
                                        .toStdString());
             outterWidth = 4;
             innerWidth = 10;
@@ -139,8 +137,8 @@ int main(int argc, char *argv[])
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
                                            "1/NG/2026-01-15_16-03-25_173.png")
                                        .toStdString());
-            outterWidth = 4;
-            innerWidth = 10;
+            outterWidth = 3;
+            innerWidth = 6;
         } break;
         }
 

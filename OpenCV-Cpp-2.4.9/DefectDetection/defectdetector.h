@@ -285,7 +285,7 @@ private:
     QList<std::tuple<QString, QString, cv::Mat>> m_templateList;
     int m_removeOuterBorderThickness{3}; // 比对时忽略的边缘厚度
     int m_detectThickness{6}; // 比对时检测的边缘厚度
-    int m_whiteThreshold{30}; // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
+    int m_whiteThreshold{35}; // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
     double m_scoreThreshold{15}; // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
 
     // 以下参数不改
