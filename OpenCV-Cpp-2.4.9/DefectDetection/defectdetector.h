@@ -33,7 +33,7 @@ public:
 
     static std::vector<std::vector<cv::Point>> findContours(const cv::Mat& inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
 
-    // 创建环形掩膜（向内6个像素的环形区域）
+    // 创建环形掩膜（精确的环形边缘区域）
     cv::Mat createRingEdgeMask(const cv::Mat& inputImage,
                                 const std::vector<std::vector<cv::Point>>& contours,
                                 int edgeStartWidth = 4,
@@ -44,37 +44,36 @@ public:
         }
 
         cv::Mat mask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+        cv::Mat outerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+        cv::Mat innerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
         cv::Mat edgeMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
 
         // 1. 绘制原始轮廓（填充）
         cv::drawContours(mask, contours, -1, cv::Scalar(255), CV_FILLED);
 
-        // 2. 创建腐蚀后的内部区域
-        cv::Mat outterMask = mask.clone();
-        if (edgeStartWidth > 0) {
-            cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+        // 2. 创建外层边界（向外扩展，可选）
+        cv::Mat kernelOuter = cv::getStructuringElement(cv::MORPH_ELLIPSE,
                                                        cv::Size(2*edgeStartWidth + 1,
                                                                 2*edgeStartWidth + 1));
-            cv::erode(mask, outterMask, kernel);
-        }
+        cv::erode(mask, outerMask, kernelOuter);
 
-        // 3. 创建腐蚀后的内部区域
-        cv::Mat innerMask = outterMask.clone();
-        int edgeWidth = edgeEndWidth - edgeStartWidth;
-        if (edgeWidth > 0) {
-            cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                       cv::Size(2*edgeWidth + 1,
-                                                                2*edgeWidth + 1));
-            cv::erode(outterMask, innerMask, kernel);
-        }
+        // 3. 创建内层边界（向内腐蚀）
+        cv::Mat kernelInner = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+                                                       cv::Size(2*edgeEndWidth + 1,
+                                                                2*edgeEndWidth + 1));
+        cv::erode(mask, innerMask, kernelInner);
 
-        // 3. 外边缘掩膜 = 原始掩膜 - 内部掩膜（环形区域）
-        cv::subtract(outterMask, innerMask, edgeMask);
+        // 4. 环形区域 = 外层边界 - 内层边界
+        cv::subtract(outerMask, innerMask, edgeMask);
 
-        return edgeMask;
+        // 5. 优化：只保留与原始轮廓相交的环形区域
+        cv::Mat finalMask;
+        cv::bitwise_and(edgeMask, mask, finalMask);
+
+        return finalMask;
     }
 
-    // 显示外边缘掩膜
+    // 处理环形边缘，提取边缘区域
     cv::Mat processRingEdge(const cv::Mat& inputImage,
                              const std::vector<std::vector<cv::Point>>& contours,
                             int edgeStartWidth = 4,
@@ -84,39 +83,17 @@ public:
             return cv::Mat();
         }
 
-        // 克隆原图用于显示
-        cv::Mat displayMat = inputImage.clone();
-        if (displayMat.channels() == 1) {
-            cv::cvtColor(displayMat, displayMat, cv::COLOR_GRAY2BGR);
-        }
-
-        // 创建外边缘掩膜
+        // 创建环形边缘掩膜
         cv::Mat edgeMask = createRingEdgeMask(inputImage, contours, edgeStartWidth, edgeEndWidth);
-        cv::imshow("edgeMask", edgeMask);
-
-        // 创建彩色掩膜（红色边缘）
-        cv::Mat colorEdge;
-        cv::cvtColor(edgeMask, colorEdge, cv::COLOR_GRAY2BGR);
-        colorEdge.setTo(cv::Scalar(0, 0, 0), edgeMask);  // BGR: 红色
-
-        // 可选：创建绿色原始轮廓线
-        cv::Mat contourImage = inputImage.clone();
-        if (contourImage.channels() == 1) {
-            cv::cvtColor(contourImage, contourImage, cv::COLOR_GRAY2BGR);
+        
+        // 可视化边缘掩膜
+        if (m_debugImageFlag) {
+            cv::imshow("edgeMask", edgeMask);
         }
-        cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
 
-        // 将边缘掩膜叠加到原图
-        // cv::addWeighted(displayMat, 0.5, colorEdge, 0.5, 0, displayMat);
-
-        cv::Mat edgeMask_8u;
-        edgeMask.convertTo(edgeMask_8u, CV_8UC1);
-
-        // cv::Mat whiteBackground = cv::Mat::ones(displayMat.size(), displayMat.type()) * 255;
-        cv::Mat whiteBackground = cv::Mat(displayMat.size(), displayMat.type(), cv::Scalar(255, 255, 255));
-        cv::Mat result;
-        displayMat.copyTo(result, edgeMask); // 将displayMat中边缘掩膜对应的区域复制到result
-        whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
+        // 创建结果图像：只保留环形边缘区域，其他区域设为白色
+        cv::Mat result = cv::Mat(inputImage.size(), inputImage.type(), cv::Scalar(255, 255, 255));
+        inputImage.copyTo(result, edgeMask);
 
         return result;
     }

@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
         int outterWidth = 4;
         int innerWidth = 10;
 
-        switch (3) {
+        switch (1) {
         case 0: {
             // 黑色异形
             tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
@@ -118,8 +118,8 @@ int main(int argc, char *argv[])
             // dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
             //                                "DefectDetection/template_black/5ok.png")
             //                            .toStdString());
-            outterWidth = 3;
-            innerWidth = 9;
+            outterWidth = 5;
+            innerWidth = 11;
             detector.setWhiteThreshold(50);
         } break;
         case 2: {
@@ -139,8 +139,8 @@ int main(int argc, char *argv[])
             dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/"
                                            "1/NG/2026-01-15_16-03-25_173.png")
                                        .toStdString());
-            outterWidth = 2;
-            innerWidth = 8;
+            outterWidth = 4;
+            innerWidth = 10;
         } break;
         }
 
@@ -171,9 +171,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        cv::imshow("tInputMat", tInputMat);
-        cv::imshow("dInputMat", dInputMat);
-
         cv::Mat tInput = tInputMat;
         tInput = mini.findAndCropObject(tInput);
 
@@ -182,20 +179,22 @@ int main(int argc, char *argv[])
 
         cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
+        cv::imshow("tInput", tInput);
+        cv::imshow("dInput", dInput);
+
 
         auto tContour = detector.findContours(tInput);
-        tInput = detector.processRingEdge(tInput, tContour, outterWidth, innerWidth);
-
         auto dContour = detector.findContours(dInput);
-        dInput = detector.processRingEdge(dInput, tContour, outterWidth, innerWidth);
-
-
+        
+        // 使用新的像素级环形边缘缺陷检测函数
         QElapsedTimer timer;
         timer.start();
-        // double defectScore = detector.fullMatchMat(dInput);
-        double defectScore = detector.matchMat(tInput, dInput);
 
-        qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
+        // 同时显示传统方法结果进行对比
+        cv::Mat tEdge = detector.processRingEdge(tInput, tContour, outterWidth, innerWidth);
+        cv::Mat dEdge = detector.processRingEdge(dInput, tContour, outterWidth, innerWidth);
+        double defectScore = detector.matchMat(tEdge, dEdge);
+        qDebug() << "defectScore:" << defectScore << ", matchMat elapsed:" << timer.elapsed();
 
     }
 
