@@ -31,7 +31,7 @@ int testHuMoments(int argc, char *argv[]) {
 
         return a.exec();
     } else {
-        QString sceneImageStr = QString(PROJECT_DIR) + "/input/chanel1/14-30-00-395.png";
+        QString sceneImageStr = QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1/88011-1.png";
 
         qDebug() << "sceneImageStr" << sceneImageStr;
 
@@ -57,7 +57,8 @@ int testHuMoments(int argc, char *argv[]) {
                         << "7"
                         << "8"
                         << "9"
-                        << "10";
+                        << "10"
+                        << "test";
         QStringList templateFolderStr;
         templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
                           << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
@@ -68,7 +69,9 @@ int testHuMoments(int argc, char *argv[]) {
                           << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
                           << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
                           << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
-                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect"
+                          << QString(PROJECT_DIR) + "/dataset_folder_20251225/test";
+
         matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
         qDebug() << matcher.getTemplateSize();
@@ -88,7 +91,8 @@ int testHuMoments(int argc, char *argv[]) {
 
         QElapsedTimer timer;
         timer.start();
-        auto results = matcher.quickMatchMat(imageMat);
+        auto binary = matcher.binaryProcess(imageMat);
+        auto results = matcher.quickMatchMat(binary);
         qDebug() << "matchMat nsecsElapsed:" << timer.nsecsElapsed();
 
         int i = 0;
@@ -172,7 +176,8 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
                     << "7"
                     << "8"
                     << "9"
-                    << "10";
+                    << "10"
+                    << "test";
     QStringList templateFolderStr;
     templateFolderStr << QString(PROJECT_DIR) + "/dataset_folder_20251225/006"
                       << QString(PROJECT_DIR) + "/dataset_folder_20251225/88011-1"
@@ -183,7 +188,8 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
                       << QString(PROJECT_DIR) + "/dataset_folder_20251225/A3"
                       << QString(PROJECT_DIR) + "/dataset_folder_20251225/A6"
                       << QString(PROJECT_DIR) + "/dataset_folder_20251225/M1"
-                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect";
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/rect"
+                      << QString(PROJECT_DIR) + "/dataset_folder_20251225/test";
 
     matcher.setTemplateFolder(templateDescStr, templateFolderStr);
 
@@ -227,7 +233,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 
         cv::Mat whiteBackground(singleChannelZeroImage.size(), CV_8UC3, cv::Scalar(255, 255, 255));
         cv::Mat closeContour = cutout.drawObjectsContour(results, whiteBackground);
-        cv::imshow(QString("closeContour").toStdString(), closeContour);
+        cv::imshow(QString("drawObjectsContour on whiteBackground").toStdString(), closeContour);
 
         QElapsedTimer timer;
         timer.start();
@@ -276,7 +282,7 @@ int testCutoutObjectAndHu(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
     MessageInstaller::instance()->install();
 
-    // testHuMoments(argc, argv);
+    testHuMoments(argc, argv);
 
-    testCutoutObjectAndHu(argc, argv);
+    // testCutoutObjectAndHu(argc, argv);
 }

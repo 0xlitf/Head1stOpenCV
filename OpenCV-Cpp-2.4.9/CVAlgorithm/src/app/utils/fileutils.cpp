@@ -6,8 +6,8 @@
 FileUtils::FileUtils(QObject *parent) : QObject{parent} {}
 
 QString FileUtils::selectFolderDialog(QWidget *parent) {
-    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
-    QString folder = QFileDialog::getExistingDirectory(parent, "选择文件夹", defaultWorkDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    // auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getExistingDirectory(parent, "选择文件夹", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
@@ -19,8 +19,8 @@ QString FileUtils::selectFolderDialog(QWidget *parent) {
 }
 
 QString FileUtils::selectFileDialog(const QString &filter, QWidget *parent) {
-    auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
-    QString folder = QFileDialog::getOpenFileName(parent, "选择文件夹", defaultWorkDir, filter);
+    // auto defaultWorkDir = (qApp->property("RunEvn") == "exe") ? qApp->applicationDirPath() : QString(PROJECT_DIR);
+    QString folder = QFileDialog::getOpenFileName(parent, "选择文件夹", "", filter);
 
     if (!folder.isEmpty()) {
         qDebug() << "选择的文件夹:" << folder;
