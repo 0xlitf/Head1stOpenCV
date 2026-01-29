@@ -12,12 +12,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // MainWindow window;
-    // window.setWindowTitle("HSV缺陷检测");
-    // window.resize(1200, 900);
-    // window.show();
+    MainWindow window;
+    window.setWindowTitle("HSV缺陷检测");
+    window.resize(1200, 900);
+    window.show();
 
-    if (bool test = true) { // true false
+    if (bool test = false) { // true false
         MinimumBounding mini;
         BGR2HSVConverter converter;
         DefectDetector detector;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
         for (int i = 0; i < 2; ++i) {
             int blurCoreSize = 3;
             // blur GaussianBlur medianBlur bilateralFilter
-            switch (1) {
+            switch (0) {
             case 0: { // blur
                 cv::blur(tInputMat, tInputMat, cv::Size(3, 3));
                 cv::blur(dInputMat, dInputMat, cv::Size(3, 3));

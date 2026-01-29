@@ -7,7 +7,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // 设置窗口属性
     setWindowTitle("HSV缺陷检测系统");
-    setMinimumSize(1200, 800);
+    setMinimumSize(1400, 800);
 
     // 创建中心部件和布局
     m_centralWidget = new QWidget(this);
@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // 创建图像显示标签
     m_normalImageLabel = new QLabel("正常图像（未加载）");
     m_defectImageLabel = new QLabel("缺陷图像（未加载）");
-    m_resultLabel = new QLabel("检测结果将显示在这里");
+    m_resultLabel = new QLabel("");
 
     // 设置标签样式和属性
     m_normalImageLabel->setAlignment(Qt::AlignCenter);
@@ -59,45 +59,77 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     // 连接信号槽
     connect(m_loadNormalButton, &QPushButton::clicked, this, [=]() {
-        // this->onLoadNormalImage();
+        this->onLoadNormalImage();
 
-        QList<QString> imageList;
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (1).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (2).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (3).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (4).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (5).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (6).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (7).png";
-        imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (8).png";
+        // QList<QString> imageList;
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (1).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (2).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (3).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (4).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (5).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (6).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (7).png";
+        // imageList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/1ok (8).png";
 
-        MinimumBounding mini;
-        for (auto& imageDir: imageList) {
-            cv::Mat tInput = cv::imread(imageDir.toStdString());
-            tInput = mini.findAndCropObject(tInput);
-            cv::imwrite(imageDir.replace(".png", "_template.png").toStdString(), tInput);
-        }
+        // MinimumBounding mini;
+        // for (auto& imageDir: imageList) {
+        //     cv::Mat tInput = cv::imread(imageDir.toStdString());
+        //     tInput = mini.findAndCropObject(tInput);
+        //     cv::imwrite(imageDir.replace(".png", "_template.png").toStdString(), tInput);
+        // }
     });
     connect(m_loadDefectButton, &QPushButton::clicked, this, [=]() { this->onLoadDefectImage(); });
     connect(m_detectButton, &QPushButton::clicked, this, [=]() {
-        QElapsedTimer timer;
+        if (bool single = true) {
+            QElapsedTimer timer;
+            DefectDetector detector;
+            MinimumBounding mini;
 
-        DefectDetector detector;
-        QStringList descList;
-        descList << "ok";
-        QStringList folderList;
-        folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black"; // template_brown template_black
-        detector.setTemplateFolder(descList, folderList);
+            cv::Mat tInput = m_normalImage;
+            tInput = mini.findAndCropObject(tInput);
 
-        cv::Mat dInput = m_defectImage; // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
+            cv::Mat dInput = m_defectImage;
+            dInput = mini.findAndCropObject(dInput);
 
-        MinimumBounding mini;
-        dInput = mini.findAndCropObject(dInput);
+            cv::pyrDown(tInput, tInput);
+            cv::pyrDown(dInput, dInput);
 
-        timer.start();
-        double defectScore = detector.fullMatchMat(dInput);
+            cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-        qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
+            cv::imshow("tInput", tInput);
+            cv::imshow("dInput", dInput);
+
+
+            auto tContour = detector.findContours(tInput);
+            auto dContour = detector.findContours(dInput);
+
+            timer.start();
+
+            int outterWidth = 1;
+            int innerWidth = 4;
+
+            cv::Mat tEdge = detector.processRingEdge(tInput, tContour, outterWidth, innerWidth);
+            cv::Mat dEdge = detector.processRingEdge(dInput, tContour, outterWidth, innerWidth);
+            double defectScore = detector.matchMat(tEdge, dEdge);
+            qDebug() << "defectScore:" << defectScore << ", matchMat elapsed:" << timer.elapsed();
+
+        } else {
+            QElapsedTimer timer;
+
+            DefectDetector detector;
+            QStringList descList;
+            descList << "ok";
+            QStringList folderList;
+            folderList << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/template_black"; // template_brown template_black
+            detector.setTemplateFolder(descList, folderList);
+
+            cv::Mat dInput = m_defectImage; // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
+
+            timer.start();
+            double defectScore = detector.fullMatchMat(dInput);
+
+            qDebug() << "defectScore:" << defectScore << ", fullMatchMat elapsed:" << timer.elapsed();
+        }
     });
 
     this->loadDefaultImages();
@@ -113,15 +145,15 @@ void MainWindow::loadDefaultImages() {
     // cv::Mat dInput =
     // cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/2/ng/2026-01-15_16-09-20_925.png");
 
-    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (2).png");
-    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/2ok (5).png");
+    cv::Mat tInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/1/ok/1ok (2).png");
+    cv::Mat dInput = cv::imread("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/1/ng/1ng (2).png");
 
     MinimumBounding mini;
     tInput = mini.findAndCropObject(tInput);
     dInput = mini.findAndCropObject(dInput);
 
-    cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/tInput.png", tInput);
-    cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/5ok.png", dInput);
+    // cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/tInput.png", tInput);
+    // cv::imwrite("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-4.12.0/DefectDetection/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Release/DefectDetection_bin/Windows/Release/5ok.png", dInput);
 
     // tInput = mini.removeOuterBorder(tInput, 2);
     // dInput = mini.removeOuterBorder(dInput, 2);
