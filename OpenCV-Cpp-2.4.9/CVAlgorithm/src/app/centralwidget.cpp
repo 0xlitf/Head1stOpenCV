@@ -3,6 +3,7 @@
 #include "controls/pagetabbutton.h"
 #include "pages/cutoutobjectpage.h"
 #include "pages/humomentspage.h"
+#include "pages/defectdetectpage.h"
 #include "utils/fileutils.h"
 #include <QButtonGroup>
 #include <QFile>
@@ -26,9 +27,10 @@ CentralWidget::CentralWidget(QWidget *parent) : WidgetBase{parent} {
 
     this->addPage("CutoutObject", [] { return new CutoutObjectPage(); }());
     this->addPage("HuMoments", [] { return new HuMomentsPage(); }());
+    this->addPage("DefectDetect", [] { return new DefectDetectPage(); }());
 
     // 默认选中界面
-    this->setDefaultPageIndex(1);
+    this->setDefaultPageIndex(2);
 }
 
 void CentralWidget::setDefaultPageIndex(int i) {

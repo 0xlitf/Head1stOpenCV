@@ -2,7 +2,7 @@
 #define CVA_H
 #include "cva_global.h"
 
-class CVASHARED_EXPORT CVA
+class CVA
 {
 
 public:

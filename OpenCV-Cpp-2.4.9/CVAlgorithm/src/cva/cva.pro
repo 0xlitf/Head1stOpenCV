@@ -2,7 +2,8 @@ QT       += core widgets axcontainer network xml
 
 TARGET = cva
 TEMPLATE = lib
-CONFIG += shared c++11
+# CONFIG += shared c++11
+CONFIG += staticlib c++11
 
 DEFINES += QT_MESSAGELOGCONTEXT
 

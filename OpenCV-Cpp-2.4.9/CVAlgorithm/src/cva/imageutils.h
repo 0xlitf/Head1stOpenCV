@@ -6,7 +6,7 @@
 #include <QFile>
 #include <opencv2/opencv.hpp>
 
-class CVASHARED_EXPORT ImageUtils {
+class ImageUtils {
 public:
     ImageUtils();
 

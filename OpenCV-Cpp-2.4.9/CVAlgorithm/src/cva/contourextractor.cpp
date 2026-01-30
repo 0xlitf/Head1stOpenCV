@@ -1,10 +1,11 @@
 ﻿#include "contourextractor.h"
+#include <QDebug>
 
 std::vector<std::vector<cv::Point>> ContourExtractor::extractWhiteBackgroundContour(const cv::Mat &inputImage) {
     std::vector<std::vector<cv::Point>> resultContours;
 
     if (inputImage.empty()) {
-        std::cerr << "错误：输入图像为空！" << std::endl;
+        qWarning() << "错误：输入图像为空！";
         return resultContours;
     }
 
@@ -19,9 +20,9 @@ std::vector<std::vector<cv::Point>> ContourExtractor::extractWhiteBackgroundCont
 
     // 4. 验证结果
     if (resultContours.empty()) {
-        std::cerr << "警告：未找到符合条件的轮廓！" << std::endl;
+        qWarning() << "警告：未找到符合条件的轮廓！";
     } else {
-        std::cout << "成功提取 " << resultContours.size() << " 个轮廓" << std::endl;
+        qWarning() << "成功提取 " << resultContours.size() << " 个轮廓";
     }
 
     return resultContours;
@@ -80,7 +81,7 @@ cv::Mat ContourExtractor::segmentWhiteBackground(const cv::Mat &grayImage) {
     // 方法2：Otsu阈值（适合直方图双峰明显的情况）
     // double otsuThresh = cv::threshold(grayImage, binary, 0, 255,
     //                                  cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
-    // std::cout << "Otsu阈值: " << otsuThresh << std::endl;
+    // std::cout << "Otsu阈值: " << otsuThresh;
 
     // 方法3：固定阈值（如果背景非常稳定）
     // cv::threshold(grayImage, binary, 200, 255, cv::THRESH_BINARY_INV);
@@ -115,7 +116,7 @@ std::vector<std::vector<cv::Point>> ContourExtractor::findAndFilterContours(cons
             // cv::Rect bbox = cv::boundingRect(contour);
             // std::cout << "轮廓面积: " << area
             //           << ", 边界框: " << bbox
-            //           << ", 点数: " << contour.size() << std::endl;
+            //           << ", 点数: " << contour.size();
         }
     }
 

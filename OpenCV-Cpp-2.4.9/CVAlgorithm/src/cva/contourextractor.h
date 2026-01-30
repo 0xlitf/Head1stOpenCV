@@ -1,4 +1,7 @@
-﻿#include <opencv2/opencv.hpp>
+﻿#ifndef ContourExtractor_H
+#define ContourExtractor_H
+
+#include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
 
@@ -50,3 +53,5 @@ private:
     // 将单通道图像转换为三通道用于显示
     cv::Mat convertTo3Channel(const cv::Mat& gray);
 };
+
+#endif // ContourExtractor_H

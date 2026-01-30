@@ -15,6 +15,7 @@ SOURCES += \
     $$PWD/controls/clickablewidget.cpp \
     $$PWD/controls/textedit.cpp \
     $$PWD/controls/widgetbase.cpp \
+    $$PWD/pages/defectdetectpage.cpp \
     $$PWD/widgets/imagegriditem.cpp \
     $$PWD/widgets/imagegridwidget.cpp \
     $$PWD/widgets/imageinfowidget.cpp \
@@ -51,6 +52,7 @@ HEADERS += \
     $$PWD/controls/clickablewidget.h \
     $$PWD/controls/textedit.h \
     $$PWD/controls/widgetbase.h \
+    $$PWD/pages/defectdetectpage.h \
     $$PWD/widgets/imagegriditem.h \
     $$PWD/widgets/imagegridwidget.h \
     $$PWD/widgets/imageinfowidget.h \
