@@ -68,10 +68,6 @@ public:
 
     QList<MatchResult> fullMatchMat(cv::Mat sceneImg);
 
-    // 辅助函数：获取最大的轮廓
-    std::vector<cv::Point> findLargestContour(const cv::Mat &srcInfo,
-                                              bool isTemplate);
-
 public:
     cv::Mat binaryProcess(cv::Mat inputImage);
 

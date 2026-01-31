@@ -227,6 +227,10 @@ void DefectDetectPage::testContour() {
     cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
                                            "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
                                        .toStdString());
+
+    cv::pyrDown(tInputMat, tInputMat);
+    cv::pyrDown(dInputMat, dInputMat);
+
     MinimumBounding mini;
     cv::Mat tInput = tInputMat;
     tInput = mini.findAndCropObject(tInput);
@@ -291,6 +295,11 @@ void DefectDetectPage::testContour() {
         qDebug() << "提取到 " << contoursDebug.size() << " 个轮廓：";
         qDebug() << "contoursDebug.size() != 1";
     }
+    qDebug() << "area1-area2" << (area1-area2) / area1;
 
-    qDebug() << "area1-area2" << (area1-area2)/ area1;
+    auto matchScore = cv::matchShapes(contours[0], contoursDebug[0], CV_CONTOURS_MATCH_I1, 0.0);
+
+    qDebug() << "matchScore" << matchScore;
+    // 未经下采样时是 0.0129737
+    // 经下采样时是 0.0344635
 }

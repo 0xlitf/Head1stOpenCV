@@ -37,6 +37,8 @@ public:
     // 增强版本：返回轮廓+调试图像
     std::tuple<std::vector<std::vector<cv::Point>>, cv::Mat> extractContourWithDebug(const cv::Mat& inputImage);
 
+    std::vector<cv::Point> findLargestContour(const cv::Mat& src, bool isTemplate, int whiteThreshold = 240);
+
 private:
     // 预处理图像：优化对比度和清晰度
     cv::Mat preprocessForWhiteBackground(const cv::Mat& input);

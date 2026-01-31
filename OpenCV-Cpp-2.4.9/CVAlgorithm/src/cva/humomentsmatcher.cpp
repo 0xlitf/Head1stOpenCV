@@ -2,6 +2,7 @@
 
 #include <QElapsedTimer>
 #include <QImageReader>
+#include "contourextractor.h"
 
 HuMomentsMatcher::HuMomentsMatcher(QObject *parent) : QObject(parent) {}
 
@@ -149,7 +150,8 @@ void HuMomentsMatcher::addTemplate(const QString &desc,
         cv::threshold(templateImg, templateImg, m_whiteThreshold, 255,
                       cv::THRESH_BINARY);
 
-        auto templateContour = this->findLargestContour(templateImg, true);
+        ContourExtractor ce;
+        auto templateContour = ce.findLargestContour(templateImg, true);
 
         QString huStr;
         if (!templateContour.empty()) {
@@ -183,37 +185,6 @@ void HuMomentsMatcher::addTemplateIntoMap(const QString &desc,
 
     auto tuple = std::make_tuple(desc, fileName, huStr, contour);
     m_huMomentsList.append(tuple);
-}
-
-// 核心：寻找最大轮廓
-std::vector<cv::Point> HuMomentsMatcher::findLargestContour(const cv::Mat &src,
-                                                            bool isTemplate) {
-    cv::Mat thr;
-    // 背光图片：物体黑(0)，背景白(255)。
-    // 使用 THRESH_BINARY_INV 将物体变成白色(255)，背景变成黑色(0)
-    // 这样 findContours 才能正确找到物体
-    cv::threshold(src, thr, m_whiteThreshold, 255, cv::THRESH_BINARY_INV);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(thr, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-    if (contours.empty())
-        return {};
-
-    // 找到面积最大的轮廓
-    double maxArea = 0;
-    int maxIdx = -1;
-    for (size_t i = 0; i < contours.size(); i++) {
-        double area = cv::contourArea(contours[i]);
-        if (area > maxArea) {
-            maxArea = area;
-            maxIdx = i;
-        }
-    }
-
-    if (maxIdx != -1)
-        return contours[maxIdx];
-    return {};
 }
 
 QString HuMomentsMatcher::calcHuMoments(std::vector<cv::Point> contour) {
