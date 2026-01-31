@@ -222,8 +222,6 @@ void DefectDetectPage::testContour() {
 
     cv::Mat tInputMat;
     cv::Mat dInputMat;
-    int outterWidth = 4;
-    int innerWidth = 10;
 
     switch (2) {
     case 0: {
@@ -232,8 +230,6 @@ void DefectDetectPage::testContour() {
                                    .toStdString());
         dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (3).png")
                                    .toStdString());
-        outterWidth = 4;
-        innerWidth = 10;
     } break;
     case 1: {
         // 黑色矩形
@@ -255,8 +251,6 @@ void DefectDetectPage::testContour() {
                                    .toStdString());
         dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (5).png")
                                    .toStdString());
-        outterWidth = 4;
-        innerWidth = 10;
     } break;
     case 3: {
         // 橙色矩形
@@ -264,8 +258,6 @@ void DefectDetectPage::testContour() {
                                    .toStdString());
         dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/1/NG/1ng (2).png")
                                    .toStdString());
-        outterWidth = 3;
-        innerWidth = 6;
     } break;
     }
 
@@ -275,9 +267,11 @@ void DefectDetectPage::testContour() {
     MinimumBounding mini;
     cv::Mat tInput = tInputMat;
     tInput = mini.findAndCropObject(tInput);
+    qDebug() << "tInput.channels()" << tInput.channels();
 
     cv::Mat dInput = dInputMat;
     dInput = mini.findAndCropObject(dInput);
+    qDebug() << "dInput.channels()" << dInput.channels();
 
     // 1. 创建轮廓提取器
     ContourExtractor extractor;
@@ -344,11 +338,30 @@ void DefectDetectPage::testContour() {
 
     qDebug() << "area1-area2" << (area1-area2) / area1;
 
+
     auto matchScore = cv::matchShapes(contours[0], contoursDebug[0], CV_CONTOURS_MATCH_I1, 0.0);
+    qDebug() << "matchScore" << matchScore;
+
+    // cv::cvtColor(tInput, tInput, cv::COLOR_BGR2GRAY);
+    // cv::cvtColor(dInput, dInput, cv::COLOR_BGR2GRAY);
+
+    // cv::Mat tInputLargest, dInputLargest;
+    // cv::threshold(tInput, tInputLargest, 240, 255,
+    //               cv::THRESH_BINARY);
+
+    // cv::threshold(dInput, dInputLargest, 240, 255,
+    //               cv::THRESH_BINARY);
+
+    // cv::imshow("tInputLargest", tInputLargest);
+    // cv::imshow("dInputLargest", dInputLargest);
+
+    std::vector<cv::Point> contour1 = extractor.findLargestContour(tInput);
+    std::vector<cv::Point> contour2 = extractor.findLargestContour(dInput);
+    auto matchScore2 = cv::matchShapes(contour1, contour2, CV_CONTOURS_MATCH_I1, 0.0);
+    qDebug() << "matchScore2" << matchScore2;
 
     // 未经下采样时是 0.0129737
     // 经下采样时是 0.0344635
-    qDebug() << "matchScore" << matchScore;
 
     qDebug() << "面积检测阈值0.05";
     qDebug() << "整体轮廓匹配阈值0.05, 对小的缺角和缺边检测不佳";

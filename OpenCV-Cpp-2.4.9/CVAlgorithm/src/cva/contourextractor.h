@@ -1,11 +1,11 @@
 ﻿#ifndef ContourExtractor_H
 #define ContourExtractor_H
 
+#pragma execution_character_set("utf-8")
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
-
-#pragma execution_character_set("utf-8")
 
 class ContourExtractor {
 private:
@@ -37,7 +37,7 @@ public:
     // 增强版本：返回轮廓+调试图像
     std::tuple<std::vector<std::vector<cv::Point>>, cv::Mat> extractContourWithDebug(const cv::Mat& inputImage);
 
-    std::vector<cv::Point> findLargestContour(const cv::Mat& src, bool isTemplate, int whiteThreshold = 240);
+    std::vector<cv::Point> findLargestContour(const cv::Mat& src, int whiteThreshold = 240);
 
 private:
     // 预处理图像：优化对比度和清晰度
