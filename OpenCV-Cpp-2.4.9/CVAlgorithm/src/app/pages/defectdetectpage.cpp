@@ -219,17 +219,58 @@ void DefectDetectPage::testDefect() {
 }
 
 void DefectDetectPage::testContour() {
-    // 黑色矩形
-    cv::Mat tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                                           "DefectDetection/template_black/1ok.png")
-                                       .toStdString());
-    // 缺角
-    cv::Mat dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
-                                           "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
-                                       .toStdString());
 
-    cv::pyrDown(tInputMat, tInputMat);
-    cv::pyrDown(dInputMat, dInputMat);
+    cv::Mat tInputMat;
+    cv::Mat dInputMat;
+    int outterWidth = 4;
+    int innerWidth = 10;
+
+    switch (2) {
+    case 0: {
+        // 黑色异形
+        tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1ok (1).png")
+                                   .toStdString());
+        dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (3).png")
+                                   .toStdString());
+        outterWidth = 4;
+        innerWidth = 10;
+    } break;
+    case 1: {
+        // 黑色矩形
+        tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                                       "DefectDetection/template_black/1ok.png")
+                                   .toStdString());
+        // 缺角
+        dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                                       "DefectDetection/2/NG/2026-01-15_16-09-20_925.png")
+                                   .toStdString());
+
+        // dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+        //                                "DefectDetection/template_black/5ok.png")
+        //                            .toStdString());
+    } break;
+    case 2: {
+        // 黑色异形
+        tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/OK/1ok (1).png")
+                                   .toStdString());
+        dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/Irregular/NG/1ng (5).png")
+                                   .toStdString());
+        outterWidth = 4;
+        innerWidth = 10;
+    } break;
+    case 3: {
+        // 橙色矩形
+        tInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_brown/1ok (2)_template.png")
+                                   .toStdString());
+        dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/1/NG/1ng (2).png")
+                                   .toStdString());
+        outterWidth = 3;
+        innerWidth = 6;
+    } break;
+    }
+
+    // cv::pyrDown(tInputMat, tInputMat);
+    // cv::pyrDown(dInputMat, dInputMat);
 
     MinimumBounding mini;
     cv::Mat tInput = tInputMat;
@@ -251,7 +292,11 @@ void DefectDetectPage::testContour() {
     }
 
     // 3. 提取轮廓（基础版本）
-    std::vector<std::vector<cv::Point>> contours = extractor.extractWhiteBackgroundContour(tInputMat);
+    // std::vector<std::vector<cv::Point>> contours = extractor.extractWhiteBackgroundContour(tInputMat);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::Mat debugImage1;
+    std::tie(contours, debugImage1) = extractor.extractContourWithDebug(tInput);
 
     // 5. 处理提取的轮廓
     double area1;
@@ -266,6 +311,7 @@ void DefectDetectPage::testContour() {
 
         // 显示调试图像
         // cv::imshow("轮廓提取结果", debugImage);
+        cv::imshow("contour result1", debugImage1);
         // cv::waitKey(0);
     } else {
         qDebug() << "提取到 " << contours.size() << " 个轮廓：";
@@ -274,8 +320,8 @@ void DefectDetectPage::testContour() {
 
     // 4. 或者使用调试版本（返回轮廓+可视化结果）
     std::vector<std::vector<cv::Point>> contoursDebug;
-    cv::Mat debugImage;
-    std::tie(contoursDebug, debugImage) = extractor.extractContourWithDebug(dInputMat);
+    cv::Mat debugImage2;
+    std::tie(contoursDebug, debugImage2) = extractor.extractContourWithDebug(dInput);
 
     // 5. 处理提取的轮廓
     double area2;
@@ -289,17 +335,21 @@ void DefectDetectPage::testContour() {
                  << "面积 = " << area2 << ", 边界框 = " << bbox.width << bbox.height << ", 点数 = " << contour.size();
 
         // 显示调试图像
-        cv::imshow("轮廓提取结果", debugImage);
+        cv::imshow("contour result2", debugImage2);
         // cv::waitKey(0);
     } else {
         qDebug() << "提取到 " << contoursDebug.size() << " 个轮廓：";
         qDebug() << "contoursDebug.size() != 1";
     }
+
     qDebug() << "area1-area2" << (area1-area2) / area1;
 
     auto matchScore = cv::matchShapes(contours[0], contoursDebug[0], CV_CONTOURS_MATCH_I1, 0.0);
 
-    qDebug() << "matchScore" << matchScore;
     // 未经下采样时是 0.0129737
     // 经下采样时是 0.0344635
+    qDebug() << "matchScore" << matchScore;
+
+    qDebug() << "面积检测阈值0.05";
+    qDebug() << "matchShapes阈值0.05, 对小的缺角和缺边检测不佳";
 }

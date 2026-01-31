@@ -135,8 +135,8 @@ cv::Mat ContourExtractor::createDebugImage(const cv::Mat &original, const cv::Ma
     // 第一行：原始图和灰度图
     cv::Mat row1;
     cv::hconcat(original, convertTo3Channel(processed), row1);
-    cv::putText(row1, "原始图像", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
-    cv::putText(row1, "预处理后", cv::Point(original.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row1, "original", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row1, "processed", cv::Point(original.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
 
     // 第二行：二值化图和轮廓图
     cv::Mat binaryColor;
@@ -162,8 +162,8 @@ cv::Mat ContourExtractor::createDebugImage(const cv::Mat &original, const cv::Ma
 
     cv::Mat row2;
     cv::hconcat(binaryColor, contourImage, row2);
-    cv::putText(row2, "二值化图像", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
-    cv::putText(row2, "检测结果", cv::Point(binaryColor.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row2, "binary", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row2, "contours", cv::Point(binaryColor.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
 
     // 垂直拼接
     cv::vconcat(row1, row2, debugImage);
