@@ -351,5 +351,5 @@ void DefectDetectPage::testContour() {
     qDebug() << "matchScore" << matchScore;
 
     qDebug() << "面积检测阈值0.05";
-    qDebug() << "matchShapes阈值0.05, 对小的缺角和缺边检测不佳";
+    qDebug() << "整体轮廓匹配阈值0.05, 对小的缺角和缺边检测不佳";
 }

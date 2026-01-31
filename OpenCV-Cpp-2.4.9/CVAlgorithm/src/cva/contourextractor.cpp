@@ -41,6 +41,7 @@ std::tuple<std::vector<std::vector<cv::Point>>, cv::Mat> ContourExtractor::extra
 
     // 2. 分割
     cv::Mat binary = segmentWhiteBackground(processed);
+    // cv::imshow("binary", binary);
 
     // 3. 查找轮廓
     contours = findAndFilterContours(binary);
@@ -76,21 +77,30 @@ cv::Mat ContourExtractor::segmentWhiteBackground(const cv::Mat &grayImage) {
 
     // 方法1：自适应阈值（适合光照不均匀的情况）
     // cv::adaptiveThreshold(grayImage, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, m_adaptiveBlockSize, 2);
-    cv::threshold(grayImage, binary, 240, 255, cv::THRESH_BINARY_INV);
+    // cv::threshold(grayImage, binary, 240, 255, cv::THRESH_BINARY_INV);
 
     // 方法2：Otsu阈值（适合直方图双峰明显的情况）
     // double otsuThresh = cv::threshold(grayImage, binary, 0, 255,
     //                                  cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
-    // std::cout << "Otsu阈值: " << otsuThresh;
+    // qDebug() << "Otsu阈值: " << otsuThresh;
 
+    // cv::imshow("grayImage", grayImage);
     // 方法3：固定阈值（如果背景非常稳定）
-    // cv::threshold(grayImage, binary, 200, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(grayImage, binary, 240, 255, cv::THRESH_BINARY_INV);
+
+    // double minVal, maxVal;
+    // cv::Point minLoc, maxLoc; // 位置信息如果不需要，可以忽略
+
+    // cv::minMaxLoc(binary, &minVal, &maxVal, &minLoc, &maxLoc);
+
+    // qDebug() << "Min value: " << minVal << ", Max value: " << maxVal;
+    // qDebug() << "Binary image type: " << binary.type() << " (CV_8U is " << CV_8U << ")";
 
     // 去除小噪声
-    if (m_removeNoise && m_noiseKernelSize > 0) {
-        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(m_noiseKernelSize, m_noiseKernelSize));
-        cv::morphologyEx(binary, binary, cv::MORPH_OPEN, kernel);
-    }
+    // if (m_removeNoise && m_noiseKernelSize > 0) {
+    //     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(m_noiseKernelSize, m_noiseKernelSize));
+    //     cv::morphologyEx(binary, binary, cv::MORPH_OPEN, kernel);
+    // }
 
     return binary;
 }
@@ -99,7 +109,9 @@ std::vector<std::vector<cv::Point>> ContourExtractor::findAndFilterContours(cons
     std::vector<std::vector<cv::Point>> allContours;
     std::vector<cv::Vec4i> hierarchy;
 
-    cv::findContours(binary, allContours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    auto binaryClone = binary.clone();
+
+    cv::findContours(binaryClone, allContours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     std::vector<std::vector<cv::Point>> filteredContours;
 
@@ -114,7 +126,7 @@ std::vector<std::vector<cv::Point>> ContourExtractor::findAndFilterContours(cons
 
             // 可选：输出轮廓信息用于调试
             // cv::Rect bbox = cv::boundingRect(contour);
-            // std::cout << "轮廓面积: " << area
+            // qDebug() << "轮廓面积: " << area
             //           << ", 边界框: " << bbox
             //           << ", 点数: " << contour.size();
         }
@@ -135,10 +147,19 @@ cv::Mat ContourExtractor::createDebugImage(const cv::Mat &original, const cv::Ma
     // 第一行：原始图和灰度图
     cv::Mat row1;
     cv::hconcat(original, convertTo3Channel(processed), row1);
-    cv::putText(row1, "original", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
-    cv::putText(row1, "processed", cv::Point(original.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row1, "original", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 0, 255), 2);
+    cv::putText(row1, "processed", cv::Point(original.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 0, 255), 2);
 
     // 第二行：二值化图和轮廓图
+
+    // double minVal, maxVal;
+    // cv::Point minLoc, maxLoc; // 位置信息如果不需要，可以忽略
+
+    // cv::minMaxLoc(binary, &minVal, &maxVal, &minLoc, &maxLoc);
+
+    // qDebug() << "Min value: " << minVal << ", Max value: " << maxVal;
+    // qDebug() << "Binary image type: " << binary.type() << " (CV_8U is " << CV_8U << ")";
+
     cv::Mat binaryColor;
     cv::cvtColor(binary, binaryColor, cv::COLOR_GRAY2BGR);
 
@@ -162,15 +183,15 @@ cv::Mat ContourExtractor::createDebugImage(const cv::Mat &original, const cv::Ma
 
     cv::Mat row2;
     cv::hconcat(binaryColor, contourImage, row2);
-    cv::putText(row2, "binary", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
-    cv::putText(row2, "contours", cv::Point(binaryColor.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+    cv::putText(row2, "binary", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 0, 255), 2);
+    cv::putText(row2, "contours", cv::Point(binaryColor.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 0, 255), 2);
 
     // 垂直拼接
     cv::vconcat(row1, row2, debugImage);
 
     // 添加总结信息
-    std::string summary = "检测到 " + std::to_string(contours.size()) + " 个轮廓 (面积 > " + std::to_string(static_cast<int>(m_minContourArea)) + ")";
-    cv::putText(debugImage, summary, cv::Point(10, debugImage.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 255), 2);
+    std::string summary = "detect " + std::to_string(contours.size()) + " contour (area > " + std::to_string(static_cast<int>(m_minContourArea)) + ")";
+    cv::putText(debugImage, summary, cv::Point(10, debugImage.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 0, 255), 2);
 
     return debugImage;
 }
