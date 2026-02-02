@@ -14,6 +14,8 @@ public:
     void testAreaDiff();
     void testDefect();
     void testContour();
+
+    void testCorner();
 };
 
 #endif // DEFECTDETECTPAGE_H
