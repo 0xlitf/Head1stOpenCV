@@ -13,7 +13,8 @@ DefectDetectPage::DefectDetectPage() {
 
     // testContour();
     // testAreaDiff();
-    testCorner();
+    // testCorner();
+    testP0();
 }
 
 void DefectDetectPage::testAreaDiff() {
@@ -202,14 +203,14 @@ void DefectDetectPage::testDefect() {
     cv::imshow("dInput", dInput);
 
 
-    auto tContour = detector.findContours(tInput);
-    auto dContour = detector.findContours(dInput);
+    ContourExtractor extractor;
+    auto tContour = extractor.findContours(tInput);
+    auto dContour = extractor.findContours(dInput);
 
     // 使用新的像素级环形边缘缺陷检测函数
     QElapsedTimer timer;
     timer.start();
 
-    // 同时显示传统方法结果进行对比
     cv::Mat tEdge = detector.processRingEdge(tInput, tContour, outterWidth, innerWidth);
     cv::Mat dEdge = detector.processRingEdge(dInput, tContour, outterWidth, innerWidth);
     double defectScore = detector.matchMat(tEdge, dEdge);
@@ -260,8 +261,8 @@ void DefectDetectPage::testContour() {
     } break;
     }
 
-    // cv::pyrDown(tInputMat, tInputMat);
-    // cv::pyrDown(dInputMat, dInputMat);
+    cv::pyrDown(tInputMat, tInputMat);
+    cv::pyrDown(dInputMat, dInputMat);
 
     MinimumBounding mini;
     cv::Mat tInput = tInputMat;
@@ -484,4 +485,62 @@ void DefectDetectPage::testCorner() {
 
     // 未经下采样时是 0.0129737
     // 经下采样时是 0.0344635
+}
+
+void DefectDetectPage::testP0() {
+    // 面积检测一般差异小于0.05
+
+    MinimumBounding mini;
+    BGR2HSVConverter converter;
+    DefectDetector detector;
+
+    // 1. 创建轮廓提取器
+    ContourExtractor extractor;
+    CornerSplitter cornerSplitter;
+
+    QStringList descList;
+    descList << "ok";
+    QStringList folderList;
+    folderList << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection").append("/template_black"); // template_brown template_black
+    detector.setTemplateFolder(descList, folderList);
+
+    auto dInputMat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/"
+                                   "DefectDetection/2/NG/2026-01-15_16-09-37_766.png")  // 细小角落缺陷 2026-01-15_16-09-37_766.png
+                                    // 明显缺角 2026-01-15_16-09-20_925.png
+                               .toStdString());
+
+    cv::Mat dInput = dInputMat;
+    dInput = mini.findAndCropObject(dInput);
+
+    std::vector<cv::Point> dInputContour = extractor.findLargestContour(dInput);
+    double dInputArea = cv::contourArea(dInputContour);
+
+    std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = cornerSplitter.splitCorners(dInput);
+    std::vector<cv::Point> ct0 = extractor.findLargestContour(std::get<0>(corners));
+    std::vector<cv::Point> ct1 = extractor.findLargestContour(std::get<1>(corners));
+    std::vector<cv::Point> ct2 = extractor.findLargestContour(std::get<2>(corners));
+    std::vector<cv::Point> ct3 = extractor.findLargestContour(std::get<3>(corners));
+    std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::make_tuple(ct0, ct1, ct2, ct3);
+
+    double area0 = cv::contourArea(ct0);
+    double area1 = cv::contourArea(ct1);
+    double area2 = cv::contourArea(ct2);
+    double area3 = cv::contourArea(ct3);
+    std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
+
+    double areaDiff = detector.p0_matchArea(dInputArea); // 0.01
+    qDebug() << "areaDiff" << areaDiff;
+
+    double shapeDiff = detector.p1_matchShapes(dInputContour); // 0.05
+    qDebug() << "shapeDiff" << shapeDiff;
+
+    double subAreaDiff = detector.p2_matchSubAreas(subContourAreas); // 0.02
+    qDebug() << "subAreaDiff" << subAreaDiff;
+
+    double subShapeDiff = detector.p3_matchSubShapes(subContours); // 0.02
+    qDebug() << "subShapeDiff" << subShapeDiff;
+
+    double defectScore = detector.p4_fullMatchMatPixel(dInput); // 0.02
+    qDebug() << "defectScore" << defectScore;
+
 }

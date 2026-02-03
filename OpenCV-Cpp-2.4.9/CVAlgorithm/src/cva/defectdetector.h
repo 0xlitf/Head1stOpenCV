@@ -52,15 +52,19 @@ public:
 
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
-    double fullMatchImage(const QString &fileName);
+    double p0_matchArea(double inputMatArea);
 
-    double p0_matchArea(std::vector<cv::Point> inputMatContour);
+    double p1_matchShapes(std::vector<cv::Point> inputMatContour);
 
-    double p1_matchShapes(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+    double p2_matchSubAreas(std::tuple<double, double, double, double>);
 
-    double p2_matchSubShapes(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+    double p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> inputCornerContours);
 
-    double p3_matchMatPixels(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+    double p3_matchMatPixels(cv::Mat inputImg);
+
+    double p4_fullMatchMatPixel(cv::Mat inputImg);
+
+    double fullMatchImagePixel(const QString &fileName);
 
     double fullMatchMatPixel(cv::Mat inputImg);
 
@@ -86,23 +90,37 @@ public:
 
     double matchMat(cv::Mat templateInput, cv::Mat defectInput);
 
+    double matchMatPixel(cv::Mat templateInput, cv::Mat defectInput);
+
 private:
     void addTemplate(const QString &desc, const QString &fileName);
 
     void addTemplateIntoMap(const QString &desc,
                             const QString &fileName,
-                            cv::Mat tInput, std::vector<cv::Point>,
+                            cv::Mat tInput,
+                            std::vector<cv::Point>,
                             double,
                             std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>,
                             std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
                             std::tuple<double, double, double, double>);
 
 private:
-    QList<std::tuple<QString, QString, cv::Mat, std::vector<cv::Point>, double, std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>, std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>, std::tuple<double, double, double, double>>> m_templateList;
+    QList<std::tuple<QString,
+                     QString,
+                     cv::Mat,
+                     std::vector<cv::Point>,
+                     double,
+                     std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>,
+                     std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
+                     std::tuple<double, double, double, double>>> m_templateList;
     int m_removeOuterBorderThickness{3}; // 比对时忽略的边缘厚度
     int m_detectThickness{6};            // 比对时检测的边缘厚度
     int m_whiteThreshold{35};            // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
     double m_scoreThreshold{15};         // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
+
+
+    int m_outterWidth = 4;
+    int m_innerWidth = 10;
 
     // 以下参数不改
     int m_precision{2};   // 取决于进行几次下采样，暂时不可更改

@@ -16,6 +16,8 @@ public:
     void testContour();
 
     void testCorner();
+
+    void testP0();
 };
 
 #endif // DEFECTDETECTPAGE_H

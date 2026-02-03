@@ -344,7 +344,361 @@ void DefectDetector::addTemplateIntoMap(const QString &desc,
     m_templateList.append(tuple);
 }
 
-double DefectDetector::fullMatchImage(const QString &fileName) {
+double DefectDetector::p0_matchArea(double inputMatArea) {
+    QElapsedTimer timer;
+    timer.start();
+
+    QList<double> results;
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        auto templateTuple = m_templateList[i];
+
+        QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<1>(templateTuple);
+        cv::Mat templateInput = std::get<2>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
+        double tInputArea = std::get<4>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+
+        double areaDiff = std::abs(tInputArea - inputMatArea) / tInputArea;
+        if (areaDiff >= 0) {
+            results.append(areaDiff);
+        }
+    }
+
+    double minResult{1};
+    if (!results.isEmpty()) {
+        for (const double &value : results) {
+            if (value < minResult) {
+                minResult = value;
+            }
+        }
+        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+    }
+
+    return minResult;
+}
+
+double DefectDetector::p1_matchShapes(std::vector<cv::Point> inputMatContour) {
+    QElapsedTimer timer;
+    timer.start();
+
+    QList<double> results;
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        auto templateTuple = m_templateList[i];
+
+        QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<1>(templateTuple);
+        cv::Mat templateInput = std::get<2>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
+        double tInputArea = std::get<4>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+
+        double defectScore = cv::matchShapes(tInputContour, inputMatContour, CV_CONTOURS_MATCH_I1, 0.0);
+        if (defectScore >= 0) {
+            results.append(defectScore);
+        }
+    }
+
+    double minResult{1.};
+    if (!results.isEmpty()) {
+        for (const double &value : results) {
+            if (value < minResult) {
+                minResult = value;
+            }
+        }
+        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+    }
+
+    return minResult;
+}
+
+double DefectDetector::p2_matchSubAreas(std::tuple<double, double, double, double> inputContourAreas) {
+    QElapsedTimer timer;
+    timer.start();
+
+    QList<double> results;
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        auto templateTuple = m_templateList[i];
+
+        QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<1>(templateTuple);
+        cv::Mat templateInput = std::get<2>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
+        double tInputArea = std::get<4>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+
+        double areaDiff0 = std::abs(std::get<0>(subContourAreas) - std::get<0>(inputContourAreas)) / std::get<0>(subContourAreas);
+        double areaDiff1 = std::abs(std::get<1>(subContourAreas) - std::get<1>(inputContourAreas)) / std::get<1>(subContourAreas);
+        double areaDiff2 = std::abs(std::get<2>(subContourAreas) - std::get<2>(inputContourAreas)) / std::get<2>(subContourAreas);
+        double areaDiff3 = std::abs(std::get<3>(subContourAreas) - std::get<3>(inputContourAreas)) / std::get<3>(subContourAreas);
+
+        QList<double> areaDiffs;
+        areaDiffs << areaDiff0 << areaDiff1 << areaDiff2 << areaDiff3;
+        qDebug() << "areaDiffs" << areaDiffs;
+        double areaDiffMax = std::max({areaDiff0, areaDiff1, areaDiff2, areaDiff3});
+        if (areaDiffMax >= 0) {
+            results.append(areaDiffMax);
+        }
+    }
+
+    double minResult{1};
+    if (!results.isEmpty()) {
+        for (const double &value : results) {
+            if (value < minResult) {
+                minResult = value;
+            }
+        }
+        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+    }
+
+    return minResult;
+}
+
+double DefectDetector::p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> inputCornerContours) {
+    QElapsedTimer timer;
+    timer.start();
+
+    QList<double> results;
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        auto templateTuple = m_templateList[i];
+
+        QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<1>(templateTuple);
+        cv::Mat templateInput = std::get<2>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
+        double tInputArea = std::get<4>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+
+        double defectScore0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        double defectScore1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        double defectScore2 = cv::matchShapes(std::get<2>(subContours), std::get<2>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        double defectScore3 = cv::matchShapes(std::get<3>(subContours), std::get<3>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+
+        QList<double> defectScores;
+        defectScores << defectScore0 << defectScore1 << defectScore2 << defectScore3;
+        qDebug() << "defectScores" << defectScores;
+        double defectScoreMax = std::max({defectScore0, defectScore1, defectScore2, defectScore3});
+        if (defectScoreMax >= 0) {
+            results.append(defectScoreMax);
+        }
+    }
+
+    double minResult{1.};
+    if (!results.isEmpty()) {
+        for (const double &value : results) {
+            if (value < minResult) {
+                minResult = value;
+            }
+        }
+        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+    }
+
+    return minResult;
+}
+
+double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
+    QElapsedTimer timer;
+    timer.start();
+
+    cv::Mat dInput = inputImg.clone();
+    // cv::pyrDown(dInput, dInput);
+
+    QList<double> results;
+    for (int i = 0; i < m_templateList.size(); ++i) {
+        auto templateTuple = m_templateList[i];
+
+        QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<1>(templateTuple);
+        cv::Mat templateInput = std::get<2>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
+        double tInputArea = std::get<4>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+
+
+        cv::Mat tInput = templateInput.clone();
+        // cv::pyrDown(tInput, tInput);
+
+        for (int i = 0; i < 2; ++i) {
+            int blurCoreSize = 3;
+            // blur GaussianBlur medianBlur bilateralFilter
+            switch (0) {
+            case 0: { // blur
+                cv::blur(tInput, tInput, cv::Size(3, 3));
+                cv::blur(dInput, dInput, cv::Size(3, 3));
+            } break;
+            case 1: { // GaussianBlur
+                cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+                cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+            } break;
+            case 2: { // medianBlur
+                cv::medianBlur(tInput, tInput, 5);
+                cv::medianBlur(dInput, dInput, 5);
+            } break;
+            case 3: { // bilateralFilter
+                cv::bilateralFilter(tInput, tInput, 9, 50, 10);
+                cv::bilateralFilter(dInput, dInput, 9, 50, 10);
+            } break;
+            }
+        }
+
+        cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+
+        auto tContour = m_extractor.findContours(tInput);
+        auto dContour = m_extractor.findContours(dInput);
+
+        cv::Mat tEdge = this->processRingEdge(tInput, tContour, m_outterWidth, m_innerWidth);
+        cv::Mat dEdge = this->processRingEdge(dInput, tContour, m_outterWidth, m_innerWidth);
+
+        cv::imshow("tEdge", tEdge);
+        cv::imshow("dEdge", dEdge);
+
+        cv::waitKey(0);
+
+        double defectScore = this->matchMatPixel(tEdge, dEdge);
+        qDebug() << "defectScore:" << defectScore << ", matchMat elapsed:" << timer.elapsed();
+
+        if (defectScore >= 0) {
+            results.append(defectScore);
+        }
+        break;
+    }
+
+    double minResult{9999.};
+    if (!results.isEmpty()) {
+        for (const double &value : results) {
+            if (value < minResult) {
+                minResult = value;
+            }
+        }
+        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+    }
+
+    return minResult;
+}
+
+double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput) {
+    if (templateInput.empty() || defectInput.empty()) {
+        QMessageBox::warning(nullptr, "错误", "请先加载正常图像和缺陷图像!");
+        return -1;
+    }
+
+    cv::Mat tInput = templateInput.clone();
+    cv::Mat dInput = defectInput.clone();
+
+    cv::pyrDown(tInput, tInput);
+    cv::pyrDown(dInput, dInput);
+
+    if (m_useHSV) {
+        BGR2HSVConverter cvt;
+        tInput = cvt.convertBGR2HSV(tInput);
+        dInput = cvt.convertBGR2HSV(dInput);
+    }
+
+    if (m_debugImageFlag) {
+        cv::imshow("tEdge hsv", tInput);
+        cv::imshow("dEdge hsv", dInput);
+    }
+
+    std::vector<cv::Mat> thsvChannels;
+    cv::split(tInput, thsvChannels);
+    cv::Mat thChannel = thsvChannels[0]; // H通道
+    cv::Mat tsChannel = thsvChannels[1]; // S通道
+    cv::Mat tvChannel = thsvChannels[2]; // V通道
+
+    std::vector<cv::Mat> dhsvChannels;
+    cv::split(dInput, dhsvChannels);
+    cv::Mat dhChannel = dhsvChannels[0]; // H通道
+    cv::Mat dsChannel = dhsvChannels[1]; // S通道
+    cv::Mat dvChannel = dhsvChannels[2]; // V通道
+
+    if (bool showConcat = false) {
+        cv::Mat tH_BGR, tS_BGR, tV_BGR, dH_BGR, dS_BGR, dV_BGR;
+        cv::cvtColor(thChannel, tH_BGR, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(tsChannel, tS_BGR, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(tvChannel, tV_BGR, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(dhChannel, dH_BGR, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(dsChannel, dS_BGR, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(dvChannel, dV_BGR, cv::COLOR_GRAY2BGR);
+        cv::putText(tH_BGR, "T-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+        cv::putText(tS_BGR, "T-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+        cv::putText(tV_BGR, "T-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
+        cv::putText(dH_BGR, "D-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+        cv::putText(dS_BGR, "D-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+        cv::putText(dV_BGR, "D-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
+
+        cv::Mat leftCol, rightCol;
+        cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR},
+                    leftCol); // 左侧垂直拼接
+        cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR},
+                    rightCol); // 右侧垂直拼接
+
+        cv::Mat concatResult;
+        cv::hconcat(leftCol, rightCol, concatResult);
+
+        if (m_debugImageFlag) {
+            cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
+        }
+    }
+
+    cv::Mat sdiff;
+    cv::absdiff(tsChannel, dsChannel, sdiff);
+
+    cv::Mat vdiff;
+    cv::absdiff(tvChannel, dvChannel, vdiff);
+
+    cv::Mat grayDiff;
+
+    if (bool useHSVDiff = true) {
+        if (vdiff.channels() == 3) {
+            cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
+        } else {
+            grayDiff = vdiff;
+        }
+    } else {
+        cv::Mat grayTemplate, grayTest;
+        cv::cvtColor(tInput, grayTemplate, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(dInput, grayTest, cv::COLOR_BGR2GRAY);
+
+        cv::imshow("grayTemplate", grayTemplate);
+        cv::imshow("grayTest", grayTest);
+
+        // 2. 计算绝对差异
+        cv::absdiff(grayTemplate, grayTest, grayDiff);
+        cv::imshow("grayDiff", grayDiff);
+    }
+
+    cv::Mat thresholdDiff;
+    cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
+
+    int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+    cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
+    thresholdDiff, cv::MORPH_OPEN,
+                     kernel);
+
+    int whitePixelCount = cv::countNonZero(thresholdDiff);
+
+    if (m_debugImageFlag) {
+        cv::Mat concatDiffResult;
+
+        cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
+        cv::imshow("concatDiffResult", concatDiffResult);
+    }
+
+    return whitePixelCount;
+}
+
+double DefectDetector::fullMatchImagePixel(const QString &fileName) {
     double defectScoreResult{-1};
 
     if (fileName.isEmpty()) {
@@ -403,32 +757,32 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     cv::Mat tInput = templateInput.clone();
     cv::Mat dInput = defectInput.clone();
 
-    // cv::pyrDown(tInput, tInput);
-    // cv::pyrDown(dInput, dInput);
+    cv::pyrDown(tInput, tInput);
+    cv::pyrDown(dInput, dInput);
 
-    // for (int i = 0; i < 10; ++i) {
-    //     int blurCoreSize = 3;
-    //     // blur GaussianBlur medianBlur bilateralFilter
-    //     switch (1) {
-    //     case 0: { // blur
-    //         cv::blur(tInput, tInput, cv::Size(3, 3));
-    //         cv::blur(dInput, dInput, cv::Size(3, 3));
-    //     } break;
-    //     case 1: { // GaussianBlur
-    //         cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize,
-    //         blurCoreSize), 0, 0); cv::GaussianBlur(dInput, dInput,
-    //         cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    //     } break;
-    //     case 2: { // medianBlur
-    //         cv::medianBlur(tInput, tInput, 5);
-    //         cv::medianBlur(dInput, dInput, 5);
-    //     } break;
-    //     case 3: { // bilateralFilter
-    //         cv::bilateralFilter(tInput, tInput, 9, 50, 10);
-    //         cv::bilateralFilter(dInput, dInput, 9, 50, 10);
-    //     } break;
-    //     }
-    // }
+    for (int i = 0; i < 2; ++i) {
+        int blurCoreSize = 3;
+        // blur GaussianBlur medianBlur bilateralFilter
+        switch (1) {
+        case 0: { // blur
+            cv::blur(tInput, tInput, cv::Size(3, 3));
+            cv::blur(dInput, dInput, cv::Size(3, 3));
+        } break;
+        case 1: { // GaussianBlur
+            cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize,
+            blurCoreSize), 0, 0); cv::GaussianBlur(dInput, dInput,
+            cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+        } break;
+        case 2: { // medianBlur
+            cv::medianBlur(tInput, tInput, 5);
+            cv::medianBlur(dInput, dInput, 5);
+        } break;
+        case 3: { // bilateralFilter
+            cv::bilateralFilter(tInput, tInput, 9, 50, 10);
+            cv::bilateralFilter(dInput, dInput, 9, 50, 10);
+        } break;
+        }
+    }
 
     // if (m_debugImageFlag) {
     //     cv::imshow("m_normalImage origin", tInput);
@@ -445,8 +799,8 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     // dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
     // resize转移到函数外部
-    // cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0,
-    // cv::INTER_LINEAR);
+    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0,
+    cv::INTER_LINEAR);
 
     // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
     // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
