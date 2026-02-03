@@ -39,6 +39,8 @@ public:
 
     std::vector<cv::Point> findLargestContour(const cv::Mat& src, int whiteThreshold = 240);
 
+    static std::vector<std::vector<cv::Point>> findContours(const cv::Mat &inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
+
 private:
     // 预处理图像：优化对比度和清晰度
     cv::Mat preprocessForWhiteBackground(const cv::Mat& input);

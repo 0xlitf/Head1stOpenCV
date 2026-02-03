@@ -1,4 +1,7 @@
 ﻿#include "DefectDetector.h"
+#include "bgr2hsvconverter.h"
+#include "contourextractor.h"
+#include "minimumbounding.h"
 #include <QDebug>
 #include <QDir>
 #include <QElapsedTimer>
@@ -6,63 +9,190 @@
 #include <QImageReader>
 #include <QMap>
 #include <QString>
-#include "minimumbounding.h"
-#include "bgr2hsvconverter.h"
 
 DefectDetector::DefectDetector(QObject *parent) : QObject(parent) {}
 
-std::vector<std::vector<cv::Point>> DefectDetector::findContours(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
-    if (inputImage.empty()) {
-        // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
-        // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
-        cv::Mat emptyResult;
-        return std::vector<std::vector<cv::Point>>();
+cv::Mat DefectDetector::createRingEdgeMask(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeStartWidth, int edgeEndWidth) {
+    if (contours.empty()) {
+        return cv::Mat::zeros(inputImage.size(), CV_8UC1);
     }
 
-    // 3. 转换为灰度图
-    cv::Mat grayImage;
-    if (inputImage.channels() == 3) {
-        cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
-    } else {
-        grayImage = inputImage.clone();
-    }
+    cv::Mat mask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    cv::Mat outerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    cv::Mat innerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    cv::Mat edgeMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
 
-    // 4. 二值化处理
-    cv::Mat binaryImage;
-    // cv::adaptiveThreshold(grayImage, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, m_adaptiveBlockSize, 2);
-    cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
+    // 1. 绘制原始轮廓（填充）
+    cv::drawContours(mask, contours, -1, cv::Scalar(255), CV_FILLED);
 
-    // cv::imshow("binaryImage", binaryImage);
+    // 2. 创建外层边界（向外扩展，可选）
+    cv::Mat kernelOuter = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2 * edgeStartWidth + 1, 2 * edgeStartWidth + 1));
+    cv::erode(mask, outerMask, kernelOuter);
 
-    // 5. 查找轮廓
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    // 3. 创建内层边界（向内腐蚀）
+    cv::Mat kernelInner = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2 * edgeEndWidth + 1, 2 * edgeEndWidth + 1));
+    cv::erode(mask, innerMask, kernelInner);
 
-    // 过滤小面积轮廓
-    std::vector<std::vector<cv::Point>> filteredContours;
-    for (const auto& contour : contours) {
-        if (contour.empty() || contour.size() < 3) {
-            continue;
-        }
+    // 4. 环形区域 = 外层边界 - 内层边界
+    cv::subtract(outerMask, innerMask, edgeMask);
 
-        double area = cv::contourArea(contour);
-        if (area >= areaThreshold) {  // 只保留面积大于阈值的轮廓
-            filteredContours.push_back(contour);
-        }
-    }
+    // 5. 优化：只保留与原始轮廓相交的环形区域
+    cv::Mat finalMask;
+    cv::bitwise_and(edgeMask, mask, finalMask);
 
-    // 按轮廓面积从大到小排序
-    std::sort(filteredContours.begin(), filteredContours.end(),
-              [](const std::vector<cv::Point>& contour1, const std::vector<cv::Point>& contour2) {
-                  return cv::contourArea(contour1) > cv::contourArea(contour2);
-              });
-
-    return filteredContours;
+    return finalMask;
 }
 
-std::tuple<int, cv::Mat>
-DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
-    auto filteredContours = DefectDetector::findContours(inputImage, whiteThreshold, areaThreshold);
+cv::Mat DefectDetector::processRingEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeStartWidth, int edgeEndWidth) {
+    if (inputImage.empty() || contours.empty()) {
+        return cv::Mat();
+    }
+
+    // 创建环形边缘掩膜
+    cv::Mat edgeMask = createRingEdgeMask(inputImage, contours, edgeStartWidth, edgeEndWidth);
+
+    // 可视化边缘掩膜
+    if (m_debugImageFlag) {
+        cv::imshow("edgeMask", edgeMask);
+    }
+
+    // 创建结果图像：只保留环形边缘区域，其他区域设为白色
+    cv::Mat result = cv::Mat(inputImage.size(), inputImage.type(), cv::Scalar(255, 255, 255));
+    inputImage.copyTo(result, edgeMask);
+
+    return result;
+}
+
+cv::Mat DefectDetector::createOuterEdgeMask(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth) {
+    if (contours.empty()) {
+        return cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    }
+
+    cv::Mat mask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    cv::Mat edgeMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+
+    // 1. 绘制原始轮廓（填充）
+    cv::drawContours(mask, contours, -1, cv::Scalar(255), CV_FILLED);
+
+    // 2. 创建腐蚀后的内部区域
+    cv::Mat innerMask = mask.clone();
+    if (edgeWidth > 0) {
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2 * edgeWidth + 1, 2 * edgeWidth + 1));
+        cv::erode(mask, innerMask, kernel);
+    }
+
+    // 3. 外边缘掩膜 = 原始掩膜 - 内部掩膜（环形区域）
+    cv::subtract(mask, innerMask, edgeMask);
+
+    return edgeMask;
+}
+
+cv::Mat DefectDetector::processOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth) {
+    if (inputImage.empty() || contours.empty()) {
+        return cv::Mat();
+    }
+
+    // 克隆原图用于显示
+    cv::Mat displayMat = inputImage.clone();
+    if (displayMat.channels() == 1) {
+        cv::cvtColor(displayMat, displayMat, cv::COLOR_GRAY2BGR);
+    }
+
+    // 创建外边缘掩膜
+    cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
+    cv::imshow("edgeMask", edgeMask);
+
+    // 创建彩色掩膜（红色边缘）
+    cv::Mat colorEdge;
+    cv::cvtColor(edgeMask, colorEdge, cv::COLOR_GRAY2BGR);
+    colorEdge.setTo(cv::Scalar(0, 0, 0), edgeMask); // BGR: 红色
+
+    // 可选：创建绿色原始轮廓线
+    cv::Mat contourImage = inputImage.clone();
+    if (contourImage.channels() == 1) {
+        cv::cvtColor(contourImage, contourImage, cv::COLOR_GRAY2BGR);
+    }
+    cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
+
+    // 将边缘掩膜叠加到原图
+    // cv::addWeighted(displayMat, 0.5, colorEdge, 0.5, 0, displayMat);
+
+    cv::Mat edgeMask_8u;
+    edgeMask.convertTo(edgeMask_8u, CV_8UC1);
+
+    // cv::Mat whiteBackground = cv::Mat::ones(displayMat.size(),
+    // displayMat.type()) * 255;
+    cv::Mat whiteBackground = cv::Mat(displayMat.size(), displayMat.type(), cv::Scalar(255, 255, 255));
+    cv::Mat result;
+    displayMat.copyTo(result,
+                      edgeMask);               // 将displayMat中边缘掩膜对应的区域复制到result
+    whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
+
+    return result;
+}
+
+cv::Mat DefectDetector::displayOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth) {
+    if (inputImage.empty() || contours.empty()) {
+        return cv::Mat();
+    }
+
+    // 克隆原图用于显示
+    cv::Mat displayMat = inputImage.clone();
+    if (displayMat.channels() == 1) {
+        cv::cvtColor(displayMat, displayMat, cv::COLOR_GRAY2BGR);
+    }
+
+    // 创建外边缘掩膜
+    cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
+    cv::imshow("edgeMask", edgeMask);
+
+    // 创建彩色掩膜（红色边缘）
+    cv::Mat colorEdge;
+    cv::cvtColor(edgeMask, colorEdge, cv::COLOR_GRAY2BGR);
+    colorEdge.setTo(cv::Scalar(0, 0, 0), edgeMask); // BGR: 红色
+
+    // 可选：创建绿色原始轮廓线
+    cv::Mat contourImage = inputImage.clone();
+    if (contourImage.channels() == 1) {
+        cv::cvtColor(contourImage, contourImage, cv::COLOR_GRAY2BGR);
+    }
+    cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
+
+    // 将边缘掩膜叠加到原图
+    // cv::addWeighted(displayMat, 0.5, colorEdge, 0.5, 0, displayMat);
+
+    cv::Mat edgeMask_8u;
+    edgeMask.convertTo(edgeMask_8u, CV_8UC1);
+
+    // cv::Mat whiteBackground = cv::Mat::ones(displayMat.size(),
+    // displayMat.type()) * 255;
+    cv::Mat whiteBackground = cv::Mat(displayMat.size(), displayMat.type(), cv::Scalar(255, 255, 255));
+    cv::Mat result;
+    displayMat.copyTo(result,
+                      edgeMask);               // 将displayMat中边缘掩膜对应的区域复制到result
+    whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
+
+    cv::imshow("Result", result);
+
+    // 显示对比图
+    cv::Mat comparison;
+    qDebug() << "contourImage" << contourImage.cols << contourImage.rows;
+    qDebug() << "displayMat" << displayMat.cols << displayMat.rows;
+    cv::hconcat(contourImage, result, comparison);
+
+    // 添加文字说明
+    std::string edgeText = "Edge Width: " + std::to_string(edgeWidth) + " pixels";
+    cv::putText(comparison, "Original Contour (Green)", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+    cv::putText(comparison, "Edge Zone (Red)", cv::Point(contourImage.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+    cv::putText(comparison, edgeText, cv::Point(10, comparison.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 0), 2);
+
+    cv::imshow("Outer Edge Detection Zone", comparison);
+
+    return result;
+}
+
+std::tuple<int, cv::Mat> DefectDetector::analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
+    auto filteredContours = ContourExtractor::findContours(inputImage, whiteThreshold, areaThreshold);
 
     cv::Mat outputImage;
     if (inputImage.channels() == 1) {
@@ -172,28 +302,45 @@ void DefectDetector::setTemplateFolder(const QStringList &descStrs, const QStrin
     }
 }
 
-void DefectDetector::addTemplate(const QString &desc,
-                                   const QString &fileName) {
-
+void DefectDetector::addTemplate(const QString &desc, const QString &fileName) {
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString());
     if (templateImg.empty()) {
         qDebug() << "templateImg is empty: " << fileName;
-        emit errorOccured(IMAGE_LOAD_FAILED,
-                          QString("templateImg is empty: %1").arg(fileName));
+        emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
         return;
     } else {
         cv::Mat tInput = templateImg.clone();
+        std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
+        double tInputArea = cv::contourArea(tInputContour);
 
-        this->addTemplateIntoMap(desc, fileName, tInput);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
+        std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(corners));
+        std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(corners));
+        std::vector<cv::Point> ct2 = m_extractor.findLargestContour(std::get<2>(corners));
+        std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(corners));
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::make_tuple(ct0, ct1, ct2, ct3);
+
+        double area0 = cv::contourArea(ct0);
+        double area1 = cv::contourArea(ct1);
+        double area2 = cv::contourArea(ct2);
+        double area3 = cv::contourArea(ct3);
+        std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
+
+
+        this->addTemplateIntoMap(desc, fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
     }
 }
 
 void DefectDetector::addTemplateIntoMap(const QString &desc,
-                                          const QString &fileName,
-                                          cv::Mat tInput) {
-
-    auto tuple = std::make_tuple(desc, fileName, tInput);
+                                        const QString &fileName,
+                                        cv::Mat tInput,
+                                        std::vector<cv::Point> tInputContour,
+                                        double tInputArea,
+                                        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners,
+                                        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours,
+                                        std::tuple<double, double, double, double> subContourAreas) {
+    auto tuple = std::make_tuple(desc, fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
     m_templateList.append(tuple);
 }
 
@@ -202,8 +349,7 @@ double DefectDetector::fullMatchImage(const QString &fileName) {
 
     if (fileName.isEmpty()) {
         qDebug() << "matchImage fileName isEmpty";
-        emit errorOccured(IMAGE_LOAD_FAILED,
-                          QString("matchImage fileName isEmpty: %1").arg(fileName));
+        emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
         return -1;
     }
 
@@ -213,21 +359,21 @@ double DefectDetector::fullMatchImage(const QString &fileName) {
     if (imageMat.empty())
         return defectScoreResult;
 
-    return this->fullMatchMat(imageMat);
+    return this->fullMatchMatPixel(imageMat);
 }
 
-double DefectDetector::fullMatchMat(cv::Mat sceneImg) {
+double DefectDetector::fullMatchMatPixel(cv::Mat inputImg) {
     QElapsedTimer timer;
     timer.start();
 
     QList<double> results;
     for (int i = 0; i < m_templateList.size(); ++i) {
-        std::tuple<QString, QString, cv::Mat> templateTuple = m_templateList[i];
+        auto templateTuple = m_templateList[i];
         QString templateName = std::get<0>(templateTuple);
         QString templateFileName = std::get<1>(templateTuple);
         cv::Mat templateInput = std::get<2>(templateTuple);
 
-        double defectScore = this->matchMat(templateInput, sceneImg);
+        double defectScore = this->matchMat(templateInput, inputImg);
         if (defectScore >= 0) {
             results.append(defectScore);
         }
@@ -269,8 +415,9 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     //         cv::blur(dInput, dInput, cv::Size(3, 3));
     //     } break;
     //     case 1: { // GaussianBlur
-    //         cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-    //         cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+    //         cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize,
+    //         blurCoreSize), 0, 0); cv::GaussianBlur(dInput, dInput,
+    //         cv::Size(blurCoreSize, blurCoreSize), 0, 0);
     //     } break;
     //     case 2: { // medianBlur
     //         cv::medianBlur(tInput, tInput, 5);
@@ -298,7 +445,8 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     // dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
 
     // resize转移到函数外部
-    // cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
+    // cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0,
+    // cv::INTER_LINEAR);
 
     // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
     // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
@@ -336,8 +484,10 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         cv::putText(dV_BGR, "D-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
 
         cv::Mat leftCol, rightCol;
-        cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR}, leftCol);  // 左侧垂直拼接
-        cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR}, rightCol); // 右侧垂直拼接
+        cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR},
+                    leftCol); // 左侧垂直拼接
+        cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR},
+                    rightCol); // 右侧垂直拼接
 
         cv::Mat concatResult;
         cv::hconcat(leftCol, rightCol, concatResult);
@@ -374,13 +524,13 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         cv::imshow("grayDiff", grayDiff);
     }
 
-
     cv::Mat thresholdDiff;
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
     // int kernalSize = 5; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernalSize, kernalSize));
-    // cv::morphologyEx(thresholdDiff, thresholdDiff, cv::MORPH_OPEN,
+    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+    // cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
+    // thresholdDiff, cv::MORPH_OPEN,
     //                  kernel);
 
     int whitePixelCount = cv::countNonZero(thresholdDiff);
@@ -395,17 +545,13 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
     return whitePixelCount;
 }
 
-bool DefectDetector::debugImageFlag() const {
-    return m_debugImageFlag;
-}
+bool DefectDetector::debugImageFlag() const { return m_debugImageFlag; }
 
 void DefectDetector::setDebugImageFlag(bool newDebugImageFlag) {
     m_debugImageFlag = newDebugImageFlag;
 }
 
-int DefectDetector::precision() const {
-    return m_precision;
-}
+int DefectDetector::precision() const { return m_precision; }
 
 void DefectDetector::setPrecision(int newPrecision) {
     m_precision = newPrecision;
@@ -419,25 +565,19 @@ void DefectDetector::setRemoveOuterBorderThickness(int newRemoveOuterBorderThick
     m_removeOuterBorderThickness = newRemoveOuterBorderThickness;
 }
 
-int DefectDetector::detectThickness() const {
-    return m_detectThickness;
-}
+int DefectDetector::detectThickness() const { return m_detectThickness; }
 
 void DefectDetector::setDetectThickness(int newDetectThickness) {
     m_detectThickness = newDetectThickness;
 }
 
-double DefectDetector::scoreThreshold() const {
-    return m_scoreThreshold;
-}
+double DefectDetector::scoreThreshold() const { return m_scoreThreshold; }
 
 void DefectDetector::setScoreThreshold(double newScoreThreshold) {
     m_scoreThreshold = newScoreThreshold;
 }
 
-int DefectDetector::whiteThreshold() const {
-    return m_whiteThreshold;
-}
+int DefectDetector::whiteThreshold() const { return m_whiteThreshold; }
 
 void DefectDetector::setWhiteThreshold(int newWhiteThreshold) {
     m_whiteThreshold = newWhiteThreshold;

@@ -116,8 +116,9 @@ std::vector<std::vector<cv::Point>> ContourExtractor::findAndFilterContours(cons
     std::vector<std::vector<cv::Point>> filteredContours;
 
     for (const auto &contour : allContours) {
-        if (contour.size() < 3)
+        if (contour.size() < 3) {
             continue; // 跳过点数太少的轮廓
+        }
 
         double area = cv::contourArea(contour);
 
@@ -218,11 +219,11 @@ std::vector<cv::Point> ContourExtractor::findLargestContour(const cv::Mat &src, 
     if (src.channels() == 1) {
         // 如果已经是灰度图，直接使用
         srcClone = src.clone();
-        qDebug() << "输入图像已经是灰度图，跳过转换";
+        // qDebug() << "输入图像已经是灰度图，跳过转换";
     } else if (src.channels() == 3 || src.channels() == 4) {
         // 如果是彩色图，转换为灰度图
         cv::cvtColor(src, srcClone, cv::COLOR_BGR2GRAY);
-        qDebug() << "已将彩色图转换为灰度图";
+        // qDebug() << "已将彩色图转换为灰度图";
     } else {
         qDebug() << "错误: 不支持的图像通道数: " << src.channels();
         return {};
@@ -254,4 +255,53 @@ std::vector<cv::Point> ContourExtractor::findLargestContour(const cv::Mat &src, 
     if (maxIdx != -1)
         return contours[maxIdx];
     return {};
+}
+
+std::vector<std::vector<cv::Point>> ContourExtractor::findContours(const cv::Mat &inputImage, int whiteThreshold, int areaThreshold) {
+    if (inputImage.empty()) {
+        // cv::Mat emptyResult(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+        // cv::putText(emptyResult, "输入图像为空", cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
+        cv::Mat emptyResult;
+        return std::vector<std::vector<cv::Point>>();
+    }
+
+    // 3. 转换为灰度图
+    cv::Mat grayImage;
+    if (inputImage.channels() == 3) {
+        cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
+    } else {
+        grayImage = inputImage.clone();
+    }
+
+    // 4. 二值化处理
+    cv::Mat binaryImage;
+    // cv::adaptiveThreshold(grayImage, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, m_adaptiveBlockSize, 2);
+    cv::threshold(grayImage, binaryImage, whiteThreshold, 255, cv::THRESH_BINARY_INV);
+
+    // cv::imshow("binaryImage", binaryImage);
+
+    // 5. 查找轮廓
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(binaryImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    // 过滤小面积轮廓
+    std::vector<std::vector<cv::Point>> filteredContours;
+    for (const auto& contour : contours) {
+        if (contour.empty() || contour.size() < 3) {
+            continue;
+        }
+
+        double area = cv::contourArea(contour);
+        if (area >= areaThreshold) {  // 只保留面积大于阈值的轮廓
+            filteredContours.push_back(contour);
+        }
+    }
+
+    // 按轮廓面积从大到小排序
+    std::sort(filteredContours.begin(), filteredContours.end(),
+              [](const std::vector<cv::Point>& contour1, const std::vector<cv::Point>& contour2) {
+                  return cv::contourArea(contour1) > cv::contourArea(contour2);
+              });
+
+    return filteredContours;
 }

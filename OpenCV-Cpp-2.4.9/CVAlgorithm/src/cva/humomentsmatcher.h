@@ -62,11 +62,11 @@ public:
 
     QList<MatchResult> quickMatchImage(const QString &fileName);
 
-    QList<MatchResult> quickMatchMat(cv::Mat sceneImg);
+    QList<MatchResult> quickMatchMat(cv::Mat inputImg);
 
     QList<MatchResult> fullMatchImage(const QString &fileName);
 
-    QList<MatchResult> fullMatchMat(cv::Mat sceneImg);
+    QList<MatchResult> fullMatchMat(cv::Mat inputImg);
 
 public:
     cv::Mat binaryProcess(cv::Mat inputImage);

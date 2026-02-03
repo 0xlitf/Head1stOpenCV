@@ -3,13 +3,14 @@
 
 #pragma execution_character_set("utf-8")
 
-#include <QObject>
+#include "contourextractor.h"
+#include "cornersplitter.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QObject>
 #include <opencv2/opencv.hpp>
 
-class DefectDetector : public QObject
-{
+class DefectDetector : public QObject {
     Q_OBJECT
 
 public:
@@ -31,226 +32,37 @@ signals:
 public:
     explicit DefectDetector(QObject *parent = nullptr);
 
-    static std::vector<std::vector<cv::Point>> findContours(const cv::Mat& inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
-
     // 创建环形掩膜（精确的环形边缘区域）
-    cv::Mat createRingEdgeMask(const cv::Mat& inputImage,
-                                const std::vector<std::vector<cv::Point>>& contours,
-                                int edgeStartWidth = 4,
-                                int edgeEndWidth = 16) {
-
-        if (contours.empty()) {
-            return cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        }
-
-        cv::Mat mask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        cv::Mat outerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        cv::Mat innerMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        cv::Mat edgeMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-
-        // 1. 绘制原始轮廓（填充）
-        cv::drawContours(mask, contours, -1, cv::Scalar(255), CV_FILLED);
-
-        // 2. 创建外层边界（向外扩展，可选）
-        cv::Mat kernelOuter = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                       cv::Size(2*edgeStartWidth + 1,
-                                                                2*edgeStartWidth + 1));
-        cv::erode(mask, outerMask, kernelOuter);
-
-        // 3. 创建内层边界（向内腐蚀）
-        cv::Mat kernelInner = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                       cv::Size(2*edgeEndWidth + 1,
-                                                                2*edgeEndWidth + 1));
-        cv::erode(mask, innerMask, kernelInner);
-
-        // 4. 环形区域 = 外层边界 - 内层边界
-        cv::subtract(outerMask, innerMask, edgeMask);
-
-        // 5. 优化：只保留与原始轮廓相交的环形区域
-        cv::Mat finalMask;
-        cv::bitwise_and(edgeMask, mask, finalMask);
-
-        return finalMask;
-    }
+    cv::Mat createRingEdgeMask(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeStartWidth = 4, int edgeEndWidth = 16);
 
     // 处理环形边缘，提取边缘区域
-    cv::Mat processRingEdge(const cv::Mat& inputImage,
-                             const std::vector<std::vector<cv::Point>>& contours,
-                            int edgeStartWidth = 4,
-                            int edgeEndWidth = 16) {
-
-        if (inputImage.empty() || contours.empty()) {
-            return cv::Mat();
-        }
-
-        // 创建环形边缘掩膜
-        cv::Mat edgeMask = createRingEdgeMask(inputImage, contours, edgeStartWidth, edgeEndWidth);
-        
-        // 可视化边缘掩膜
-        if (m_debugImageFlag) {
-            cv::imshow("edgeMask", edgeMask);
-        }
-
-        // 创建结果图像：只保留环形边缘区域，其他区域设为白色
-        cv::Mat result = cv::Mat(inputImage.size(), inputImage.type(), cv::Scalar(255, 255, 255));
-        inputImage.copyTo(result, edgeMask);
-
-        return result;
-    }
+    cv::Mat processRingEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeStartWidth = 4, int edgeEndWidth = 16);
 
     // 创建外边缘掩膜（向内6个像素的环形区域）
-    cv::Mat createOuterEdgeMask(const cv::Mat& inputImage,
-                                const std::vector<std::vector<cv::Point>>& contours,
-                                int edgeWidth = 6) {
-
-        if (contours.empty()) {
-            return cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        }
-
-        cv::Mat mask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-        cv::Mat edgeMask = cv::Mat::zeros(inputImage.size(), CV_8UC1);
-
-        // 1. 绘制原始轮廓（填充）
-        cv::drawContours(mask, contours, -1, cv::Scalar(255), CV_FILLED);
-
-        // 2. 创建腐蚀后的内部区域
-        cv::Mat innerMask = mask.clone();
-        if (edgeWidth > 0) {
-            cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                       cv::Size(2*edgeWidth + 1,
-                                                                2*edgeWidth + 1));
-            cv::erode(mask, innerMask, kernel);
-        }
-
-        // 3. 外边缘掩膜 = 原始掩膜 - 内部掩膜（环形区域）
-        cv::subtract(mask, innerMask, edgeMask);
-
-        return edgeMask;
-    }
+    cv::Mat createOuterEdgeMask(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth = 6);
 
     // 显示外边缘掩膜
-    cv::Mat processOuterEdge(const cv::Mat& inputImage,
-                          const std::vector<std::vector<cv::Point>>& contours,
-                          int edgeWidth = 6) {
-
-        if (inputImage.empty() || contours.empty()) {
-            return cv::Mat();
-        }
-
-        // 克隆原图用于显示
-        cv::Mat displayMat = inputImage.clone();
-        if (displayMat.channels() == 1) {
-            cv::cvtColor(displayMat, displayMat, cv::COLOR_GRAY2BGR);
-        }
-
-        // 创建外边缘掩膜
-        cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
-        cv::imshow("edgeMask", edgeMask);
-
-        // 创建彩色掩膜（红色边缘）
-        cv::Mat colorEdge;
-        cv::cvtColor(edgeMask, colorEdge, cv::COLOR_GRAY2BGR);
-        colorEdge.setTo(cv::Scalar(0, 0, 0), edgeMask);  // BGR: 红色
-
-        // 可选：创建绿色原始轮廓线
-        cv::Mat contourImage = inputImage.clone();
-        if (contourImage.channels() == 1) {
-            cv::cvtColor(contourImage, contourImage, cv::COLOR_GRAY2BGR);
-        }
-        cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
-
-        // 将边缘掩膜叠加到原图
-        // cv::addWeighted(displayMat, 0.5, colorEdge, 0.5, 0, displayMat);
-
-        cv::Mat edgeMask_8u;
-        edgeMask.convertTo(edgeMask_8u, CV_8UC1);
-
-        // cv::Mat whiteBackground = cv::Mat::ones(displayMat.size(), displayMat.type()) * 255;
-        cv::Mat whiteBackground = cv::Mat(displayMat.size(), displayMat.type(), cv::Scalar(255, 255, 255));
-        cv::Mat result;
-        displayMat.copyTo(result, edgeMask); // 将displayMat中边缘掩膜对应的区域复制到result
-        whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
-
-        return result;
-    }
+    cv::Mat processOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth = 6);
 
     // 显示外边缘掩膜
-    cv::Mat displayOuterEdge(const cv::Mat& inputImage,
-                          const std::vector<std::vector<cv::Point>>& contours,
-                          int edgeWidth = 6) {
-
-        if (inputImage.empty() || contours.empty()) {
-            return cv::Mat();
-        }
-
-        // 克隆原图用于显示
-        cv::Mat displayMat = inputImage.clone();
-        if (displayMat.channels() == 1) {
-            cv::cvtColor(displayMat, displayMat, cv::COLOR_GRAY2BGR);
-        }
-
-        // 创建外边缘掩膜
-        cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
-        cv::imshow("edgeMask", edgeMask);
-
-        // 创建彩色掩膜（红色边缘）
-        cv::Mat colorEdge;
-        cv::cvtColor(edgeMask, colorEdge, cv::COLOR_GRAY2BGR);
-        colorEdge.setTo(cv::Scalar(0, 0, 0), edgeMask);  // BGR: 红色
-
-        // 可选：创建绿色原始轮廓线
-        cv::Mat contourImage = inputImage.clone();
-        if (contourImage.channels() == 1) {
-            cv::cvtColor(contourImage, contourImage, cv::COLOR_GRAY2BGR);
-        }
-        cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
-
-        // 将边缘掩膜叠加到原图
-        // cv::addWeighted(displayMat, 0.5, colorEdge, 0.5, 0, displayMat);
-
-        cv::Mat edgeMask_8u;
-        edgeMask.convertTo(edgeMask_8u, CV_8UC1);
-
-        // cv::Mat whiteBackground = cv::Mat::ones(displayMat.size(), displayMat.type()) * 255;
-        cv::Mat whiteBackground = cv::Mat(displayMat.size(), displayMat.type(), cv::Scalar(255, 255, 255));
-        cv::Mat result;
-        displayMat.copyTo(result, edgeMask); // 将displayMat中边缘掩膜对应的区域复制到result
-        whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
-
-        cv::imshow("Result", result);
-
-
-        // 显示对比图
-        cv::Mat comparison;
-        qDebug() << "contourImage" << contourImage.cols << contourImage.rows;
-        qDebug() << "displayMat" << displayMat.cols << displayMat.rows;
-        cv::hconcat(contourImage, result, comparison);
-
-        // 添加文字说明
-        std::string edgeText = "Edge Width: " + std::to_string(edgeWidth) + " pixels";
-        cv::putText(comparison, "Original Contour (Green)",
-                    cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX,
-                    0.7, cv::Scalar(0, 255, 0), 2);
-        cv::putText(comparison, "Edge Zone (Red)",
-                    cv::Point(contourImage.cols + 10, 30),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
-        cv::putText(comparison, edgeText,
-                    cv::Point(10, comparison.rows - 20),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 0), 2);
-
-        cv::imshow("Outer Edge Detection Zone", comparison);
-
-        return result;
-    }
+    cv::Mat displayOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth = 6);
 
     // 首先调用这个接口，分析图片中有几个物料，多的直接吹掉
-    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
+    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
 
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
     double fullMatchImage(const QString &fileName);
 
-    double fullMatchMat(cv::Mat sceneImg);
+    double p0_matchArea(std::vector<cv::Point> inputMatContour);
+
+    double p1_matchShapes(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+
+    double p2_matchSubShapes(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+
+    double p3_matchMatPixels(std::vector<cv::Point> templateMatContour, std::vector<cv::Point> inputMatContour);
+
+    double fullMatchMatPixel(cv::Mat inputImg);
 
     double scoreThreshold() const;
     void setScoreThreshold(double newScoreThreshold);
@@ -264,9 +76,7 @@ public:
     int removeOuterBorderThickness() const;
     void setRemoveOuterBorderThickness(int newRemoveOuterBorderThickness);
 
-    bool hasDefect(double scoreThreshold){
-        return scoreThreshold > m_scoreThreshold;
-    }
+    bool hasDefect(double scoreThreshold) { return scoreThreshold > m_scoreThreshold; }
 
     int precision() const;
     void setPrecision(int newPrecision);
@@ -279,20 +89,30 @@ public:
 private:
     void addTemplate(const QString &desc, const QString &fileName);
 
-    void addTemplateIntoMap(const QString &desc, const QString &fileName, cv::Mat tInput);
+    void addTemplateIntoMap(const QString &desc,
+                            const QString &fileName,
+                            cv::Mat tInput, std::vector<cv::Point>,
+                            double,
+                            std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>,
+                            std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
+                            std::tuple<double, double, double, double>);
 
 private:
-    QList<std::tuple<QString, QString, cv::Mat>> m_templateList;
+    QList<std::tuple<QString, QString, cv::Mat, std::vector<cv::Point>, double, std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>, std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>, std::tuple<double, double, double, double>>> m_templateList;
     int m_removeOuterBorderThickness{3}; // 比对时忽略的边缘厚度
-    int m_detectThickness{6}; // 比对时检测的边缘厚度
-    int m_whiteThreshold{35}; // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
-    double m_scoreThreshold{15}; // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
+    int m_detectThickness{6};            // 比对时检测的边缘厚度
+    int m_whiteThreshold{35};            // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
+    double m_scoreThreshold{15};         // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
 
     // 以下参数不改
-    int m_precision{2}; // 取决于进行几次下采样，暂时不可更改
+    int m_precision{2};   // 取决于进行几次下采样，暂时不可更改
     bool m_useHSV{false}; // false true
 
     bool m_debugImageFlag{true}; // false true 是否输出调试结果图片
+
+    CornerSplitter m_cornerSplitter;
+
+    ContourExtractor m_extractor;
 };
 
 #endif // DEFECTDETECTOR_H

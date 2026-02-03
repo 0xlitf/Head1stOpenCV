@@ -299,7 +299,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchImage(const QString &fileName) {
     return this->quickMatchMat(imageMat);
 }
 
-QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
+QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat inputImg) {
     // 输入1通道黑底白物
     // cv::imshow("sceneImg", sceneImg);
 
@@ -308,11 +308,11 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat sceneImg) {
 
     // 2. 提取场景所有轮廓
     std::vector<std::vector<cv::Point>> contoursInScene;
-    cv::findContours(sceneImg, contoursInScene, cv::RETR_EXTERNAL,
+    cv::findContours(inputImg, contoursInScene, cv::RETR_EXTERNAL,
                      cv::CHAIN_APPROX_SIMPLE);
     qDebug() << "findContours contours.size: " << contoursInScene.size();
 
-    cv::Mat resultImg = sceneImg.clone();
+    cv::Mat resultImg = inputImg.clone();
     if (auto showContoursImage = false) {
 
         // 3. 复制一份场景图用于绘制结果
