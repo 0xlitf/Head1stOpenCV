@@ -49,9 +49,6 @@ public:
     // 显示外边缘掩膜
     cv::Mat displayOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth = 6);
 
-    // 首先调用这个接口，分析图片中有几个物料，多的直接吹掉
-    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
-
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
     void setInputMat(cv::Mat inputMat);

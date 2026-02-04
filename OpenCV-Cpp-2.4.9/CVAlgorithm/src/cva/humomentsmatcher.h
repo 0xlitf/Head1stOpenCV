@@ -37,8 +37,6 @@ signals:
 
 // 外部调用的static接口
 public:
-    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat& inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
-
     static cv::Mat drawResultOnImage(const cv::Mat &inputImage,
                                       const MatchResult &result);
 

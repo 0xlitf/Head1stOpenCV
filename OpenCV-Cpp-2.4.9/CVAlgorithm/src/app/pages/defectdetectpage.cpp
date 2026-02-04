@@ -28,6 +28,12 @@ void DefectDetectPage::test() {
                                     // 明显缺角 2026-01-15_16-09-20_925.png
                                .toStdString());
 
+    std::tuple<int, cv::Mat> analyzeResult = ContourExtractor::analyzeAndDrawContour(dInputMat);
+    if (std::get<0>(analyzeResult) != 1) {
+        qDebug() << "analyzeResult 物体数量 != 1";
+        cv::imshow("analyzeResult", std::get<1>(analyzeResult));
+    }
+
     detector.setInputMat(dInputMat);
 
     std::tuple<bool, double> areaDiff = detector.p0_matchArea(); // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值

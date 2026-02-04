@@ -22,6 +22,9 @@ public:
         m_adaptiveBlockSize = 11;
     }
 
+    // 首先调用这个接口，分析图片中有几个物料，多的直接吹掉
+    static std::tuple<int, cv::Mat> analyzeAndDrawContour(const cv::Mat &inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
+
     // 设置参数
     void setParameters(double minArea = 1000.0, bool removeNoise = true,
                        int noiseKernelSize = 3, int adaptiveBlockSize = 11) {
