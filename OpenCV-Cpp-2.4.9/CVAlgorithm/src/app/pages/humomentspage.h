@@ -18,7 +18,7 @@ public:
     void createComponents();
     void createConnections();
 
-    void ruHuMomentsMatch(const QString &filePath);
+    void runHuMomentsMatch(const QString &filePath);
 
 private:
     void loadConfig();

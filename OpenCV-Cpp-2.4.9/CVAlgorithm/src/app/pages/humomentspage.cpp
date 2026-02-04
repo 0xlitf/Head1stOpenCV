@@ -1,5 +1,4 @@
 ﻿#include "humomentspage.h"
-#include "controls/groupbox.h"
 #include "controls/clickablewidget.h"
 #include "imageutils.h"
 #include "utils/fileutils.h"
@@ -41,7 +40,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = imageFilePath;
 
             m_imageGridWidget->clearAllImages();
-            this->ruHuMomentsMatch(imageFilePath);
+            this->runHuMomentsMatch(imageFilePath);
         });
         connect(roundWidget, &ClickableWidget::clicked, this, [=]() {
             qDebug() << "selectFileWidget->getSelectFile()" << m_selectFileWidget->getSelectFile();
@@ -49,7 +48,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = m_selectFileWidget->getSelectFile();
 
             m_imageGridWidget->clearAllImages();
-            this->ruHuMomentsMatch(m_selectFileWidget->getSelectFile());
+            this->runHuMomentsMatch(m_selectFileWidget->getSelectFile());
         });
 
         Layouting::ColumnWithMargin{m_selectFileWidget, Layouting::Space{5}, roundWidget}.attachTo(fileGroupBox);
@@ -83,7 +82,7 @@ void HuMomentsPage::createComponents() {
             m_currentProcessImageFile = imageFilePath;
 
             m_imageGridWidget->clearAllImages();
-            this->ruHuMomentsMatch(imageFilePath);
+            this->runHuMomentsMatch(imageFilePath);
         });
 
         connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
@@ -330,11 +329,11 @@ void HuMomentsPage::createConnections() {
         qDebug() << "paramChanged" << m_scoreThresholdSpinBox->value() << m_whiteThresholdSpinBox->value() << m_currentProcessImageFile;
 
         // m_imageGridWidget->clearAllImages();
-        this->ruHuMomentsMatch(m_currentProcessImageFile);
+        this->runHuMomentsMatch(m_currentProcessImageFile);
     });
 }
 
-void HuMomentsPage::ruHuMomentsMatch(const QString &filePath) {
+void HuMomentsPage::runHuMomentsMatch(const QString &filePath) {
 
     m_templateGridWidget->clearAllImages();
 

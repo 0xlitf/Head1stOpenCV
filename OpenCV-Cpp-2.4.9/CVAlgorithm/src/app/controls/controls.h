@@ -4,3 +4,4 @@
 #include "lineedit.h"
 #include "textedit.h"
 #include "normalbutton.h"
+#include "groupbox.h"
