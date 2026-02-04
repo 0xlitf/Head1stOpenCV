@@ -374,7 +374,7 @@ double DefectDetector::p0_matchArea(double inputMatArea) {
                 minResult = value;
             }
         }
-        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+        qDebug() << "p0_matchArea" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
     return minResult;
@@ -410,7 +410,7 @@ double DefectDetector::p1_matchShapes(std::vector<cv::Point> inputMatContour) {
                 minResult = value;
             }
         }
-        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+        qDebug() << "p1_matchShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
     return minResult;
@@ -440,7 +440,7 @@ double DefectDetector::p2_matchSubAreas(std::tuple<double, double, double, doubl
 
         QList<double> areaDiffs;
         areaDiffs << areaDiff0 << areaDiff1 << areaDiff2 << areaDiff3;
-        qDebug() << "areaDiffs" << areaDiffs;
+        qDebug() << "p2_matchSubAreas areaDiffs" << areaDiffs;
         double areaDiffMax = std::max({areaDiff0, areaDiff1, areaDiff2, areaDiff3});
         if (areaDiffMax >= 0) {
             results.append(areaDiffMax);
@@ -454,7 +454,7 @@ double DefectDetector::p2_matchSubAreas(std::tuple<double, double, double, doubl
                 minResult = value;
             }
         }
-        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+        qDebug() << "p2_matchSubAreas" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
     return minResult;
@@ -484,7 +484,7 @@ double DefectDetector::p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std:
 
         QList<double> defectScores;
         defectScores << defectScore0 << defectScore1 << defectScore2 << defectScore3;
-        qDebug() << "defectScores" << defectScores;
+        qDebug() << "p3_matchSubShapes matchShapes" << defectScores;
         double defectScoreMax = std::max({defectScore0, defectScore1, defectScore2, defectScore3});
         if (defectScoreMax >= 0) {
             results.append(defectScoreMax);
@@ -498,7 +498,7 @@ double DefectDetector::p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std:
                 minResult = value;
             }
         }
-        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+        qDebug() << "p3_matchSubShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
     return minResult;
@@ -565,7 +565,7 @@ double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
         cv::waitKey(0);
 
         double defectScore = this->matchMatPixel(tEdge, dEdge);
-        qDebug() << "defectScore:" << defectScore << ", matchMat elapsed:" << timer.elapsed();
+        qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << timer.nsecsElapsed();
 
         if (defectScore >= 0) {
             results.append(defectScore);
@@ -580,7 +580,7 @@ double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
                 minResult = value;
             }
         }
-        qDebug() << results << "最小值:" << minResult << ", elapsed" << timer.elapsed();
+        qDebug() << "p4_fullMatchMatPixel" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
     return minResult;

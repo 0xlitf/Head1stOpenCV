@@ -490,11 +490,10 @@ void DefectDetectPage::testCorner() {
 void DefectDetectPage::testP0() {
     // 面积检测一般差异小于0.05
 
+    // 将下面5个对象作为类成员变量
     MinimumBounding mini;
     BGR2HSVConverter converter;
     DefectDetector detector;
-
-    // 1. 创建轮廓提取器
     ContourExtractor extractor;
     CornerSplitter cornerSplitter;
 
@@ -528,19 +527,19 @@ void DefectDetectPage::testP0() {
     double area3 = cv::contourArea(ct3);
     std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
 
-    double areaDiff = detector.p0_matchArea(dInputArea); // 0.01
+    double areaDiff = detector.p0_matchArea(dInputArea); // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
     qDebug() << "areaDiff" << areaDiff;
 
-    double shapeDiff = detector.p1_matchShapes(dInputContour); // 0.05
+    double shapeDiff = detector.p1_matchShapes(dInputContour); // 整体轮廓形状分数，小于0.01~0.05合格
     qDebug() << "shapeDiff" << shapeDiff;
 
-    double subAreaDiff = detector.p2_matchSubAreas(subContourAreas); // 0.02
+    double subAreaDiff = detector.p2_matchSubAreas(subContourAreas); // 子区域轮廓面积，小于0.02合格
     qDebug() << "subAreaDiff" << subAreaDiff;
 
-    double subShapeDiff = detector.p3_matchSubShapes(subContours); // 0.02
+    double subShapeDiff = detector.p3_matchSubShapes(subContours); // 子区域轮廓形状分数，小于0.002合格
     qDebug() << "subShapeDiff" << subShapeDiff;
 
-    double defectScore = detector.p4_fullMatchMatPixel(dInput); // 0.02
+    double defectScore = detector.p4_fullMatchMatPixel(dInput); // 缺陷像素点数，小于15合格
     qDebug() << "defectScore" << defectScore;
 
 }
