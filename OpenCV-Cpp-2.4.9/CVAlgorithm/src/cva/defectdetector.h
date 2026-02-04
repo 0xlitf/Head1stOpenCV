@@ -126,7 +126,7 @@ private:
     // 以下参数暂时不改
     int m_precision{2};   // 取决于进行几次下采样，暂时不可更改
     bool m_useHSV{false}; // false true
-    bool m_debugImageFlag{true}; // false true 是否输出调试结果图片
+    bool m_debugImageFlag{false}; // false true 是否输出调试结果图片
 
     double m_overallAreaThreshold{0.02}; // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
     double m_overallShapeThreshold{0.02}; // 整体轮廓形状分数，小于0.02~0.05合格

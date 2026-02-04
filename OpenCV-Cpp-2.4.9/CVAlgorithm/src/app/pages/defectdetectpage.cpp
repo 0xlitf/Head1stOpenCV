@@ -41,8 +41,6 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
 
     auto dInputMat = cv::imread(filePath.toStdString());
 
-    cv::imshow("dInputMat", dInputMat);
-
     std::tuple<int, cv::Mat> analyzeResult = ContourExtractor::analyzeAndDrawContour(dInputMat);
     int count = std::get<0>(analyzeResult);
     if (count != 1) {
@@ -52,6 +50,8 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
 
     detector.setInputMat(dInputMat);
 
+    QElapsedTimer timer;
+    timer.start();
     std::tuple<bool, double> areaDiff = detector.p0_matchArea(); // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
     std::tuple<bool, double> shapeDiff = detector.p1_matchShapes(); // 整体轮廓形状分数，小于0.01~0.05合格
     std::tuple<bool, double> subAreaDiff = detector.p2_matchSubAreas(); // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
@@ -72,7 +72,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     m_resultText->append(QString("<font color=\"%1\">子轮廓面积 %2 %3</font>").arg(std::get<0>(subAreaDiff) ? "green" : "red").arg(std::get<0>(subAreaDiff) ? "通过" : "失败").arg(std::get<1>(subAreaDiff)));
     m_resultText->append(QString("<font color=\"%1\">子轮廓分数 %2 %3</font>").arg(std::get<0>(subShapeDiff) ? "green" : "red").arg(std::get<0>(subShapeDiff) ? "通过" : "失败").arg(std::get<1>(subShapeDiff)));
     m_resultText->append(QString("<font color=\"%1\">缺陷像素 %2 %3</font>").arg(std::get<0>(defectScore) ? "green" : "red").arg(std::get<0>(defectScore) ? "通过" : "失败").arg(std::get<1>(defectScore)));
-
+    m_resultText->append(QString("elapsed: %1 ms").arg(double(timer.nsecsElapsed()) / 1e6));
     m_resultText->append("-------------------------");
 }
 

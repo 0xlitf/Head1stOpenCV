@@ -246,10 +246,10 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(m_corners));
     m_subContours = std::make_tuple(ct0, ct1, ct2, ct3);
 
-    cv::imshow("0", std::get<0>(m_corners));
-    cv::imshow("1", std::get<1>(m_corners));
-    cv::imshow("2", std::get<2>(m_corners));
-    cv::imshow("3", std::get<3>(m_corners));
+    // cv::imshow("0", std::get<0>(m_corners));
+    // cv::imshow("1", std::get<1>(m_corners));
+    // cv::imshow("2", std::get<2>(m_corners));
+    // cv::imshow("3", std::get<3>(m_corners));
 
     double area0 = cv::contourArea(ct0);
     double area1 = cv::contourArea(ct1);
@@ -521,8 +521,8 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
         cv::Mat tEdge = this->processRingEdge(tInput, tContour, m_outterWidth, m_innerWidth);
         cv::Mat dEdge = this->processRingEdge(dInput, tContour, m_outterWidth, m_innerWidth);
 
-        cv::imshow("tEdge", tEdge);
-        cv::imshow("dEdge", dEdge);
+        // cv::imshow("tEdge", tEdge);
+        // cv::imshow("dEdge", dEdge);
 
         double defectScore = this->matchMatPixel(tEdge, dEdge);
         qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << timer.nsecsElapsed();
@@ -530,7 +530,7 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
         if (defectScore >= 0) {
             results.append(defectScore);
         }
-        break;
+        // break;
     }
 
     double minResult{9999.};
