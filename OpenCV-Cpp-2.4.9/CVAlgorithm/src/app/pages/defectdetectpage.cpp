@@ -41,6 +41,9 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
 
     auto dInputMat = cv::imread(filePath.toStdString());
 
+    MinimumBounding mini;
+    m_imageGridWidget->addImage("dInputMat", mini.findAndCropObject(dInputMat));
+
     std::tuple<int, cv::Mat> analyzeResult = ContourExtractor::analyzeAndDrawContour(dInputMat);
     int count = std::get<0>(analyzeResult);
     if (count != 1) {
@@ -198,6 +201,7 @@ void DefectDetectPage::createComponents() {
 
     m_imageGridWidget = new ImageGridWidget;
     m_imageGridWidget->setMaxColumns(1);
+    m_imageGridWidget->setMaxRows(1);
     // m_imageGridWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     GroupBox *imageResultGroupBox = new GroupBox("输入图片处理结果");

@@ -128,11 +128,13 @@ private:
     bool m_useHSV{false}; // false true
     bool m_debugImageFlag{false}; // false true 是否输出调试结果图片
 
-    double m_overallAreaThreshold{0.02}; // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
-    double m_overallShapeThreshold{0.02}; // 整体轮廓形状分数，小于0.02~0.05合格
+    // 下列参数值暂时只适用于矩形
+    double m_overallAreaThreshold{0.02}; // 整体轮廓面积，小于0.02合格，对于比较厚的物料，适当增大本阈值
+    double m_overallShapeThreshold{0.01}; // 整体轮廓形状分数，小于0.01~0.05合格
     double m_subAreaThreshold{0.02}; // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
     double m_subShapeThreshold{0.002}; // 子区域轮廓形状分数，小于0.002合格
 
+    // 非矩形物料暂时不要用像素检测
     int m_outterWidth{4};
     int m_innerWidth{10};
     double m_scoreThreshold{15}; // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20

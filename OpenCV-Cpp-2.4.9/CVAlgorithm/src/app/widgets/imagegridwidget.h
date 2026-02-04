@@ -20,6 +20,9 @@ public:
     int maxColumns() const;
     void setMaxColumns(int newMaxColumns);
 
+    int maxRows() const;
+    void setMaxRows(int newMaxRows);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
@@ -34,6 +37,7 @@ private:
     QGridLayout *m_gridLayout;
     QMap<QString, ImageGridItem *> m_imageItems;
     int m_maxColumns{3};
+    int m_maxRows{2};
 
     QTimer *m_resizeTimer = new QTimer(this);
     double idealItemWidth{-1};
