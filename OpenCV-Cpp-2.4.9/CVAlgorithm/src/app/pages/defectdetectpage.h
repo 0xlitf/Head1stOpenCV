@@ -27,7 +27,7 @@ private:
 
 private:
     class ImageGridWidget *m_imageGridWidget = nullptr;
-    class TemplateGridWidget *m_templateGridWidget = nullptr;
+    class ImageGridWidget *m_templateGridWidget = nullptr;
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;

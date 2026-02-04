@@ -63,10 +63,6 @@ public:
 
     std::tuple<bool, double> p4_fullMatchMatPixel();
 
-    double fullMatchImagePixel(const QString &fileName);
-
-    double fullMatchMatPixel(cv::Mat inputImg);
-
     double scoreThreshold() const;
     void setScoreThreshold(double newScoreThreshold);
 
@@ -81,9 +77,9 @@ public:
     bool debugImageFlag() const;
     void setDebugImageFlag(bool newDebugImageFlag);
 
-    double matchMat(cv::Mat templateInput, cv::Mat defectInput);
-
     double matchMatPixel(cv::Mat templateInput, cv::Mat defectInput);
+
+    cv::Mat thresholdDiff() const;
 
 private:
     void addTemplate(const QString &desc, const QString &fileName);
@@ -110,6 +106,8 @@ private: // 工具类
     std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> m_corners;
     std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> m_subContours;
     std::tuple<double, double, double, double> m_subContourAreas;
+
+    cv::Mat m_thresholdDiff;
 
 private:
     QList<std::tuple<QString,

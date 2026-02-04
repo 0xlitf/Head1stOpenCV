@@ -67,6 +67,8 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "p3_matchSubShapes subShapeDiff" << std::get<0>(subShapeDiff) << std::get<1>(subShapeDiff);
     qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore);
 
+    m_templateGridWidget->addImage("detector.thresholdDiff", detector.thresholdDiff());
+
     QString color = std::get<0>(areaDiff) ? "green" : "red";
     m_resultText->append("-------------------------");
     m_resultText->append(m_currentProcessImageFile);
@@ -208,8 +210,9 @@ void DefectDetectPage::createComponents() {
     // imageResultGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
     Layouting::ColumnWithMargin{m_imageGridWidget}.attachTo(imageResultGroupBox);
 
-    m_templateGridWidget = new TemplateGridWidget;
-    m_templateGridWidget->setMaxColumns(2);
+    m_templateGridWidget = new ImageGridWidget;
+    m_templateGridWidget->setMaxColumns(1);
+    m_templateGridWidget->setMaxRows(1);
     // m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     m_resultText = new TextEdit;

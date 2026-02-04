@@ -103,7 +103,7 @@ int ImageGridWidget::calculateIdealItemWidth(int parentWidth) {
 }
 
 int ImageGridWidget::calculateIdealItemHeight(int parentHeight) {
-    int availableHeight = parentHeight - 30;
+    int availableHeight = m_maxRows > 1 ? parentHeight - 30 : parentHeight - 20;
     int idealHeight = availableHeight / m_maxRows;
 
     idealHeight = std::max(120, idealHeight);

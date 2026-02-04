@@ -300,6 +300,10 @@ void DefectDetector::addTemplateIntoMap(const QString &desc,
     m_templateList.append(tuple);
 }
 
+cv::Mat DefectDetector::thresholdDiff() const {
+    return m_thresholdDiff;
+}
+
 std::tuple<bool, double> DefectDetector::p0_matchArea() {
     double inputMatArea = m_inputMatArea;
 
@@ -656,220 +660,24 @@ double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput)
         cv::imshow("grayDiff", grayDiff);
     }
 
-    cv::Mat thresholdDiff;
-    cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
+    cv::threshold(grayDiff, m_thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    // int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
-    // cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
-    // thresholdDiff, cv::MORPH_OPEN,
-    //                  kernel);
+    int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+    cv::Size(kernalSize, kernalSize)); cv::morphologyEx(m_thresholdDiff,
+    m_thresholdDiff, cv::MORPH_OPEN,
+                     kernel);
 
-    int whitePixelCount = cv::countNonZero(thresholdDiff);
+    int whitePixelCount = cv::countNonZero(m_thresholdDiff);
 
     if (m_debugImageFlag) {
         cv::Mat concatDiffResult;
 
-        cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
+        cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, m_thresholdDiff}, concatDiffResult);
         cv::imshow("concatDiffResult", concatDiffResult);
     }
 
     qDebug() << "matchMatPixel , elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
-
-    return whitePixelCount;
-}
-
-double DefectDetector::fullMatchImagePixel(const QString &fileName) {
-    double defectScoreResult{-1};
-
-    if (fileName.isEmpty()) {
-        qDebug() << "matchImage fileName isEmpty";
-        emit errorOccured(IMAGE_LOAD_FAILED, QString("matchImage fileName isEmpty: %1").arg(fileName));
-        return -1;
-    }
-
-    emit sendLog(QString("matchImage: %1").arg(fileName));
-
-    cv::Mat imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
-    if (imageMat.empty())
-        return defectScoreResult;
-
-    return this->fullMatchMatPixel(imageMat);
-}
-
-double DefectDetector::fullMatchMatPixel(cv::Mat inputImg) {
-    QElapsedTimer timer;
-    timer.start();
-
-    QList<double> results;
-    for (int i = 0; i < m_templateList.size(); ++i) {
-        auto templateTuple = m_templateList[i];
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-
-        double defectScore = this->matchMat(templateInput, inputImg);
-        if (defectScore >= 0) {
-            results.append(defectScore);
-        }
-    }
-
-    double defectScoreResult{9999};
-    if (!results.isEmpty()) {
-        for (const double &value : results) {
-            if (value < defectScoreResult) {
-                defectScoreResult = value;
-            }
-        }
-        qDebug() << results << "最小值:" << defectScoreResult;
-    }
-
-    return defectScoreResult;
-}
-
-double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
-    if (templateInput.empty() || defectInput.empty()) {
-        QMessageBox::warning(nullptr, "错误", "请先加载正常图像和缺陷图像!");
-        return -1;
-    }
-
-    MinimumBounding mini;
-
-    cv::Mat tInput = templateInput.clone();
-    cv::Mat dInput = defectInput.clone();
-
-    cv::pyrDown(tInput, tInput);
-    cv::pyrDown(dInput, dInput);
-
-    for (int i = 0; i < 2; ++i) {
-        int blurCoreSize = 3;
-        // blur GaussianBlur medianBlur bilateralFilter
-        switch (1) {
-        case 0: { // blur
-            cv::blur(tInput, tInput, cv::Size(3, 3));
-            cv::blur(dInput, dInput, cv::Size(3, 3));
-        } break;
-        case 1: { // GaussianBlur
-            cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize,
-            blurCoreSize), 0, 0); cv::GaussianBlur(dInput, dInput,
-            cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-        } break;
-        case 2: { // medianBlur
-            cv::medianBlur(tInput, tInput, 5);
-            cv::medianBlur(dInput, dInput, 5);
-        } break;
-        case 3: { // bilateralFilter
-            cv::bilateralFilter(tInput, tInput, 9, 50, 10);
-            cv::bilateralFilter(dInput, dInput, 9, 50, 10);
-        } break;
-        }
-    }
-
-    // if (m_debugImageFlag) {
-    //     cv::imshow("m_normalImage origin", tInput);
-    //     cv::imshow("m_defectImage origin", dInput);
-    // }
-
-    if (m_useHSV) {
-        BGR2HSVConverter cvt;
-        tInput = cvt.convertBGR2HSV(tInput);
-        dInput = cvt.convertBGR2HSV(dInput);
-    }
-
-    // resize转移到函数外部
-    cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0,
-    cv::INTER_LINEAR);
-
-    if (m_debugImageFlag) {
-        cv::imshow("tEdge hsv", tInput);
-        cv::imshow("dEdge hsv", dInput);
-    }
-
-    std::vector<cv::Mat> thsvChannels;
-    cv::split(tInput, thsvChannels);
-    cv::Mat thChannel = thsvChannels[0]; // H通道
-    cv::Mat tsChannel = thsvChannels[1]; // S通道
-    cv::Mat tvChannel = thsvChannels[2]; // V通道
-
-    std::vector<cv::Mat> dhsvChannels;
-    cv::split(dInput, dhsvChannels);
-    cv::Mat dhChannel = dhsvChannels[0]; // H通道
-    cv::Mat dsChannel = dhsvChannels[1]; // S通道
-    cv::Mat dvChannel = dhsvChannels[2]; // V通道
-
-    if (bool showConcat = false) {
-        cv::Mat tH_BGR, tS_BGR, tV_BGR, dH_BGR, dS_BGR, dV_BGR;
-        cv::cvtColor(thChannel, tH_BGR, cv::COLOR_GRAY2BGR);
-        cv::cvtColor(tsChannel, tS_BGR, cv::COLOR_GRAY2BGR);
-        cv::cvtColor(tvChannel, tV_BGR, cv::COLOR_GRAY2BGR);
-        cv::cvtColor(dhChannel, dH_BGR, cv::COLOR_GRAY2BGR);
-        cv::cvtColor(dsChannel, dS_BGR, cv::COLOR_GRAY2BGR);
-        cv::cvtColor(dvChannel, dV_BGR, cv::COLOR_GRAY2BGR);
-        cv::putText(tH_BGR, "T-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
-        cv::putText(tS_BGR, "T-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
-        cv::putText(tV_BGR, "T-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
-        cv::putText(dH_BGR, "D-H", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
-        cv::putText(dS_BGR, "D-S", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
-        cv::putText(dV_BGR, "D-V", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 0, 0), 2);
-
-        cv::Mat leftCol, rightCol;
-        cv::vconcat(std::vector<cv::Mat>{tH_BGR, tS_BGR, tV_BGR},
-                    leftCol); // 左侧垂直拼接
-        cv::vconcat(std::vector<cv::Mat>{dH_BGR, dS_BGR, dV_BGR},
-                    rightCol); // 右侧垂直拼接
-
-        cv::Mat concatResult;
-        cv::hconcat(leftCol, rightCol, concatResult);
-
-        if (m_debugImageFlag) {
-            cv::imshow("HSV Channels Comparison (Left: Template, Right: Detection)", concatResult);
-        }
-    }
-
-    cv::Mat sdiff;
-    cv::absdiff(tsChannel, dsChannel, sdiff);
-
-    cv::Mat vdiff;
-    cv::absdiff(tvChannel, dvChannel, vdiff);
-
-    cv::Mat grayDiff;
-
-    if (bool useHSVDiff = true) {
-        if (vdiff.channels() == 3) {
-            cv::cvtColor(vdiff, grayDiff, cv::COLOR_BGR2GRAY);
-        } else {
-            grayDiff = vdiff;
-        }
-    } else {
-        cv::Mat grayTemplate, grayTest;
-        cv::cvtColor(tInput, grayTemplate, cv::COLOR_BGR2GRAY);
-        cv::cvtColor(dInput, grayTest, cv::COLOR_BGR2GRAY);
-
-        cv::imshow("grayTemplate", grayTemplate);
-        cv::imshow("grayTest", grayTest);
-
-        // 2. 计算绝对差异
-        cv::absdiff(grayTemplate, grayTest, grayDiff);
-        cv::imshow("grayDiff", grayDiff);
-    }
-
-    cv::Mat thresholdDiff;
-    cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
-
-    // int kernalSize = 5; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
-    // cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
-    // thresholdDiff, cv::MORPH_OPEN,
-    //                  kernel);
-
-    int whitePixelCount = cv::countNonZero(thresholdDiff);
-
-    if (m_debugImageFlag) {
-        cv::Mat concatDiffResult;
-
-        cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
-        cv::imshow("concatDiffResult", concatDiffResult);
-    }
 
     return whitePixelCount;
 }
