@@ -48,6 +48,11 @@ QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$COPY_DLL_FROM/halconcpp.dll\" \"$
 QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$COPY_DLL_FROM/halconxl.dll\" \"$${PROJECT_BIN_DIR}\"
 QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$COPY_DLL_FROM/hdevenginecpp.dll\" \"$${PROJECT_BIN_DIR}\"
 
+
+QMAKE_POST_LINK += & cmd /c if not exist \"$$shell_path($${PROJECT_BIN_DIR}/include)\" mkdir \"$$shell_path($${PROJECT_BIN_DIR}/include)\"
+QMAKE_POST_LINK += & cmd /c xcopy /D /F /Y \"$$shell_path($$PWD)\"\\*.h \"$$shell_path($${PROJECT_BIN_DIR}/include)\"
+
+
 msvc {
     QMAKE_CXXFLAGS += /MP
     QMAKE_CFLAGS += /MP
