@@ -28,6 +28,8 @@ DefectDetectPage::DefectDetectPage() {
     runDefectDetectAlgo("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-37_766.png");
 }
 
+DefectDetectPage::~DefectDetectPage() { this->saveConfig(); }
+
 void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     DefectDetector detector;
 
@@ -182,7 +184,7 @@ void DefectDetectPage::createComponents() {
         GroupBox *paramGroupBox = new GroupBox("参数调整");
         paramGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
         paramGroupBox->setFixedWidth(300);
-        paramGroupBox->setFixedHeight(150);
+        paramGroupBox->setFixedHeight(300);
 
         Layouting::ColumnWithMargin{}.attachTo(paramGroupBox);
 
@@ -201,14 +203,49 @@ void DefectDetectPage::createComponents() {
     m_templateGridWidget->setMaxColumns(2);
     // m_templateGridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    GroupBox *templateResultGroupBox = new GroupBox("模板匹配结果");
-    // templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    Layouting::ColumnWithMargin{m_templateGridWidget}.attachTo(templateResultGroupBox);
-
     m_resultText = new TextEdit;
     m_resultText->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    auto rightPart = Layouting::Column{paramGroupBox, Layouting::Space{5}, m_resultText};
+    GroupBox *templateResultGroupBox = new GroupBox("模板匹配结果");
+    // templateResultGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    Layouting::ColumnWithMargin{m_templateGridWidget, Layouting::Space{5}, m_resultText}.attachTo(templateResultGroupBox);
+
+    GroupBox *templateGroupBox = [=]() {
+        GroupBox *folderGroupBox = new GroupBox("模板目录");
+        // folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        m_selectTemplateFolderWidget = new SelectFolderWidget();
+        ImageListViewWidget *templateListViewWidget = new ImageListViewWidget();
+
+        connect(m_selectTemplateFolderWidget, &SelectFolderWidget::folderChanged, this, [=](const QString &folderPath) {
+            QFileInfo info(folderPath);
+            if (!info.exists()) {
+
+            } else {
+                templateListViewWidget->loadImagesFromFolder(folderPath);
+
+                // QStringList baseNameResult;
+                // QStringList fullNameResult;
+                // std::tie(baseNameResult, fullNameResult) = FileUtils::findDepth1Folder(folderPath);
+                // matcher.setTemplateFolder(baseNameResult, fullNameResult);
+            }
+        });
+        connect(templateListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
+            qDebug() << "templateSelected:" << imageFilePath;
+            return;
+
+            // m_currentProcessImageFile = imageFilePath;
+
+            // m_imageGridWidget->clearAllImages();
+            // this->runCutoutAlgo(imageFilePath);
+        });
+
+        Layouting::ColumnWithMargin{m_selectTemplateFolderWidget, Layouting::Space{5}, templateListViewWidget}.attachTo(folderGroupBox);
+
+        return folderGroupBox;
+    }();
+
+    auto rightPart = Layouting::Column{paramGroupBox, templateGroupBox};
 
     QHBoxLayout* resultLayout = new QHBoxLayout;
     resultLayout->addWidget(imageResultGroupBox, 1);
@@ -252,8 +289,9 @@ void DefectDetectPage::loadConfig() {
 
         // 设置默认值
         QString defaultPath = QCoreApplication::applicationDirPath();
-        // m_settings->setValue("Path/filePath", defaultPath);
-        // m_settings->setValue("Path/folderPath", defaultPath);
+        m_settings->setValue("Path/filePath", defaultPath);
+        m_settings->setValue("Path/folderPath", defaultPath);
+        m_settings->setValue("Path/templateFolderPath", defaultPath);
         // m_settings->setValue("Parameter/scoreThreshold", 0.1);
         // m_settings->setValue("Parameter/whiteThreshold", 250);
         // m_settings->setValue("Parameter/areaThreshold", 0.2);
@@ -265,7 +303,7 @@ void DefectDetectPage::loadConfig() {
 
     m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
     m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
-    // m_selectTemplateFolderWidget->setSelectFolder(m_settings->value("Path/templateFolderPath", "").toString());
+    m_selectTemplateFolderWidget->setSelectFolder(m_settings->value("Path/templateFolderPath", "").toString());
     // m_scoreThresholdSpinBox->setValue(m_settings->value("Parameter/scoreThreshold", 0.1).toDouble());
     // m_whiteThresholdSpinBox->setValue(m_settings->value("Parameter/whiteThreshold", 250).toInt());
     // m_areaThresholdSpinBox->setValue(m_settings->value("Parameter/areaThreshold", 0.2).toDouble());
@@ -276,7 +314,7 @@ void DefectDetectPage::loadConfig() {
 void DefectDetectPage::saveConfig() {
     m_settings->setValue("Path/filePath", m_selectFileWidget->getSelectFile());
     m_settings->setValue("Path/folderPath", m_selectFolderWidget->getSelectFolder());
-    // m_settings->setValue("Path/templateFolderPath", m_selectTemplateFolderWidget->getSelectFolder());
+    m_settings->setValue("Path/templateFolderPath", m_selectTemplateFolderWidget->getSelectFolder());
     // m_settings->setValue("Parameter/scoreThreshold", m_scoreThresholdSpinBox->value());
     // m_settings->setValue("Parameter/whiteThreshold", m_whiteThresholdSpinBox->value());
     // m_settings->setValue("Parameter/areaThreshold", m_areaThresholdSpinBox->value());

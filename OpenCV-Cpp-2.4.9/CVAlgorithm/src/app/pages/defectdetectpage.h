@@ -14,6 +14,8 @@ signals:
 public:
     DefectDetectPage();
 
+    ~DefectDetectPage();
+
     void createComponents();
     void createConnections();
 
@@ -29,7 +31,7 @@ private:
 
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
-    // class SelectFolderWidget *m_selectTemplateFolderWidget = nullptr;
+    class SelectFolderWidget *m_selectTemplateFolderWidget = nullptr;
 
     TextEdit* m_resultText = nullptr;
 
