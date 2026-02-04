@@ -473,59 +473,75 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
     cv::Mat dInput = inputImg.clone();
     // cv::pyrDown(dInput, dInput);
 
+    QElapsedTimer innerTimer;
     QList<double> results;
     for (int i = 0; i < m_templateList.size(); ++i) {
+        innerTimer.restart();
+
         auto templateTuple = m_templateList[i];
 
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
+        // QString templateName = std::get<0>(templateTuple);
+        // QString templateFileName = std::get<1>(templateTuple);
         cv::Mat templateInput = std::get<2>(templateTuple);
         std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        double tInputArea = std::get<4>(templateTuple);
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // double tInputArea = std::get<4>(templateTuple);
+        // std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
+        // std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
+        // std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
 
 
+        qDebug() << "matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        innerTimer.restart();
         cv::Mat tInput = templateInput.clone();
+        qDebug() << "clone elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        innerTimer.restart();
         // cv::pyrDown(tInput, tInput);
 
-        for (int i = 0; i < 2; ++i) {
-            int blurCoreSize = 3;
-            // blur GaussianBlur medianBlur bilateralFilter
-            switch (0) {
-            case 0: { // blur
-                cv::blur(tInput, tInput, cv::Size(3, 3));
-                cv::blur(dInput, dInput, cv::Size(3, 3));
-            } break;
-            case 1: { // GaussianBlur
-                cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-                cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
-            } break;
-            case 2: { // medianBlur
-                cv::medianBlur(tInput, tInput, 5);
-                cv::medianBlur(dInput, dInput, 5);
-            } break;
-            case 3: { // bilateralFilter
-                cv::bilateralFilter(tInput, tInput, 9, 50, 10);
-                cv::bilateralFilter(dInput, dInput, 9, 50, 10);
-            } break;
-            }
-        }
+        // 略微耗时
+        // for (int i = 0; i < 0; ++i) {
+        //     int blurCoreSize = 3;
+        //     // blur GaussianBlur medianBlur bilateralFilter
+        //     switch (0) {
+        //     case 0: { // blur
+        //         cv::blur(tInput, tInput, cv::Size(3, 3));
+        //         cv::blur(dInput, dInput, cv::Size(3, 3));
+        //     } break;
+        //     case 1: { // GaussianBlur
+        //         cv::GaussianBlur(tInput, tInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+        //         cv::GaussianBlur(dInput, dInput, cv::Size(blurCoreSize, blurCoreSize), 0, 0);
+        //     } break;
+        //     case 2: { // medianBlur
+        //         cv::medianBlur(tInput, tInput, 5);
+        //         cv::medianBlur(dInput, dInput, 5);
+        //     } break;
+        //     case 3: { // bilateralFilter
+        //         cv::bilateralFilter(tInput, tInput, 9, 50, 10);
+        //         cv::bilateralFilter(dInput, dInput, 9, 50, 10);
+        //     } break;
+        //     }
+        // }
 
         cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-        auto tContour = m_extractor.findContours(tInput);
+        qDebug() << "resize elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        innerTimer.restart();
+
+        auto tContour = tInputContour; // m_extractor.findContours(tInput);
         auto dContour = m_extractor.findContours(dInput);
 
-        cv::Mat tEdge = this->processRingEdge(tInput, tContour, m_outterWidth, m_innerWidth);
-        cv::Mat dEdge = this->processRingEdge(dInput, tContour, m_outterWidth, m_innerWidth);
+        qDebug() << "findContours elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        innerTimer.restart();
 
+        cv::Mat tEdge = this->processRingEdge(tInput, std::vector<std::vector<cv::Point>>({tInputContour}), m_outterWidth, m_innerWidth);
+        cv::Mat dEdge = this->processRingEdge(dInput, std::vector<std::vector<cv::Point>>({tInputContour}), m_outterWidth, m_innerWidth);
+
+        qDebug() << "processRingEdge elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        innerTimer.restart();
         // cv::imshow("tEdge", tEdge);
         // cv::imshow("dEdge", dEdge);
 
         double defectScore = this->matchMatPixel(tEdge, dEdge);
-        qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << timer.nsecsElapsed();
+        qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
 
         if (defectScore >= 0) {
             results.append(defectScore);
@@ -540,13 +556,16 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
                 minResult = value;
             }
         }
-        qDebug() << "p4_fullMatchMatPixel" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
+        qDebug() << "p4_fullMatchMatPixel" << results << "最小值:" << minResult << ", elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
     }
 
     return std::make_tuple((minResult < m_scoreThreshold), minResult);
 }
 
 double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput) {
+    QElapsedTimer timer;
+    timer.start();
+
     if (templateInput.empty() || defectInput.empty()) {
         QMessageBox::warning(nullptr, "错误", "请先加载正常图像和缺陷图像!");
         return -1;
@@ -640,11 +659,11 @@ double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput)
     cv::Mat thresholdDiff;
     cv::threshold(grayDiff, thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
-    cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
-    thresholdDiff, cv::MORPH_OPEN,
-                     kernel);
+    // int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
+    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+    // cv::Size(kernalSize, kernalSize)); cv::morphologyEx(thresholdDiff,
+    // thresholdDiff, cv::MORPH_OPEN,
+    //                  kernel);
 
     int whitePixelCount = cv::countNonZero(thresholdDiff);
 
@@ -654,6 +673,8 @@ double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput)
         cv::vconcat(std::vector<cv::Mat>{vdiff, grayDiff, thresholdDiff}, concatDiffResult);
         cv::imshow("concatDiffResult", concatDiffResult);
     }
+
+    qDebug() << "matchMatPixel , elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
 
     return whitePixelCount;
 }
