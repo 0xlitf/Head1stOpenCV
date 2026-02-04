@@ -25,7 +25,7 @@ DefectDetectPage::DefectDetectPage() {
 
     // 细小角落缺陷 2026-01-15_16-09-37_766.png
     // 明显缺角 2026-01-15_16-09-20_925.png
-    runDefectDetectAlgo("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-37_766.png");
+    // runDefectDetectAlgo("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-37_766.png");
 }
 
 DefectDetectPage::~DefectDetectPage() { this->saveConfig(); }
@@ -64,16 +64,21 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "p3_matchSubShapes subShapeDiff" << std::get<0>(subShapeDiff) << std::get<1>(subShapeDiff);
     qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore);
 
-    m_resultText->append(QString("p0_matchArea areaDiff %1 %2").arg(std::get<0>(areaDiff)).arg(std::get<1>(areaDiff)));
-    m_resultText->append(QString("p1_matchShapes shapeDiff %1 %2").arg(std::get<0>(shapeDiff)).arg(std::get<1>(shapeDiff)));
-    m_resultText->append(QString("p2_matchSubAreas subAreaDiff %1 %2").arg(std::get<0>(subAreaDiff)).arg(std::get<1>(subAreaDiff)));
-    m_resultText->append(QString("p3_matchSubShapes subShapeDiff %1 %2").arg(std::get<0>(subShapeDiff)).arg(std::get<1>(subShapeDiff)));
-    m_resultText->append(QString("p4_fullMatchMatPixel defectScore %1 %2").arg(std::get<0>(defectScore)).arg(std::get<1>(defectScore)));
+    QString color = std::get<0>(areaDiff) ? "green" : "red";
+    m_resultText->append("-------------------------");
+    m_resultText->append(m_currentProcessImageFile);
+    m_resultText->append(QString("<font color=\"%1\">总轮廓面积 %2 %3</font>").arg(std::get<0>(areaDiff) ? "green" : "red").arg(std::get<0>(areaDiff) ? "通过" : "失败").arg(std::get<1>(areaDiff)));
+    m_resultText->append(QString("<font color=\"%1\">总轮廓分数 %2 %3</font>").arg(std::get<0>(shapeDiff) ? "green" : "red").arg(std::get<0>(shapeDiff) ? "通过" : "失败").arg(std::get<1>(shapeDiff)));
+    m_resultText->append(QString("<font color=\"%1\">子轮廓面积 %2 %3</font>").arg(std::get<0>(subAreaDiff) ? "green" : "red").arg(std::get<0>(subAreaDiff) ? "通过" : "失败").arg(std::get<1>(subAreaDiff)));
+    m_resultText->append(QString("<font color=\"%1\">子轮廓分数 %2 %3</font>").arg(std::get<0>(subShapeDiff) ? "green" : "red").arg(std::get<0>(subShapeDiff) ? "通过" : "失败").arg(std::get<1>(subShapeDiff)));
+    m_resultText->append(QString("<font color=\"%1\">缺陷像素 %2 %3</font>").arg(std::get<0>(defectScore) ? "green" : "red").arg(std::get<0>(defectScore) ? "通过" : "失败").arg(std::get<1>(defectScore)));
+
+    m_resultText->append("-------------------------");
 }
 
 void DefectDetectPage::createComponents() {
     GroupBox *fileGroupBox = [=]() {
-        GroupBox *fileGroupBox = new GroupBox("检测图片");
+        GroupBox *fileGroupBox = new GroupBox("单张");
         fileGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
         m_selectFileWidget = new SelectFileWidget();
@@ -110,13 +115,13 @@ void DefectDetectPage::createComponents() {
     }();
 
     GroupBox *folderGroupBox = [=]() {
-        GroupBox *folderGroupBox = new GroupBox("模板目录");
+        GroupBox *folderGroupBox = new GroupBox("目录");
         folderGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         m_selectFolderWidget = new SelectFolderWidget();
         ImageListViewWidget *imageListViewWidget = new ImageListViewWidget();
 
-        auto batchProcessButton = new NormalButton("录入模板", this);
+        auto batchProcessButton = new NormalButton("批量处理", this);
         batchProcessButton->setFixedWidth(100);
         batchProcessButton->setEnabled(false);
 
@@ -247,7 +252,7 @@ void DefectDetectPage::createComponents() {
 
     auto rightPart = Layouting::Column{paramGroupBox, templateGroupBox};
 
-    QHBoxLayout* resultLayout = new QHBoxLayout;
+    QVBoxLayout* resultLayout = new QVBoxLayout;
     resultLayout->addWidget(imageResultGroupBox, 1);
     resultLayout->addSpacing(5);
     resultLayout->addWidget(templateResultGroupBox, 2);

@@ -1,4 +1,4 @@
-#include "lineedit.h"
+﻿#include "lineedit.h"
 #include <QPainter>
 #include <QAction>
 #include <QIcon>
@@ -100,7 +100,7 @@ void LineEdit::drawFocusIndicator(QPainter& painter) {
     painter.setClipPath(maskPath);
 
     QColor lineColor = this->hasFocus() ? QColor("#005a9e") : QColor("#999999");
-    int lineHeight = 2;
+    int lineHeight = this->hasFocus() ? 2 : 1;
 
     int lineY = innerRect.height() - lineHeight;
     painter.setPen(Qt::NoPen);
