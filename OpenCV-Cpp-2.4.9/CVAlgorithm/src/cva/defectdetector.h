@@ -3,8 +3,10 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "bgr2hsvconverter.h"
 #include "contourextractor.h"
 #include "cornersplitter.h"
+#include "minimumbounding.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QObject>
@@ -52,17 +54,17 @@ public:
 
     void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
 
-    double p0_matchArea(double inputMatArea);
+    void setInputMat(cv::Mat inputMat);
 
-    double p1_matchShapes(std::vector<cv::Point> inputMatContour);
+    std::tuple<bool, double> p0_matchArea();
 
-    double p2_matchSubAreas(std::tuple<double, double, double, double>);
+    std::tuple<bool, double> p1_matchShapes();
 
-    double p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> inputCornerContours);
+    std::tuple<bool, double> p2_matchSubAreas();
 
-    double p3_matchMatPixels(cv::Mat inputImg);
+    std::tuple<bool, double> p3_matchSubShapes();
 
-    double p4_fullMatchMatPixel(cv::Mat inputImg);
+    std::tuple<bool, double> p4_fullMatchMatPixel();
 
     double fullMatchImagePixel(const QString &fileName);
 
@@ -73,12 +75,6 @@ public:
 
     int whiteThreshold() const;
     void setWhiteThreshold(int newWhiteThreshold);
-
-    int detectThickness() const;
-    void setDetectThickness(int newDetectThickness);
-
-    int removeOuterBorderThickness() const;
-    void setRemoveOuterBorderThickness(int newRemoveOuterBorderThickness);
 
     bool hasDefect(double scoreThreshold) { return scoreThreshold > m_scoreThreshold; }
 
@@ -104,6 +100,20 @@ private:
                             std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
                             std::tuple<double, double, double, double>);
 
+private: // 工具类
+    MinimumBounding m_mini;
+    BGR2HSVConverter m_converter;
+    CornerSplitter m_cornerSplitter;
+    ContourExtractor m_extractor;
+
+    // 输入图片的临时变量
+    cv::Mat m_inputMat;
+    std::vector<cv::Point> m_inputMatContour;
+    double m_inputMatArea;
+    std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> m_corners;
+    std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> m_subContours;
+    std::tuple<double, double, double, double> m_subContourAreas;
+
 private:
     QList<std::tuple<QString,
                      QString,
@@ -113,24 +123,22 @@ private:
                      std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>,
                      std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
                      std::tuple<double, double, double, double>>> m_templateList;
-    int m_removeOuterBorderThickness{3}; // 比对时忽略的边缘厚度
-    int m_detectThickness{6};            // 比对时检测的边缘厚度
+
     int m_whiteThreshold{35};            // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
-    double m_scoreThreshold{15};         // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
 
-
-    int m_outterWidth = 4;
-    int m_innerWidth = 10;
-
-    // 以下参数不改
+    // 以下参数暂时不改
     int m_precision{2};   // 取决于进行几次下采样，暂时不可更改
     bool m_useHSV{false}; // false true
-
     bool m_debugImageFlag{true}; // false true 是否输出调试结果图片
 
-    CornerSplitter m_cornerSplitter;
+    double m_overallAreaThreshold{0.01}; // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
+    double m_overallShapeThreshold{0.01}; // 整体轮廓形状分数，小于0.01~0.05合格
+    double m_subAreaThreshold{0.02}; // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
+    double m_subShapeThreshold{0.002}; // 子区域轮廓形状分数，小于0.002合格
 
-    ContourExtractor m_extractor;
+    int m_outterWidth{4};
+    int m_innerWidth{10};
+    double m_scoreThreshold{15}; // 缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
 };
 
 #endif // DEFECTDETECTOR_H

@@ -302,6 +302,38 @@ void DefectDetector::setTemplateFolder(const QStringList &descStrs, const QStrin
     }
 }
 
+void DefectDetector::setInputMat(cv::Mat inputMat) {
+    if (inputMat.empty()) {
+        qDebug() << "DefectDetector::setInputMat, inputMat is empty: ";
+        emit errorOccured(IMAGE_LOAD_FAILED, QString("inputMat is empty"));
+        return;
+    }
+
+    cv::Mat dInput = inputMat.clone();
+    m_inputMat = m_mini.findAndCropObject(dInput);
+
+    m_inputMatContour = m_extractor.findLargestContour(m_inputMat);
+    m_inputMatArea = cv::contourArea(m_inputMatContour);
+
+    m_corners = m_cornerSplitter.splitCorners(m_inputMat);
+    std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(m_corners));
+    std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(m_corners));
+    std::vector<cv::Point> ct2 = m_extractor.findLargestContour(std::get<2>(m_corners));
+    std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(m_corners));
+    m_subContours = std::make_tuple(ct0, ct1, ct2, ct3);
+
+    cv::imshow("0", std::get<0>(m_corners));
+    cv::imshow("1", std::get<1>(m_corners));
+    cv::imshow("2", std::get<2>(m_corners));
+    cv::imshow("3", std::get<3>(m_corners));
+
+    double area0 = cv::contourArea(ct0);
+    double area1 = cv::contourArea(ct1);
+    double area2 = cv::contourArea(ct2);
+    double area3 = cv::contourArea(ct3);
+    m_subContourAreas = std::make_tuple(area0, area1, area2, area3);
+}
+
 void DefectDetector::addTemplate(const QString &desc, const QString &fileName) {
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString());
@@ -344,7 +376,9 @@ void DefectDetector::addTemplateIntoMap(const QString &desc,
     m_templateList.append(tuple);
 }
 
-double DefectDetector::p0_matchArea(double inputMatArea) {
+std::tuple<bool, double> DefectDetector::p0_matchArea() {
+    double inputMatArea = m_inputMatArea;
+
     QElapsedTimer timer;
     timer.start();
 
@@ -377,10 +411,11 @@ double DefectDetector::p0_matchArea(double inputMatArea) {
         qDebug() << "p0_matchArea" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
-    return minResult;
+    return std::make_tuple((minResult < m_overallAreaThreshold), minResult);
 }
 
-double DefectDetector::p1_matchShapes(std::vector<cv::Point> inputMatContour) {
+std::tuple<bool, double> DefectDetector::p1_matchShapes() {
+    std::vector<cv::Point> inputMatContour = m_inputMatContour;
     QElapsedTimer timer;
     timer.start();
 
@@ -413,10 +448,11 @@ double DefectDetector::p1_matchShapes(std::vector<cv::Point> inputMatContour) {
         qDebug() << "p1_matchShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
-    return minResult;
+    return std::make_tuple((minResult < m_overallShapeThreshold), minResult);
 }
 
-double DefectDetector::p2_matchSubAreas(std::tuple<double, double, double, double> inputContourAreas) {
+std::tuple<bool, double> DefectDetector::p2_matchSubAreas() {
+    std::tuple<double, double, double, double> inputContourAreas = m_subContourAreas;
     QElapsedTimer timer;
     timer.start();
 
@@ -457,10 +493,11 @@ double DefectDetector::p2_matchSubAreas(std::tuple<double, double, double, doubl
         qDebug() << "p2_matchSubAreas" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
-    return minResult;
+    return std::make_tuple((minResult < m_subAreaThreshold), minResult);
 }
 
-double DefectDetector::p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> inputCornerContours) {
+std::tuple<bool, double> DefectDetector::p3_matchSubShapes() {
+    std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> inputCornerContours = m_subContours;
     QElapsedTimer timer;
     timer.start();
 
@@ -501,10 +538,11 @@ double DefectDetector::p3_matchSubShapes(std::tuple<std::vector<cv::Point>, std:
         qDebug() << "p3_matchSubShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
-    return minResult;
+    return std::make_tuple((minResult < m_subShapeThreshold), minResult);
 }
 
-double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
+std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
+    cv::Mat inputImg = m_inputMat;
     QElapsedTimer timer;
     timer.start();
 
@@ -562,8 +600,6 @@ double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
         cv::imshow("tEdge", tEdge);
         cv::imshow("dEdge", dEdge);
 
-        cv::waitKey(0);
-
         double defectScore = this->matchMatPixel(tEdge, dEdge);
         qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << timer.nsecsElapsed();
 
@@ -583,7 +619,7 @@ double DefectDetector::p4_fullMatchMatPixel(cv::Mat inputImg) {
         qDebug() << "p4_fullMatchMatPixel" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
     }
 
-    return minResult;
+    return std::make_tuple((minResult < m_scoreThreshold), minResult);
 }
 
 double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput) {
@@ -795,15 +831,9 @@ double DefectDetector::matchMat(cv::Mat templateInput, cv::Mat defectInput) {
         dInput = cvt.convertBGR2HSV(dInput);
     }
 
-    // tInput = mini.removeOuterBorder(tInput, m_removeOuterBorderThickness);
-    // dInput = mini.removeOuterBorder(dInput, m_removeOuterBorderThickness);
-
     // resize转移到函数外部
     cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0,
     cv::INTER_LINEAR);
-
-    // tInput = mini.fillCenterWithWhite(tInput, m_detectThickness);
-    // dInput = mini.fillCenterWithWhite(dInput, m_detectThickness);
 
     if (m_debugImageFlag) {
         cv::imshow("tEdge hsv", tInput);
@@ -909,20 +939,6 @@ int DefectDetector::precision() const { return m_precision; }
 
 void DefectDetector::setPrecision(int newPrecision) {
     m_precision = newPrecision;
-}
-
-int DefectDetector::removeOuterBorderThickness() const {
-    return m_removeOuterBorderThickness;
-}
-
-void DefectDetector::setRemoveOuterBorderThickness(int newRemoveOuterBorderThickness) {
-    m_removeOuterBorderThickness = newRemoveOuterBorderThickness;
-}
-
-int DefectDetector::detectThickness() const { return m_detectThickness; }
-
-void DefectDetector::setDetectThickness(int newDetectThickness) {
-    m_detectThickness = newDetectThickness;
 }
 
 double DefectDetector::scoreThreshold() const { return m_scoreThreshold; }

@@ -11,13 +11,7 @@ class DefectDetectPage : public WidgetBase {
 public:
     DefectDetectPage();
 
-    void testAreaDiff();
-    void testDefect();
-    void testContour();
-
-    void testCorner();
-
-    void testP0();
+    void test();
 };
 
 #endif // DEFECTDETECTPAGE_H
