@@ -100,7 +100,7 @@ cv::Mat DefectDetector::processOuterEdge(const cv::Mat &inputImage, const std::v
 
     // 创建外边缘掩膜
     cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
-    cv::imshow("edgeMask", edgeMask);
+    // cv::imshow("edgeMask", edgeMask);
 
     // 创建彩色掩膜（红色边缘）
     cv::Mat colorEdge;
@@ -144,7 +144,9 @@ cv::Mat DefectDetector::displayOuterEdge(const cv::Mat &inputImage, const std::v
 
     // 创建外边缘掩膜
     cv::Mat edgeMask = createOuterEdgeMask(inputImage, contours, edgeWidth);
-    cv::imshow("edgeMask", edgeMask);
+    if (m_debugImageFlag) {
+        cv::imshow("edgeMask", edgeMask);
+    }
 
     // 创建彩色掩膜（红色边缘）
     cv::Mat colorEdge;
@@ -171,9 +173,9 @@ cv::Mat DefectDetector::displayOuterEdge(const cv::Mat &inputImage, const std::v
     displayMat.copyTo(result,
                       edgeMask);               // 将displayMat中边缘掩膜对应的区域复制到result
     whiteBackground.copyTo(result, ~edgeMask); // 将非边缘区域设置为白色
-
-    cv::imshow("Result", result);
-
+    if (m_debugImageFlag) {
+        cv::imshow("Result", result);
+    }
     // 显示对比图
     cv::Mat comparison;
     qDebug() << "contourImage" << contourImage.cols << contourImage.rows;
@@ -186,8 +188,9 @@ cv::Mat DefectDetector::displayOuterEdge(const cv::Mat &inputImage, const std::v
     cv::putText(comparison, "Edge Zone (Red)", cv::Point(contourImage.cols + 10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
     cv::putText(comparison, edgeText, cv::Point(10, comparison.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 0), 2);
 
-    cv::imshow("Outer Edge Detection Zone", comparison);
-
+    if (m_debugImageFlag) {
+        cv::imshow("Outer Edge Detection Zone", comparison);
+    }
     return result;
 }
 
@@ -262,11 +265,6 @@ void DefectDetector::addTemplate(const QString &fileName) {
         double tInputArea = cv::contourArea(tInputContour);
 
         std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
-        cv::imshow("tInput", tInput);
-        cv::imshow("0", std::get<0>(corners));
-        cv::imshow("1", std::get<1>(corners));
-        cv::imshow("2", std::get<2>(corners));
-        cv::imshow("3", std::get<3>(corners));
 
         std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(corners));
         std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(corners));
@@ -307,6 +305,70 @@ void DefectDetector::addTemplateIntoMap(const QString &fileName,
                                         std::tuple<double, double, double, double> subContourAreas) {
     auto tuple = std::make_tuple(fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
     m_templateList.append(tuple);
+}
+
+double DefectDetector::overallAreaThreshold() const {
+    return m_overallAreaThreshold;
+}
+
+void DefectDetector::setOverallAreaThreshold(double newOverallAreaThreshold) {
+    m_overallAreaThreshold = newOverallAreaThreshold;
+}
+
+double DefectDetector::overallShapeThreshold() const {
+    return m_overallShapeThreshold;
+}
+
+void DefectDetector::setOverallShapeThreshold(double newOverallShapeThreshold) {
+    m_overallShapeThreshold = newOverallShapeThreshold;
+}
+
+double DefectDetector::subAreaThreshold() const {
+    return m_subAreaThreshold;
+}
+
+void DefectDetector::setSubAreaThreshold(double newSubAreaThreshold) {
+    m_subAreaThreshold = newSubAreaThreshold;
+}
+
+double DefectDetector::subShapeThreshold() const {
+    return m_subShapeThreshold;
+}
+
+void DefectDetector::setSubShapeThreshold(double newSubShapeThreshold) {
+    m_subShapeThreshold = newSubShapeThreshold;
+}
+
+int DefectDetector::innerWidth() const {
+    return m_innerWidth;
+}
+
+void DefectDetector::setInnerWidth(int newInnerWidth) {
+    m_innerWidth = newInnerWidth;
+}
+
+int DefectDetector::outterWidth() const {
+    return m_outterWidth;
+}
+
+void DefectDetector::setOutterWidth(int newOutterWidth) {
+    m_outterWidth = newOutterWidth;
+}
+
+double DefectDetector::colorDiffCountThreshold() const {
+    return m_colorDiffCountThreshold;
+}
+
+void DefectDetector::setColorDiffCountThreshold(double newColorDiffCountThreshold) {
+    m_colorDiffCountThreshold = newColorDiffCountThreshold;
+}
+
+double DefectDetector::missingPixelCountThreshold() const {
+    return m_missingPixelCountThreshold;
+}
+
+void DefectDetector::setMissingPixelCountThreshold(double newMissingPixelCountThreshold) {
+    m_missingPixelCountThreshold = newMissingPixelCountThreshold;
 }
 
 cv::Mat DefectDetector::thresholdDiff() const {
@@ -369,9 +431,11 @@ std::tuple<bool, double> DefectDetector::p1_matchShapes() {
         std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
         std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
-        double defectScore = cv::matchShapes(tInputContour, inputMatContour, CV_CONTOURS_MATCH_I1, 0.0);
-        if (defectScore >= 0) {
-            results.append(defectScore);
+        if (tInputContour.size() > 3 && inputMatContour.size()) {
+            double defectScore = cv::matchShapes(tInputContour, inputMatContour, CV_CONTOURS_MATCH_I1, 0.0);
+            if (defectScore >= 0) {
+                results.append(defectScore);
+            }
         }
     }
 
@@ -455,17 +519,24 @@ std::tuple<bool, double> DefectDetector::p3_matchSubShapes() {
         qDebug() << "std::get<2>(subContours).size()" << std::get<2>(subContours).size();
         qDebug() << "std::get<3>(subContours).size()" << std::get<3>(subContours).size();
 
-        double defectScore0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-        double defectScore1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-        double defectScore2 = cv::matchShapes(std::get<2>(subContours), std::get<2>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-        double defectScore3 = cv::matchShapes(std::get<3>(subContours), std::get<3>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        if (std::get<0>(subContours).size() > 3 && std::get<0>(inputCornerContours).size() &&
+            std::get<1>(subContours).size() > 3 && std::get<1>(inputCornerContours).size() &&
+            std::get<2>(subContours).size() > 3 && std::get<2>(inputCornerContours).size() &&
+            std::get<3>(subContours).size() > 3 && std::get<3>(inputCornerContours).size()) {
+            double defectScore0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+            double defectScore1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+            double defectScore2 = cv::matchShapes(std::get<2>(subContours), std::get<2>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+            double defectScore3 = cv::matchShapes(std::get<3>(subContours), std::get<3>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
 
-        QList<double> defectScores;
-        defectScores << defectScore0 << defectScore1 << defectScore2 << defectScore3;
-        qDebug() << "p3_matchSubShapes matchShapes" << defectScores;
-        double defectScoreMax = std::max({defectScore0, defectScore1, defectScore2, defectScore3});
-        if (defectScoreMax >= 0) {
-            results.append(defectScoreMax);
+            QList<double> defectScores;
+            defectScores << defectScore0 << defectScore1 << defectScore2 << defectScore3;
+            qDebug() << "p3_matchSubShapes matchShapes" << defectScores;
+            double defectScoreMax = std::max({defectScore0, defectScore1, defectScore2, defectScore3});
+            if (defectScoreMax >= 0) {
+                results.append(defectScoreMax);
+            }
+        } else {
+            qWarning() << "p3_matchSubShapes, subContours size maybe 0";
         }
     }
 
@@ -482,7 +553,7 @@ std::tuple<bool, double> DefectDetector::p3_matchSubShapes() {
     return std::make_tuple((minResult < m_subShapeThreshold), minResult);
 }
 
-std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
+std::tuple<bool, int, int> DefectDetector::p4_fullMatchMatPixel() {
     cv::Mat inputImg = m_inputMat;
     QElapsedTimer timer;
     timer.start();
@@ -491,7 +562,8 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
     // cv::pyrDown(dInput, dInput);
 
     QElapsedTimer innerTimer;
-    QList<double> results;
+    QList<int> missingPixelCountResults;
+    QList<int> colorDiffPixelCountResults;
     for (int i = 0; i < m_templateList.size(); ++i) {
         innerTimer.restart();
 
@@ -560,36 +632,62 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
         // cv::imshow("tEdge", tEdge);
         // cv::imshow("dEdge", dEdge);
 
-        double defectScore = this->matchMatPixel(tEdge, dEdge);
-        qDebug() << "matchMatPixel defectScore" << defectScore << ", matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        int missingPixelCount, colorDiffPixelCount;
+        std::tie(missingPixelCount, colorDiffPixelCount)  = this->matchMatPixel(tEdge, dEdge);
+        qDebug() << "matchMatPixel missingPixelCount" << missingPixelCount << ", colorDiffPixelCount" << colorDiffPixelCount << ", matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
 
-        if (defectScore >= 0) {
-            results.append(defectScore);
+        if (missingPixelCount >= 0) {
+            missingPixelCountResults.append(missingPixelCount);
+        }
+        if (missingPixelCount >= 0) {
+            colorDiffPixelCountResults.append(colorDiffPixelCount);
         }
         // break;
     }
 
-    double minResult{9999.};
-    if (!results.isEmpty()) {
-        for (const double &value : results) {
-            if (value < minResult) {
-                minResult = value;
+    auto findMin = [](QList<int> list){
+        double minResult{1000000};
+        if (!list.isEmpty()) {
+            for (const double &value : list) {
+                if (value < minResult) {
+                    minResult = value;
+                }
             }
         }
-        qDebug() << "p4_fullMatchMatPixel" << results << "最小值:" << minResult << ", elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
-    }
+        return minResult;
+    };
 
-    return std::make_tuple((minResult < m_scoreThreshold), minResult);
+    double minResult1 = findMin(missingPixelCountResults);
+    // if (!missingPixelCountResults.isEmpty()) {
+    //     for (const double &value : missingPixelCountResults) {
+    //         if (value < minResult1) {
+    //             minResult1 = value;
+    //         }
+    //     }
+    //     qDebug() << "p4_fullMatchMatPixel" << missingPixelCountResults << "最小值:" << minResult1 << ", elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
+    // }
+
+    double minResult2 = findMin(colorDiffPixelCountResults);
+    // if (!colorDiffPixelCountResults.isEmpty()) {
+    //     for (const double &value : colorDiffPixelCountResults) {
+    //         if (value < minResult2) {
+    //             minResult2 = value;
+    //         }
+    //     }
+    //     qDebug() << "p4_fullMatchMatPixel" << missingPixelCountResults << "最小值:" << minResult2 << ", elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
+    // }
+
+    return std::make_tuple((minResult1 <= m_missingPixelCountThreshold) && (minResult2 <= m_colorDiffCountThreshold), minResult1, minResult2);
 }
 
 // 输入的是环形边缘
-double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
+std::tuple<int, int> DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
     QElapsedTimer timer;
     timer.start();
 
     if (tEdge.empty() || dEdge.empty()) {
         QMessageBox::warning(nullptr, "错误", "请先加载正常图像和缺陷图像!");
-        return -1;
+        return std::make_tuple(9999, 9999);
     }
 
     cv::Mat tInput = tEdge.clone();
@@ -618,13 +716,13 @@ double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
     cv::Mat tEdgeNotWhite = (tEdgeBinary != 255);
 
     cv::bitwise_and(dEdgeBinary, tEdgeNotWhite, missingMask);
-    int missingDefectPixelCount = cv::countNonZero(missingMask);
-    qDebug() << "tEdgeBinary.channels" << tEdgeBinary.channels();
-    qDebug() << "dEdgeBinary.channels" << dEdgeBinary.channels();
-    qDebug() << "resultMask.channels" << missingMask.channels();
-    qDebug() << "missingDefectPixelCount" << missingDefectPixelCount;
+    int missingPixelCount = cv::countNonZero(missingMask);
+    // qDebug() << "tEdgeBinary.channels" << tEdgeBinary.channels();
+    // qDebug() << "dEdgeBinary.channels" << dEdgeBinary.channels();
+    // qDebug() << "resultMask.channels" << missingMask.channels();
+    // qDebug() << "missingDefectPixelCount" << missingDefectPixelCount;
 
-    cv::imshow("missingMask", missingMask);
+    // cv::imshow("missingMask", missingMask);
 
 
 
@@ -712,14 +810,16 @@ double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
     cv::Mat diffResult;
     cv::threshold(grayDiff, diffResult, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    cv::Mat suspectedDefect;
+    cv::Mat colorDiffDefect;
 
     // cv::pyrDown(missingMask, missingMask);
 
     cv::Mat nonMissingMask;
     cv::bitwise_not(missingMask, nonMissingMask);
 
-    cv::imshow("diffResult", diffResult);
+    // cv::imshow("diffResult", diffResult);
+    m_thresholdDiff = diffResult;
+
 
     if ((diffResult.size() != nonMissingMask.size()) || (diffResult.channels() != nonMissingMask.channels())) {
         qDebug() << "size:" << diffResult.size().width << diffResult.size().height << nonMissingMask.size().width << nonMissingMask.size().height;
@@ -727,11 +827,11 @@ double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
         qFatal("(diffResult.size() != nonMissingMask.size()) || (diffResult.size() != nonMissingMask.size())");
     }
 
-    cv::bitwise_and(diffResult, nonMissingMask, suspectedDefect);
+    cv::bitwise_and(diffResult, nonMissingMask, colorDiffDefect);
 
-    cv::imshow("suspectedDefect", suspectedDefect);
+    // cv::imshow("colorDiffDefect", colorDiffDefect);
 
-    m_thresholdDiff = suspectedDefect;
+    // m_thresholdDiff = colorDiffDefect;
 
     // int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
     // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
@@ -739,8 +839,8 @@ double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
     // m_thresholdDiff, cv::MORPH_OPEN,
     //                  kernel);
 
-    int suspectedDefectCount = cv::countNonZero(suspectedDefect);
-    qDebug() << "suspectedDefectCount" << suspectedDefectCount;
+    int colorDiffPixelCount = cv::countNonZero(colorDiffDefect);
+    qDebug() << "colorDiffPixelCount" << colorDiffPixelCount;
 
     if (m_debugImageFlag) {
         cv::Mat concatDiffResult;
@@ -751,7 +851,7 @@ double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
 
     qDebug() << "matchMatPixel , elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
 
-    return suspectedDefectCount;
+    return std::make_tuple(missingPixelCount, colorDiffPixelCount);
 }
 
 bool DefectDetector::debugImageFlag() const { return m_debugImageFlag; }
@@ -764,12 +864,6 @@ int DefectDetector::precision() const { return m_precision; }
 
 void DefectDetector::setPrecision(int newPrecision) {
     m_precision = newPrecision;
-}
-
-double DefectDetector::scoreThreshold() const { return m_scoreThreshold; }
-
-void DefectDetector::setScoreThreshold(double newScoreThreshold) {
-    m_scoreThreshold = newScoreThreshold;
 }
 
 int DefectDetector::whiteThreshold() const { return m_whiteThreshold; }

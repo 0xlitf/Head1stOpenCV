@@ -8,12 +8,6 @@
 #include <algorithm>
 
 class ContourExtractor {
-private:
-    double m_minContourArea;     // 最小轮廓面积阈值
-    bool m_removeNoise;          // 是否去除噪声
-    int m_noiseKernelSize;       // 去噪核大小
-    int m_adaptiveBlockSize;     // 自适应阈值块大小
-
 public:
     ContourExtractor() {
         m_minContourArea = 1000.0;   // 默认面积阈值 > 1000
@@ -40,9 +34,9 @@ public:
     // 增强版本：返回轮廓+调试图像
     std::tuple<std::vector<std::vector<cv::Point>>, cv::Mat> extractContourWithDebug(const cv::Mat& inputImage);
 
-    std::vector<cv::Point> findLargestContour(const cv::Mat& src, int whiteThreshold = 240);
+    std::vector<cv::Point> findLargestContour(const cv::Mat& src, int whiteThreshold = 250);
 
-    static std::vector<std::vector<cv::Point>> findContours(const cv::Mat &inputImage, int whiteThreshold = 240, int areaThreshold = 2000);
+    static std::vector<std::vector<cv::Point>> findContours(const cv::Mat &inputImage, int whiteThreshold = 250, int areaThreshold = 2000);
 
 private:
     // 预处理图像：优化对比度和清晰度
@@ -59,6 +53,12 @@ private:
 
     // 将单通道图像转换为三通道用于显示
     cv::Mat convertTo3Channel(const cv::Mat& gray);
+
+private:
+    double m_minContourArea;     // 最小轮廓面积阈值
+    bool m_removeNoise;          // 是否去除噪声
+    int m_noiseKernelSize;       // 去噪核大小
+    int m_adaptiveBlockSize;     // 自适应阈值块大小
 };
 
 #endif // ContourExtractor_H

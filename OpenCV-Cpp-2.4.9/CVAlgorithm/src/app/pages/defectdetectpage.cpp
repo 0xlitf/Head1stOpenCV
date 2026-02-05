@@ -37,7 +37,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "runDefectDetectAlgo 1";
 
 	auto dInputMat = cv::imread(filePath.toStdString());
-    cv::imshow("dInputMat", dInputMat);
+    // cv::imshow("dInputMat", dInputMat);
 
     MinimumBounding mini;
     m_imageGridWidget->addImage("dInputMat", mini.findAndCropObject(dInputMat));
@@ -46,7 +46,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     int count = std::get<0>(analyzeResult);
     if (count != 1) {
         qDebug() << "analyzeResult 物体数量 != 1" << count;
-        cv::imshow("analyzeResult", std::get<1>(analyzeResult));
+        // cv::imshow("analyzeResult", std::get<1>(analyzeResult));
     }
 
     m_detector.setInputMat(dInputMat);
@@ -57,13 +57,13 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     std::tuple<bool, double> shapeDiff = m_detector.p1_matchShapes(); // 整体轮廓形状分数，小于0.01~0.05合格
     std::tuple<bool, double> subAreaDiff = m_detector.p2_matchSubAreas(); // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
     std::tuple<bool, double> subShapeDiff = m_detector.p3_matchSubShapes(); // 子区域轮廓形状分数，小于0.002合格
-    std::tuple<bool, double> defectScore = m_detector.p4_fullMatchMatPixel(); // 缺陷像素点数，小于15合格
+    std::tuple<bool, int, int> defectScore = m_detector.p4_fullMatchMatPixel(); // 缺陷像素点数，小于15合格
 
     qDebug() << "p0_matchArea areaDiff" << std::get<0>(areaDiff) << std::get<1>(areaDiff);
     qDebug() << "p1_matchShapes shapeDiff" << std::get<0>(shapeDiff) << std::get<1>(shapeDiff);
     qDebug() << "p2_matchSubAreas subAreaDiff" << std::get<0>(subAreaDiff) << std::get<1>(subAreaDiff);
     qDebug() << "p3_matchSubShapes subShapeDiff" << std::get<0>(subShapeDiff) << std::get<1>(subShapeDiff);
-    qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore);
+    qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore) << std::get<2>(defectScore);
 
     m_templateGridWidget->addImage("detector.thresholdDiff", m_detector.thresholdDiff());
 
@@ -74,7 +74,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     m_resultText->append(QString("<font color=\"%1\">总轮廓分数 %2 %3</font>").arg(std::get<0>(shapeDiff) ? "green" : "red").arg(std::get<0>(shapeDiff) ? "通过" : "失败").arg(std::get<1>(shapeDiff)));
     m_resultText->append(QString("<font color=\"%1\">子轮廓面积 %2 %3</font>").arg(std::get<0>(subAreaDiff) ? "green" : "red").arg(std::get<0>(subAreaDiff) ? "通过" : "失败").arg(std::get<1>(subAreaDiff)));
     m_resultText->append(QString("<font color=\"%1\">子轮廓分数 %2 %3</font>").arg(std::get<0>(subShapeDiff) ? "green" : "red").arg(std::get<0>(subShapeDiff) ? "通过" : "失败").arg(std::get<1>(subShapeDiff)));
-    m_resultText->append(QString("<font color=\"%1\">缺陷像素 %2 %3</font>").arg(std::get<0>(defectScore) ? "green" : "red").arg(std::get<0>(defectScore) ? "通过" : "失败").arg(std::get<1>(defectScore)));
+    m_resultText->append(QString("<font color=\"%1\">缺陷像素 %2 缺失数:%3 色差过大数:%4</font>").arg(std::get<0>(defectScore) ? "green" : "red").arg(std::get<0>(defectScore) ? "通过" : "失败").arg(std::get<1>(defectScore)).arg(std::get<2>(defectScore)));
     m_resultText->append(QString("elapsed: %1 ms").arg(double(timer.nsecsElapsed()) / 1e6));
     m_resultText->append("-------------------------");
 }

@@ -35,7 +35,7 @@ void HuMomentsMatcher::addTemplate(const QString &desc,
                       cv::THRESH_BINARY);
 
         ContourExtractor ce;
-        auto templateContour = ce.findLargestContour(templateImg, true);
+        auto templateContour = ce.findLargestContour(templateImg);
 
         QString huStr;
         if (!templateContour.empty()) {

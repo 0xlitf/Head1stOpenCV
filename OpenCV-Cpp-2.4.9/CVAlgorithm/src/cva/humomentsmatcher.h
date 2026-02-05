@@ -92,7 +92,7 @@ private:
     QList<std::tuple<QString, QString, QString, std::vector<cv::Point>>>
         m_huMomentsList;
     double m_scoreThreshold{0.1};
-    int m_whiteThreshold{240};
+    int m_whiteThreshold{250};
 
     double m_areaThreshold{0.2};
 

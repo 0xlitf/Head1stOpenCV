@@ -99,7 +99,7 @@ cv::Mat MinimumBounding::findAndCropObject(const cv::Mat &inputImage) {
 
     // 12. 最终验证：确保输出图像不为空
     if (whiteBackground.empty()) {
-        qWarning() << "处理后的图像为空！";
+        qWarning() << "处理后的图像为空";
         return cv::Mat();
     }
 
