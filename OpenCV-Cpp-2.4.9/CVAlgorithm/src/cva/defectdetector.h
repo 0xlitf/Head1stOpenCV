@@ -49,7 +49,7 @@ public:
     // 显示外边缘掩膜
     cv::Mat displayOuterEdge(const cv::Mat &inputImage, const std::vector<std::vector<cv::Point>> &contours, int edgeWidth = 6);
 
-    void setTemplateFolder(const QStringList &descStrs, const QStringList &folderName);
+    void setTemplateFolder(const QString &folderName);
 
     void setInputMat(cv::Mat inputMat);
 
@@ -82,10 +82,9 @@ public:
     cv::Mat thresholdDiff() const;
 
 private:
-    void addTemplate(const QString &desc, const QString &fileName);
+    void addTemplate(const QString &fileName);
 
-    void addTemplateIntoMap(const QString &desc,
-                            const QString &fileName,
+    void addTemplateIntoMap(const QString &fileName,
                             cv::Mat tInput,
                             std::vector<cv::Point>,
                             double,
@@ -111,7 +110,6 @@ private: // 工具类
 
 private:
     QList<std::tuple<QString,
-                     QString,
                      cv::Mat,
                      std::vector<cv::Point>,
                      double,

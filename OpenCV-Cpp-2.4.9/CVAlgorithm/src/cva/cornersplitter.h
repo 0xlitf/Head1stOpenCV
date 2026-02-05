@@ -63,6 +63,13 @@ public:
             qWarning() << "在截取角点区域时发生OpenCV异常：" << e.what();
         }
 
+        // int borderWidth = 5;
+        // cv::Scalar borderColor(255, 255, 255);
+        // cv::copyMakeBorder(topLeft, topLeft, borderWidth, borderWidth, borderWidth, borderWidth, cv::BORDER_CONSTANT, borderColor);
+        // cv::copyMakeBorder(topRight, topRight, borderWidth, borderWidth, borderWidth, borderWidth, cv::BORDER_CONSTANT, borderColor);
+        // cv::copyMakeBorder(bottomLeft, bottomLeft, borderWidth, borderWidth, borderWidth, borderWidth, cv::BORDER_CONSTANT, borderColor);
+        // cv::copyMakeBorder(bottomRight, bottomRight, borderWidth, borderWidth, borderWidth, borderWidth, cv::BORDER_CONSTANT, borderColor);
+
         return std::make_tuple(topLeft, topRight, bottomLeft, bottomRight);
     }
 

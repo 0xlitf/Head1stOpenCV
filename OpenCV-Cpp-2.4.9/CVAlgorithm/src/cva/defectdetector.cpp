@@ -191,38 +191,28 @@ cv::Mat DefectDetector::displayOuterEdge(const cv::Mat &inputImage, const std::v
     return result;
 }
 
-void DefectDetector::setTemplateFolder(const QStringList &descStrs, const QStringList &folderNames) {
-    if (descStrs.size() != folderNames.size()) {
-        qFatal("setTemplateFolder descStrs.size != folderNames.size");
+void DefectDetector::setTemplateFolder(const QString &folderName) {
+    m_templateList.clear();
+
+    QDir dir(folderName);
+    if (!dir.exists()) {
+        qWarning() << "警告：模板文件夹不存在: " << folderName;
         return;
     }
 
-    m_templateList.clear();
+    QStringList imageFiles;
+    QStringList filters;
+    foreach (const QString &format, QImageReader::supportedImageFormats()) {
+        filters << "*." + format;
+    }
 
-    for (int i = 0; i < descStrs.size(); ++i) {
-        auto &desc = descStrs[i];
-        auto &folderName = folderNames[i];
-        QDir templateDir(folderName);
-        if (!templateDir.exists()) {
-            qWarning() << "警告：模板文件夹不存在: " << folderName;
-            continue;
-        }
+    imageFiles.append(dir.entryList(filters, QDir::Files));
+    for (int i = 0; i < imageFiles.size(); ++i) {
+        imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
+    }
 
-        QDir dir(folderName);
-        QStringList imageFiles;
-        QStringList filters;
-        foreach (const QString &format, QImageReader::supportedImageFormats()) {
-            filters << "*." + format;
-        }
-
-        imageFiles.append(dir.entryList(filters, QDir::Files));
-        for (int i = 0; i < imageFiles.size(); ++i) {
-            imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
-        }
-
-        for (auto &filename : imageFiles) {
-            this->addTemplate(desc, filename);
-        }
+    for (auto &filename : imageFiles) {
+        this->addTemplate(filename);
     }
 }
 
@@ -258,7 +248,7 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     m_subContourAreas = std::make_tuple(area0, area1, area2, area3);
 }
 
-void DefectDetector::addTemplate(const QString &desc, const QString &fileName) {
+void DefectDetector::addTemplate(const QString &fileName) {
     // 读取灰度图
     auto templateImg = cv::imread(fileName.toStdString());
     if (templateImg.empty()) {
@@ -267,36 +257,55 @@ void DefectDetector::addTemplate(const QString &desc, const QString &fileName) {
         return;
     } else {
         cv::Mat tInput = templateImg.clone();
+        tInput = m_mini.findAndCropObject(tInput);
         std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
         double tInputArea = cv::contourArea(tInputContour);
 
         std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
+        cv::imshow("tInput", tInput);
+        cv::imshow("0", std::get<0>(corners));
+        cv::imshow("1", std::get<1>(corners));
+        cv::imshow("2", std::get<2>(corners));
+        cv::imshow("3", std::get<3>(corners));
+
         std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(corners));
         std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(corners));
         std::vector<cv::Point> ct2 = m_extractor.findLargestContour(std::get<2>(corners));
         std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(corners));
         std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::make_tuple(ct0, ct1, ct2, ct3);
 
-        double area0 = cv::contourArea(ct0);
-        double area1 = cv::contourArea(ct1);
-        double area2 = cv::contourArea(ct2);
-        double area3 = cv::contourArea(ct3);
+        double area0{ 0. };
+        double area1{ 0. };
+        double area2{ 0. };
+        double area3{ 0. };
+        if (ct0.size() > 3) {
+            area0 = cv::contourArea(ct0);
+        }
+        if (ct1.size() > 3) {
+            area1 = cv::contourArea(ct1);
+        }
+        if (ct2.size() > 3) {
+            area2 = cv::contourArea(ct2);
+        }
+        if (ct3.size() > 3) {
+            area3 = cv::contourArea(ct3);
+        }
+
         std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
 
 
-        this->addTemplateIntoMap(desc, fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
+        this->addTemplateIntoMap(fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
     }
 }
 
-void DefectDetector::addTemplateIntoMap(const QString &desc,
-                                        const QString &fileName,
+void DefectDetector::addTemplateIntoMap(const QString &fileName,
                                         cv::Mat tInput,
                                         std::vector<cv::Point> tInputContour,
                                         double tInputArea,
                                         std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners,
                                         std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours,
                                         std::tuple<double, double, double, double> subContourAreas) {
-    auto tuple = std::make_tuple(desc, fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
+    auto tuple = std::make_tuple(fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
     m_templateList.append(tuple);
 }
 
@@ -314,14 +323,14 @@ std::tuple<bool, double> DefectDetector::p0_matchArea() {
     for (int i = 0; i < m_templateList.size(); ++i) {
         auto templateTuple = m_templateList[i];
 
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        double tInputArea = std::get<4>(templateTuple);
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<0>(templateTuple);
+        cv::Mat templateInput = std::get<1>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<2>(templateTuple);
+        double tInputArea = std::get<3>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<4>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
         double areaDiff = std::abs(tInputArea - inputMatArea) / tInputArea;
         if (areaDiff >= 0) {
@@ -351,14 +360,14 @@ std::tuple<bool, double> DefectDetector::p1_matchShapes() {
     for (int i = 0; i < m_templateList.size(); ++i) {
         auto templateTuple = m_templateList[i];
 
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        double tInputArea = std::get<4>(templateTuple);
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<0>(templateTuple);
+        cv::Mat templateInput = std::get<1>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<2>(templateTuple);
+        double tInputArea = std::get<3>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<4>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
         double defectScore = cv::matchShapes(tInputContour, inputMatContour, CV_CONTOURS_MATCH_I1, 0.0);
         if (defectScore >= 0) {
@@ -388,14 +397,14 @@ std::tuple<bool, double> DefectDetector::p2_matchSubAreas() {
     for (int i = 0; i < m_templateList.size(); ++i) {
         auto templateTuple = m_templateList[i];
 
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        double tInputArea = std::get<4>(templateTuple);
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // QString templateName = std::get<0>(templateTuple);
+        QString templateFileName = std::get<0>(templateTuple);
+        cv::Mat templateInput = std::get<1>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<2>(templateTuple);
+        double tInputArea = std::get<3>(templateTuple);
+        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<4>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
+        std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
         double areaDiff0 = std::abs(std::get<0>(subContourAreas) - std::get<0>(inputContourAreas)) / std::get<0>(subContourAreas);
         double areaDiff1 = std::abs(std::get<1>(subContourAreas) - std::get<1>(inputContourAreas)) / std::get<1>(subContourAreas);
@@ -433,14 +442,18 @@ std::tuple<bool, double> DefectDetector::p3_matchSubShapes() {
     for (int i = 0; i < m_templateList.size(); ++i) {
         auto templateTuple = m_templateList[i];
 
-        QString templateName = std::get<0>(templateTuple);
-        QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        double tInputArea = std::get<4>(templateTuple);
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // QString templateFileName = std::get<0>(templateTuple);
+        // cv::Mat templateInput = std::get<1>(templateTuple);
+        // std::vector<cv::Point> tInputContour = std::get<2>(templateTuple);
+        // double tInputArea = std::get<3>(templateTuple);
+        // std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<4>(templateTuple);
+        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
+        // std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
+
+        qDebug() << "std::get<0>(subContours).size()" << std::get<0>(subContours).size();
+        qDebug() << "std::get<1>(subContours).size()" << std::get<1>(subContours).size();
+        qDebug() << "std::get<2>(subContours).size()" << std::get<2>(subContours).size();
+        qDebug() << "std::get<3>(subContours).size()" << std::get<3>(subContours).size();
 
         double defectScore0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
         double defectScore1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
@@ -485,20 +498,22 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
         auto templateTuple = m_templateList[i];
 
         // QString templateName = std::get<0>(templateTuple);
-        // QString templateFileName = std::get<1>(templateTuple);
-        cv::Mat templateInput = std::get<2>(templateTuple);
-        std::vector<cv::Point> tInputContour = std::get<3>(templateTuple);
-        // double tInputArea = std::get<4>(templateTuple);
-        // std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<5>(templateTuple);
-        // std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<6>(templateTuple);
-        // std::tuple<double, double, double, double> subContourAreas = std::get<7>(templateTuple);
+        // QString templateFileName = std::get<0>(templateTuple);
+        cv::Mat templateInput = std::get<1>(templateTuple);
+        std::vector<cv::Point> tInputContour = std::get<2>(templateTuple);
+        // double tInputArea = std::get<3>(templateTuple);
+        // std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = std::get<4>(templateTuple);
+        // std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
+        // std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
+        // qDebug() << "matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        // innerTimer.restart();
 
-        qDebug() << "matchMat elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
-        innerTimer.restart();
         cv::Mat tInput = templateInput.clone();
-        qDebug() << "clone elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
-        innerTimer.restart();
+
+        // qDebug() << "clone elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        // innerTimer.restart();
+
         // cv::pyrDown(tInput, tInput);
 
         // 略微耗时
@@ -527,20 +542,21 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
 
         cv::resize(dInput, dInput, cv::Size(tInput.cols, tInput.rows), 0, 0, cv::INTER_LINEAR);
 
-        qDebug() << "resize elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
-        innerTimer.restart();
+        // qDebug() << "resize elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        // innerTimer.restart();
 
         auto tContour = tInputContour; // m_extractor.findContours(tInput);
         auto dContour = m_extractor.findContours(dInput);
 
-        qDebug() << "findContours elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
-        innerTimer.restart();
+        // qDebug() << "findContours elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        // innerTimer.restart();
 
         cv::Mat tEdge = this->processRingEdge(tInput, std::vector<std::vector<cv::Point>>({tInputContour}), m_outterWidth, m_innerWidth);
         cv::Mat dEdge = this->processRingEdge(dInput, std::vector<std::vector<cv::Point>>({tInputContour}), m_outterWidth, m_innerWidth);
 
-        qDebug() << "processRingEdge elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
-        innerTimer.restart();
+        // qDebug() << "processRingEdge elapsed:" << double(innerTimer.nsecsElapsed()) / 1e6 << "ms";
+        // innerTimer.restart();
+
         // cv::imshow("tEdge", tEdge);
         // cv::imshow("dEdge", dEdge);
 

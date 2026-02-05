@@ -11,12 +11,12 @@
 #include "minimumbounding.h"
 #include "opencv2/opencv.hpp"
 #include "bgr2hsvconverter.h"
-#include "defectdetector.h"
 #include <QApplication>
 #include <QFile>
 #include <QLabel>
 #include <QSettings>
 #include <QSpinBox>
+#include "cornersplitter.h"
 
 DefectDetectPage::DefectDetectPage() {
     this->createComponents();
@@ -25,21 +25,19 @@ DefectDetectPage::DefectDetectPage() {
 
     // 细小角落缺陷 2026-01-15_16-09-37_766.png
     // 明显缺角 2026-01-15_16-09-20_925.png
+    // QString folder = QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection").append("/template_black"); // template_brown template_black
+    // m_detector.setTemplateFolder(folder);
+
     // runDefectDetectAlgo("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/2/NG/2026-01-15_16-09-37_766.png");
 }
 
 DefectDetectPage::~DefectDetectPage() { this->saveConfig(); }
 
 void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
-    DefectDetector detector;
+    qDebug() << "runDefectDetectAlgo 1";
 
-    QStringList descList;
-    descList << "ok";
-    QStringList folderList;
-    folderList << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection").append("/template_black"); // template_brown template_black
-    detector.setTemplateFolder(descList, folderList);
-
-    auto dInputMat = cv::imread(filePath.toStdString());
+	auto dInputMat = cv::imread(filePath.toStdString());
+    cv::imshow("dInputMat", dInputMat);
 
     MinimumBounding mini;
     m_imageGridWidget->addImage("dInputMat", mini.findAndCropObject(dInputMat));
@@ -51,15 +49,15 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
         cv::imshow("analyzeResult", std::get<1>(analyzeResult));
     }
 
-    detector.setInputMat(dInputMat);
+    m_detector.setInputMat(dInputMat);
 
     QElapsedTimer timer;
     timer.start();
-    std::tuple<bool, double> areaDiff = detector.p0_matchArea(); // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
-    std::tuple<bool, double> shapeDiff = detector.p1_matchShapes(); // 整体轮廓形状分数，小于0.01~0.05合格
-    std::tuple<bool, double> subAreaDiff = detector.p2_matchSubAreas(); // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
-    std::tuple<bool, double> subShapeDiff = detector.p3_matchSubShapes(); // 子区域轮廓形状分数，小于0.002合格
-    std::tuple<bool, double> defectScore = detector.p4_fullMatchMatPixel(); // 缺陷像素点数，小于15合格
+    std::tuple<bool, double> areaDiff = m_detector.p0_matchArea(); // 整体轮廓面积，小于0.01合格，对于比较厚的物料，适当增大本阈值
+    std::tuple<bool, double> shapeDiff = m_detector.p1_matchShapes(); // 整体轮廓形状分数，小于0.01~0.05合格
+    std::tuple<bool, double> subAreaDiff = m_detector.p2_matchSubAreas(); // 子区域轮廓面积，对于细微的角落缺陷，小于0.02合格
+    std::tuple<bool, double> subShapeDiff = m_detector.p3_matchSubShapes(); // 子区域轮廓形状分数，小于0.002合格
+    std::tuple<bool, double> defectScore = m_detector.p4_fullMatchMatPixel(); // 缺陷像素点数，小于15合格
 
     qDebug() << "p0_matchArea areaDiff" << std::get<0>(areaDiff) << std::get<1>(areaDiff);
     qDebug() << "p1_matchShapes shapeDiff" << std::get<0>(shapeDiff) << std::get<1>(shapeDiff);
@@ -67,7 +65,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "p3_matchSubShapes subShapeDiff" << std::get<0>(subShapeDiff) << std::get<1>(subShapeDiff);
     qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore);
 
-    m_templateGridWidget->addImage("detector.thresholdDiff", detector.thresholdDiff());
+    m_templateGridWidget->addImage("detector.thresholdDiff", m_detector.thresholdDiff());
 
     QString color = std::get<0>(areaDiff) ? "green" : "red";
     m_resultText->append("-------------------------");
@@ -90,15 +88,15 @@ void DefectDetectPage::createComponents() {
 
         ClickableWidget *roundWidget = new ClickableWidget;
         roundWidget->setFixedSize(300, 100);
-        ImageInfoWidget *imageInfoWidget = new ImageInfoWidget();
-        Layouting::ColumnWithMargin{imageInfoWidget}.attachTo(roundWidget);
+        m_imageInfoWidget = new ImageInfoWidget();
+        Layouting::ColumnWithMargin{m_imageInfoWidget}.attachTo(roundWidget);
 
         connect(m_selectFileWidget, &SelectFileWidget::fileChanged, this, [=](const QString &imageFilePath) {
             if (imageFilePath.isEmpty()) {
                 return;
             }
 
-            imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
+            m_imageInfoWidget->setFileInfo(QFileInfo(imageFilePath));
 
             m_currentProcessImageFile = imageFilePath;
 
@@ -149,7 +147,7 @@ void DefectDetectPage::createComponents() {
         });
 
         connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
-            qDebug() << "录入模板";
+            qDebug() << "批量处理";
 
             QString folderPath = m_selectFolderWidget->getSelectFolder();
             QDir dir(folderPath);
@@ -236,10 +234,8 @@ void DefectDetectPage::createComponents() {
             } else {
                 templateListViewWidget->loadImagesFromFolder(folderPath);
 
-                // QStringList baseNameResult;
-                // QStringList fullNameResult;
-                // std::tie(baseNameResult, fullNameResult) = FileUtils::findDepth1Folder(folderPath);
-                // matcher.setTemplateFolder(baseNameResult, fullNameResult);
+                qDebug() << "setTemplateFolder:" << folderPath;
+                m_detector.setTemplateFolder(folderPath);
             }
         });
         connect(templateListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
@@ -313,12 +309,23 @@ void DefectDetectPage::loadConfig() {
         qDebug() << "从配置文件加载:" << m_configPath;
     }
 
-    m_selectFileWidget->setSelectFile(m_settings->value("Path/filePath", "").toString());
+    m_selectFileWidget->blockSignals(true);
+    // m_selectFolderWidget->blockSignals(true);
+    // m_selectTemplateFolderWidget->blockSignals(true);
+
+    auto singleValue = m_settings->value("Path/filePath", "").toString();
+    m_imageInfoWidget->setFileInfo(QFileInfo(singleValue));
+
+    m_selectFileWidget->setSelectFile(singleValue);
     m_selectFolderWidget->setSelectFolder(m_settings->value("Path/folderPath", "").toString());
     m_selectTemplateFolderWidget->setSelectFolder(m_settings->value("Path/templateFolderPath", "").toString());
     // m_scoreThresholdSpinBox->setValue(m_settings->value("Parameter/scoreThreshold", 0.1).toDouble());
     // m_whiteThresholdSpinBox->setValue(m_settings->value("Parameter/whiteThreshold", 250).toInt());
     // m_areaThresholdSpinBox->setValue(m_settings->value("Parameter/areaThreshold", 0.2).toDouble());
+
+    m_selectFileWidget->blockSignals(false);
+    // m_selectFolderWidget->blockSignals(false);
+    // m_selectTemplateFolderWidget->blockSignals(false);
 
     qDebug() << "DefectDetectPage::loadConfig()";
 }

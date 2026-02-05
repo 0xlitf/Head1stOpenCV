@@ -5,6 +5,7 @@
 
 #include <controls/controls.h>
 #include "contourextractor.h"
+#include "defectdetector.h"
 
 class DefectDetectPage : public WidgetBase {
     Q_OBJECT
@@ -32,6 +33,7 @@ private:
     class SelectFileWidget *m_selectFileWidget = nullptr;
     class SelectFolderWidget *m_selectFolderWidget = nullptr;
     class SelectFolderWidget *m_selectTemplateFolderWidget = nullptr;
+    class ImageInfoWidget *m_imageInfoWidget = nullptr;
 
     TextEdit* m_resultText = nullptr;
 
@@ -40,6 +42,7 @@ private:
     QString m_currentProcessImageFile{};
     QString m_configPath{};
 
+    DefectDetector m_detector;
 };
 
 #endif // DEFECTDETECTPAGE_H
