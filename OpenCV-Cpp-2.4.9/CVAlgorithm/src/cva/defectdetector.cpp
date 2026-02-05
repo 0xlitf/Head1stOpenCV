@@ -582,20 +582,53 @@ std::tuple<bool, double> DefectDetector::p4_fullMatchMatPixel() {
     return std::make_tuple((minResult < m_scoreThreshold), minResult);
 }
 
-double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput) {
+// 输入的是环形边缘
+double DefectDetector::matchMatPixel(cv::Mat tEdge, cv::Mat dEdge) {
     QElapsedTimer timer;
     timer.start();
 
-    if (templateInput.empty() || defectInput.empty()) {
+    if (tEdge.empty() || dEdge.empty()) {
         QMessageBox::warning(nullptr, "错误", "请先加载正常图像和缺陷图像!");
         return -1;
     }
 
-    cv::Mat tInput = templateInput.clone();
-    cv::Mat dInput = defectInput.clone();
+    cv::Mat tInput = tEdge.clone();
+    cv::Mat dInput = dEdge.clone();
 
     cv::pyrDown(tInput, tInput);
     cv::pyrDown(dInput, dInput);
+
+
+
+
+    cv::Mat dEdgeGray, tEdgeGray;
+    if (dInput.channels() == 3) {
+        cv::cvtColor(dInput, dEdgeGray, cv::COLOR_BGR2GRAY);
+        cv::threshold(dEdgeGray, dEdgeGray, 250, 255, cv::THRESH_BINARY);
+    }
+    if (tInput.channels() == 3) {
+        cv::cvtColor(tInput, tEdgeGray, cv::COLOR_BGR2GRAY);
+        cv::threshold(tEdgeGray, tEdgeGray, 250, 255, cv::THRESH_BINARY);
+    }
+
+    cv::Mat dEdgeBinary, tEdgeBinary;
+    cv::threshold(tEdgeGray, tEdgeBinary, 250, 255, cv::THRESH_BINARY);
+    cv::threshold(dEdgeGray, dEdgeBinary, 250, 255, cv::THRESH_BINARY);
+    cv::Mat missingMask;
+    cv::Mat tEdgeNotWhite = (tEdgeBinary != 255);
+
+    cv::bitwise_and(dEdgeBinary, tEdgeNotWhite, missingMask);
+    int missingDefectPixelCount = cv::countNonZero(missingMask);
+    qDebug() << "tEdgeBinary.channels" << tEdgeBinary.channels();
+    qDebug() << "dEdgeBinary.channels" << dEdgeBinary.channels();
+    qDebug() << "resultMask.channels" << missingMask.channels();
+    qDebug() << "missingDefectPixelCount" << missingDefectPixelCount;
+
+    cv::imshow("missingMask", missingMask);
+
+
+
+
 
     if (m_useHSV) {
         BGR2HSVConverter cvt;
@@ -676,15 +709,38 @@ double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput)
         cv::imshow("grayDiff", grayDiff);
     }
 
-    cv::threshold(grayDiff, m_thresholdDiff, m_whiteThreshold, 255, cv::THRESH_BINARY);
+    cv::Mat diffResult;
+    cv::threshold(grayDiff, diffResult, m_whiteThreshold, 255, cv::THRESH_BINARY);
 
-    int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
-    cv::Size(kernalSize, kernalSize)); cv::morphologyEx(m_thresholdDiff,
-    m_thresholdDiff, cv::MORPH_OPEN,
-                     kernel);
+    cv::Mat suspectedDefect;
 
-    int whitePixelCount = cv::countNonZero(m_thresholdDiff);
+    // cv::pyrDown(missingMask, missingMask);
+
+    cv::Mat nonMissingMask;
+    cv::bitwise_not(missingMask, nonMissingMask);
+
+    cv::imshow("diffResult", diffResult);
+
+    if ((diffResult.size() != nonMissingMask.size()) || (diffResult.channels() != nonMissingMask.channels())) {
+        qDebug() << "size:" << diffResult.size().width << diffResult.size().height << nonMissingMask.size().width << nonMissingMask.size().height;
+        qDebug() << "channels:" << diffResult.channels() << nonMissingMask.channels();
+        qFatal("(diffResult.size() != nonMissingMask.size()) || (diffResult.size() != nonMissingMask.size())");
+    }
+
+    cv::bitwise_and(diffResult, nonMissingMask, suspectedDefect);
+
+    cv::imshow("suspectedDefect", suspectedDefect);
+
+    m_thresholdDiff = suspectedDefect;
+
+    // int kernalSize = 3; // 从3改变到5，可以去掉矩形物料diff边缘的噪声
+    // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+    // cv::Size(kernalSize, kernalSize)); cv::morphologyEx(m_thresholdDiff,
+    // m_thresholdDiff, cv::MORPH_OPEN,
+    //                  kernel);
+
+    int suspectedDefectCount = cv::countNonZero(suspectedDefect);
+    qDebug() << "suspectedDefectCount" << suspectedDefectCount;
 
     if (m_debugImageFlag) {
         cv::Mat concatDiffResult;
@@ -695,7 +751,7 @@ double DefectDetector::matchMatPixel(cv::Mat templateInput, cv::Mat defectInput)
 
     qDebug() << "matchMatPixel , elapsed" << double(timer.nsecsElapsed()) / 1e6 << "ms";
 
-    return whitePixelCount;
+    return suspectedDefectCount;
 }
 
 bool DefectDetector::debugImageFlag() const { return m_debugImageFlag; }

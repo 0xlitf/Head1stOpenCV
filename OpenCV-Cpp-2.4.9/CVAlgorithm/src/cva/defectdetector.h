@@ -117,7 +117,7 @@ private:
                      std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>>,
                      std::tuple<double, double, double, double>>> m_templateList;
 
-    int m_whiteThreshold{35};            // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
+    int m_whiteThreshold{50};            // 差值结果阈值，大于这个值被认为是缺陷点，一般设置为30-40
 
     // 以下参数暂时不改
     int m_precision{2};   // 取决于进行几次下采样，暂时不可更改
