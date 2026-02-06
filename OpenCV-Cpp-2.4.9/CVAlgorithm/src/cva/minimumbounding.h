@@ -5,8 +5,9 @@
 
 #include <QObject>
 #include <opencv2/opencv.hpp>
+#include "cva_global.h"
 
-class MinimumBounding : public QObject
+class CVASHARED_EXPORT MinimumBounding : public QObject
 {
     Q_OBJECT
 public:

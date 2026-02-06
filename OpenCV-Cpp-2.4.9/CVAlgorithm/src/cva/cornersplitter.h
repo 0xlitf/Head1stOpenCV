@@ -5,8 +5,9 @@
 #include <QObject>
 #include <opencv2/opencv.hpp>
 #include <tuple>
+#include "cva_global.h"
 
-class CornerSplitter : public QObject {
+class CVASHARED_EXPORT CornerSplitter : public QObject {
     Q_OBJECT
 
 public:

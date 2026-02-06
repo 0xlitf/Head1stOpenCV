@@ -6,8 +6,9 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
+#include "cva_global.h"
 
-class ContourExtractor {
+class CVASHARED_EXPORT ContourExtractor {
 public:
     ContourExtractor() {
         m_minContourArea = 1000.0;   // 默认面积阈值 > 1000

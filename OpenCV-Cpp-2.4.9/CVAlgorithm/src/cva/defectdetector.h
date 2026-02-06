@@ -12,7 +12,7 @@
 #include <QObject>
 #include <opencv2/opencv.hpp>
 
-class DefectDetector : public QObject {
+class CVASHARED_EXPORT DefectDetector : public QObject {
     Q_OBJECT
 
 public:

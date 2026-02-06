@@ -7,7 +7,9 @@
 #include <QImage>
 #include <QString>
 #include <opencv2/opencv.hpp>
-class AreaDifference : public QObject
+#include "cva_global.h"
+
+class CVASHARED_EXPORT AreaDifference : public QObject
 {
     Q_OBJECT
 public:

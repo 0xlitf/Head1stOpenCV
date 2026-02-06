@@ -18,7 +18,7 @@ struct ObjectDetectionResult {
     cv::Rect boundingRect;           // 轴对称矩形
 };
 
-class CutOutObject {
+class CVASHARED_EXPORT CutOutObject {
 
 public:
     CutOutObject();

@@ -6,8 +6,9 @@
 #include <opencv2/opencv.hpp>
 #include <QObject>
 #include <QDebug>
+#include "cva_global.h"
 
-class BGR2HSVConverter : public QObject {
+class CVASHARED_EXPORT BGR2HSVConverter : public QObject {
     Q_OBJECT
 public:
     explicit BGR2HSVConverter(QObject *parent = nullptr);
