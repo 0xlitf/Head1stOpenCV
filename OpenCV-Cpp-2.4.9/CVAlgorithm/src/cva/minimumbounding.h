@@ -18,6 +18,8 @@ public:
     cv::Mat fillCenterWithWhite(const cv::Mat& inputImage, int borderWidth);
 
     cv::Mat removeOuterBorder(const cv::Mat& inputImage, int borderWidth);
+
+    cv::Mat rotate180degree(cv::Mat src);
 };
 
 #endif // MINIMUMBOUNDING_H

@@ -69,6 +69,7 @@ void TemplateGridItem::setupUI() {
 }
 
 void TemplateGridItem::resizeEvent(QResizeEvent *event) {
+    // qDebug() << "TemplateGridItem::resizeEvent";
     QWidget::resizeEvent(event);
     m_resizeTimer->start(200);
 }

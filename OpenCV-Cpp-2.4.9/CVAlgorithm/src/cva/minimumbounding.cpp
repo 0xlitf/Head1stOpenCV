@@ -177,3 +177,13 @@ cv::Mat MinimumBounding::removeOuterBorder(const cv::Mat &inputImage, int border
 
     return croppedImage;
 }
+
+cv::Mat MinimumBounding::rotate180degree(cv::Mat src) {
+    if (src.empty()) {
+        return cv::Mat(); // 返回空矩阵
+    }
+    cv::Mat dst;
+    // 使用flip的第三种模式，flipCode = -1，表示同时沿X轴和Y轴翻转
+    cv::flip(src, dst, -1);
+    return dst;
+}

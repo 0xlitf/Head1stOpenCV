@@ -39,7 +39,10 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
 	auto dInputMat = cv::imread(filePath.toStdString());
     // cv::imshow("dInputMat", dInputMat);
 
+
     MinimumBounding mini;
+    // cv::imshow("rotate180degree", mini.rotate180degree(dInputMat));
+
     auto crop = mini.findAndCropObject(dInputMat);
 
     m_imageGridWidget->addImage("dInputMat", crop);

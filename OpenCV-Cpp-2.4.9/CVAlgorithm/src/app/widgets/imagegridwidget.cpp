@@ -20,7 +20,7 @@ ImageGridWidget::ImageGridWidget(QWidget *parent)
     m_resizeTimer->setSingleShot(true);
 
     connect(m_resizeTimer, &QTimer::timeout, this, [=]() {
-        qDebug() << "ImageGridWidget::updateChildren";
+        // qDebug() << "ImageGridWidget::updateChildren";
         this->updateChildren();
     });
 }

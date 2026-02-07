@@ -17,7 +17,7 @@ TemplateGridWidget::TemplateGridWidget(QWidget *parent)
     m_resizeTimer->setSingleShot(true);
 
     connect(m_resizeTimer, &QTimer::timeout, this, [=]() {
-        qDebug() << "TemplateGridWidget::updateChildren";
+        // qDebug() << "TemplateGridWidget::updateChildren";
         this->updateChildren();
     });
 }

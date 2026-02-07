@@ -9,6 +9,10 @@ LineEdit::LineEdit(QWidget* parent)
     : QLineEdit(parent) {
     this->setMinimumSize(80, 35);
 
+    QMargins margins;
+    margins.setLeft(m_spacing * 2);
+    this->setTextMargins(margins);
+
     QPalette palette = this->palette();
     palette.setColor(QPalette::Base, Qt::transparent);
     palette.setColor(QPalette::Text, QColor("#222222"));
@@ -78,10 +82,6 @@ void LineEdit::paintEvent(QPaintEvent* event) {
     painter.drawRoundedRect(innerRect.adjusted(0, 0, 0, 0), m_cornerRadius, m_cornerRadius);
 
     drawFocusIndicator(painter);
-
-    QMargins margins;
-    margins.setLeft(m_spacing * 2);
-    this->setTextMargins(margins);
 
     QRect textRect = rect().adjusted(2, 2, -25, -2);
     painter.setClipRect(textRect);
