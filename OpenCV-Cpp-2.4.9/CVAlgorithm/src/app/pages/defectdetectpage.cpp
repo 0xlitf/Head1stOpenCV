@@ -40,7 +40,9 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     // cv::imshow("dInputMat", dInputMat);
 
     MinimumBounding mini;
-    m_imageGridWidget->addImage("dInputMat", mini.findAndCropObject(dInputMat));
+    auto crop = mini.findAndCropObject(dInputMat);
+
+    m_imageGridWidget->addImage("dInputMat", crop);
 
     std::tuple<int, cv::Mat> analyzeResult = ContourExtractor::analyzeAndDrawContour(dInputMat);
     int count = std::get<0>(analyzeResult);
@@ -49,7 +51,7 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
         // cv::imshow("analyzeResult", std::get<1>(analyzeResult));
     }
 
-    m_detector.setInputMat(dInputMat);
+    m_detector.setInputMat(crop);
 
     QElapsedTimer timer;
     timer.start();

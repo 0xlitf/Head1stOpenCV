@@ -223,6 +223,9 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     if (inputMat.empty()) {
         qDebug() << "DefectDetector::setInputMat, inputMat is empty: ";
         emit errorOccured(IMAGE_LOAD_FAILED, QString("inputMat is empty"));
+
+        m_inputMat = cv::Mat();
+
         return;
     }
 
@@ -230,6 +233,11 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     m_inputMat = m_mini.findAndCropObject(dInput);
 
     m_inputMatContour = m_extractor.findLargestContour(m_inputMat);
+    if (m_inputMatContour.empty()) {
+        qDebug() << "findLargestContour(m_inputMat) is empty: ";
+        return;
+    }
+
     m_inputMatArea = cv::contourArea(m_inputMatContour);
 
     m_corners = m_cornerSplitter.splitCorners(m_inputMat);
@@ -244,10 +252,23 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     // cv::imshow("2", std::get<2>(m_corners));
     // cv::imshow("3", std::get<3>(m_corners));
 
-    double area0 = cv::contourArea(ct0);
-    double area1 = cv::contourArea(ct1);
-    double area2 = cv::contourArea(ct2);
-    double area3 = cv::contourArea(ct3);
+	double area0{ 0. };
+	double area1{ 0. };
+	double area2{ 0. };
+	double area3{ 0. };
+	if (ct0.size() > 3) {
+		area0 = cv::contourArea(ct0);
+	}
+	if (ct1.size() > 3) {
+		area1 = cv::contourArea(ct1);
+	}
+	if (ct2.size() > 3) {
+		area2 = cv::contourArea(ct2);
+	}
+	if (ct3.size() > 3) {
+		area3 = cv::contourArea(ct3);
+	}
+
     m_subContourAreas = std::make_tuple(area0, area1, area2, area3);
 }
 
@@ -262,7 +283,11 @@ void DefectDetector::addTemplate(const QString &fileName) {
         cv::Mat tInput = templateImg.clone();
         tInput = m_mini.findAndCropObject(tInput);
         std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
-        double tInputArea = cv::contourArea(tInputContour);
+
+        double tInputArea{0.};
+        if (tInputContour.size() > 3) {
+            tInputArea = cv::contourArea(tInputContour);
+        }
 
         std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
 

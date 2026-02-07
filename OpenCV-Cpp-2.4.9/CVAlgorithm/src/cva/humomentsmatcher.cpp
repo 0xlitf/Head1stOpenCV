@@ -223,7 +223,11 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat inputImg) {
     int matchCount = 0;
     for (size_t i = 0; i < contoursInScene.size(); i++) {
         auto objContourInScene = contoursInScene[i];
-        double objArea = cv::contourArea(objContourInScene);
+
+        double objArea{0.};
+        if (objContourInScene.size() > 3) {
+            objArea = cv::contourArea(objContourInScene);
+        }
 
         // A. 简单的面积过滤，排除极小的噪点
         if (objArea < 300) {
@@ -245,7 +249,11 @@ QList<MatchResult> HuMomentsMatcher::quickMatchMat(cv::Mat inputImg) {
             QString templateName = std::get<0>(templateTuple);
             QString templateFileName = std::get<1>(templateTuple);
             std::vector<cv::Point> templateContour = std::get<3>(templateTuple);
-            double templateArea = cv::contourArea(templateContour);
+
+            double templateArea{0.};
+            if (templateContour.size() > 3) {
+                templateArea = cv::contourArea(templateContour);
+            }
 
             double areaDifferencePercent = (templateArea - objArea) / objArea;
             if (qAbs(areaDifferencePercent) > m_areaThreshold) {

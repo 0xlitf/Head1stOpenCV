@@ -36,7 +36,10 @@ std::tuple<int, cv::Mat> ContourExtractor::analyzeAndDrawContour(const cv::Mat &
 
         if (bool drawContourInfo = false) {
             // 可选：添加轮廓信息
-            double area = cv::contourArea(filteredContours[i]);
+            double area{0};
+            if (filteredContours[i].size() > 3) {
+                area = cv::contourArea(filteredContours[i]);
+            }
 
             // 计算轮廓中心点
             cv::Moments m = cv::moments(filteredContours[i]);
@@ -249,7 +252,11 @@ cv::Mat ContourExtractor::createDebugImage(const cv::Mat &original, const cv::Ma
 
     // 在轮廓图上标注面积
     for (size_t i = 0; i < contours.size(); ++i) {
-        double area = cv::contourArea(contours[i]);
+        double area{0.};
+        if (contours[i].size() > 3) {
+            area = cv::contourArea(contours[i]);
+        }
+
         cv::Moments m = cv::moments(contours[i]);
         if (m.m00 != 0) {
             cv::Point center(m.m10 / m.m00, m.m01 / m.m00);
@@ -321,7 +328,11 @@ std::vector<cv::Point> ContourExtractor::findLargestContour(const cv::Mat &src, 
     double maxArea = 0;
     int maxIdx = -1;
     for (size_t i = 0; i < contours.size(); i++) {
-        double area = cv::contourArea(contours[i]);
+        double area{0.};
+        if (contours[i].size() > 3) {
+            area = cv::contourArea(contours[i]);
+        }
+
         if (area > maxArea) {
             maxArea = area;
             maxIdx = i;

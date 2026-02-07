@@ -96,7 +96,10 @@ std::vector<ObjectDetectionResult> CutOutObject::extractMultipleObjects(const cv
 
     // 筛选符合面积阈值的轮廓
     for (const auto &contour : contours) {
-        double contourArea = cv::contourArea(contour);
+        double contourArea{0.};
+        if (contour.size() > 3) {
+            contourArea = cv::contourArea(contour);
+        }
 
         // qDebug() << "contourArea" << area;
 
