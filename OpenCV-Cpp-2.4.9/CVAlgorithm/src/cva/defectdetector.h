@@ -101,7 +101,7 @@ public:
     void setColorDiffCountThreshold(double newColorDiffCountThreshold);
 
 private:
-    void addTemplate(const QString &fileName);
+    void addTemplate(const QString &fileName,cv::Mat templateImg);
 
     void addTemplateIntoMap(const QString &fileName,
                             cv::Mat tInput,

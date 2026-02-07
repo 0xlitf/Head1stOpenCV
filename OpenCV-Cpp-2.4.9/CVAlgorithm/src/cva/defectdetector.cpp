@@ -214,8 +214,17 @@ void DefectDetector::setTemplateFolder(const QString &folderName) {
         imageFiles[i] = dir.absoluteFilePath(imageFiles[i]);
     }
 
-    for (auto &filename : imageFiles) {
-        this->addTemplate(filename);
+    for (auto &fileName : imageFiles) {
+        auto templateImg = cv::imread(fileName.toStdString());
+        if (templateImg.empty()) {
+            qDebug() << "templateImg is empty: " << fileName;
+            emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
+            continue;
+        }
+        this->addTemplate(fileName, templateImg);
+
+        auto rotateImg = MinimumBounding::rotate180degree(templateImg);
+        this->addTemplate(fileName, rotateImg);
     }
 }
 
@@ -272,53 +281,46 @@ void DefectDetector::setInputMat(cv::Mat inputMat) {
     m_subContourAreas = std::make_tuple(area0, area1, area2, area3);
 }
 
-void DefectDetector::addTemplate(const QString &fileName) {
+void DefectDetector::addTemplate(const QString &fileName, cv::Mat templateImg) {
     // 读取灰度图
-    auto templateImg = cv::imread(fileName.toStdString());
-    if (templateImg.empty()) {
-        qDebug() << "templateImg is empty: " << fileName;
-        emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));
-        return;
-    } else {
-        cv::Mat tInput = templateImg.clone();
-        tInput = m_mini.findAndCropObject(tInput);
-        std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
+    cv::Mat tInput = templateImg.clone();
+    tInput = m_mini.findAndCropObject(tInput);
+    std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
 
-        double tInputArea{0.};
-        if (tInputContour.size() > 3) {
-            tInputArea = cv::contourArea(tInputContour);
-        }
-
-        std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
-
-        std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(corners));
-        std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(corners));
-        std::vector<cv::Point> ct2 = m_extractor.findLargestContour(std::get<2>(corners));
-        std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(corners));
-        std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::make_tuple(ct0, ct1, ct2, ct3);
-
-        double area0{ 0. };
-        double area1{ 0. };
-        double area2{ 0. };
-        double area3{ 0. };
-        if (ct0.size() > 3) {
-            area0 = cv::contourArea(ct0);
-        }
-        if (ct1.size() > 3) {
-            area1 = cv::contourArea(ct1);
-        }
-        if (ct2.size() > 3) {
-            area2 = cv::contourArea(ct2);
-        }
-        if (ct3.size() > 3) {
-            area3 = cv::contourArea(ct3);
-        }
-
-        std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
-
-
-        this->addTemplateIntoMap(fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
+    double tInputArea{0.};
+    if (tInputContour.size() > 3) {
+        tInputArea = cv::contourArea(tInputContour);
     }
+
+    std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> corners = m_cornerSplitter.splitCorners(tInput);
+
+    std::vector<cv::Point> ct0 = m_extractor.findLargestContour(std::get<0>(corners));
+    std::vector<cv::Point> ct1 = m_extractor.findLargestContour(std::get<1>(corners));
+    std::vector<cv::Point> ct2 = m_extractor.findLargestContour(std::get<2>(corners));
+    std::vector<cv::Point> ct3 = m_extractor.findLargestContour(std::get<3>(corners));
+    std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::make_tuple(ct0, ct1, ct2, ct3);
+
+    double area0{ 0. };
+    double area1{ 0. };
+    double area2{ 0. };
+    double area3{ 0. };
+    if (ct0.size() > 3) {
+        area0 = cv::contourArea(ct0);
+    }
+    if (ct1.size() > 3) {
+        area1 = cv::contourArea(ct1);
+    }
+    if (ct2.size() > 3) {
+        area2 = cv::contourArea(ct2);
+    }
+    if (ct3.size() > 3) {
+        area3 = cv::contourArea(ct3);
+    }
+
+    std::tuple<double, double, double, double> subContourAreas = std::make_tuple(area0, area1, area2, area3);
+
+
+    this->addTemplateIntoMap(fileName, tInput, tInputContour, tInputArea, corners, subContours, subContourAreas);
 }
 
 void DefectDetector::addTemplateIntoMap(const QString &fileName,

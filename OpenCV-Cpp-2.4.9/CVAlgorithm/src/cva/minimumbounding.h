@@ -19,7 +19,7 @@ public:
 
     cv::Mat removeOuterBorder(const cv::Mat& inputImage, int borderWidth);
 
-    cv::Mat rotate180degree(cv::Mat src);
+    static cv::Mat rotate180degree(cv::Mat src);
 };
 
 #endif // MINIMUMBOUNDING_H
