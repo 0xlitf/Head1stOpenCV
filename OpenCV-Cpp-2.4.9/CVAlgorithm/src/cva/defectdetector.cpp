@@ -215,7 +215,7 @@ void DefectDetector::setTemplateFolder(const QString &folderName) {
     }
 
     for (auto &fileName : imageFiles) {
-        auto templateImg = cv::imread(fileName.toStdString());
+        auto templateImg = cv::imread(fileName.toLocal8Bit().toStdString());
         if (templateImg.empty()) {
             qDebug() << "templateImg is empty: " << fileName;
             emit errorOccured(IMAGE_LOAD_FAILED, QString("templateImg is empty: %1").arg(fileName));

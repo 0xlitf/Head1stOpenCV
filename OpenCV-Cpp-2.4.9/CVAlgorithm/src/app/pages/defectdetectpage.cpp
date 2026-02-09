@@ -23,6 +23,16 @@ DefectDetectPage::DefectDetectPage() {
     this->createConnections();
     this->loadConfig();
 
+    // opencv中文路径
+    // std::cout << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png" << std::endl;
+    // std::cout << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png").toStdString().c_str() << std::endl;
+    // std::cout << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png").toUtf8().toStdString() << std::endl;
+    // std::cout << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png").toLocal8Bit().toStdString() << std::endl;
+    // qDebug() << QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png").toStdString().c_str();
+
+    // auto mat = cv::imread(QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png").toLocal8Bit().toStdString());
+    // cv::imshow("mat", mat);
+
     // 细小角落缺陷 2026-01-15_16-09-37_766.png
     // 明显缺角 2026-01-15_16-09-20_925.png
     // QString folder = QString("C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection").append("/template_black"); // template_brown template_black
@@ -36,7 +46,7 @@ DefectDetectPage::~DefectDetectPage() { this->saveConfig(); }
 void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "runDefectDetectAlgo 1";
 
-	auto dInputMat = cv::imread(filePath.toStdString());
+    auto dInputMat = cv::imread(filePath.toLocal8Bit().toStdString());
     // cv::imshow("dInputMat", dInputMat);
 
 
@@ -176,7 +186,7 @@ void DefectDetectPage::createComponents() {
                 QFileInfo fileInfo(filePath);
                 QString fileName = fileInfo.fileName();
 
-                cv::Mat imageMat = cv::imread(filePath.toStdString());
+                cv::Mat imageMat = cv::imread(filePath.toLocal8Bit().toStdString());
                 if (!imageMat.empty()) {
 
                 }

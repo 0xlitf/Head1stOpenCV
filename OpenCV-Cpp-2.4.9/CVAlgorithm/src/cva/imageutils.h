@@ -1,6 +1,8 @@
 ﻿#ifndef IMAGEUTILS_H
 #define IMAGEUTILS_H
 
+#pragma execution_character_set("utf-8")
+
 #include "cva_global.h"
 #include <QString>
 #include <QFile>

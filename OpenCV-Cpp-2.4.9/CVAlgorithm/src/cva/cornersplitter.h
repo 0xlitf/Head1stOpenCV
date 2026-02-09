@@ -1,6 +1,8 @@
 ﻿#ifndef CORNERSPLITTER_H
 #define CORNERSPLITTER_H
 
+#pragma execution_character_set("utf-8")
+
 #include <QDebug>
 #include <QObject>
 #include <opencv2/opencv.hpp>

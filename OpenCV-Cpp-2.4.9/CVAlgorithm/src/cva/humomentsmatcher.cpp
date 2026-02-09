@@ -22,7 +22,7 @@ void HuMomentsMatcher::addTemplate(const QString &desc,
                                    const QString &fileName) {
 
     // 读取灰度图
-    auto templateImg = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
+    auto templateImg = cv::imread(fileName.toLocal8Bit().toStdString(), cv::IMREAD_GRAYSCALE);
     if (templateImg.empty()) {
         qDebug() << "templateImg is empty: " << fileName;
         emit errorOccured(IMAGE_LOAD_FAILED,
@@ -176,7 +176,7 @@ QList<MatchResult> HuMomentsMatcher::quickMatchImage(const QString &fileName) {
 
     emit sendLog(QString("matchImage: %1").arg(fileName));
 
-    cv::Mat imageMat = cv::imread(fileName.toStdString(), cv::IMREAD_COLOR);
+    cv::Mat imageMat = cv::imread(fileName.toLocal8Bit().toStdString(), cv::IMREAD_COLOR);
     if (imageMat.empty())
         return tuple;
 

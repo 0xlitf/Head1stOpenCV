@@ -111,7 +111,7 @@ void CutoutObjectPage::createComponents() {
                 QFileInfo fileInfo(filePath);
                 QString fileName = fileInfo.fileName();
 
-                cv::Mat imageMat = cv::imread(filePath.toStdString());
+                cv::Mat imageMat = cv::imread(filePath.toLocal8Bit().toStdString());
                 if (!imageMat.empty()) {
                     // m_imageGridWidget->addImage("origin image", imageMat);
 
@@ -377,7 +377,7 @@ void CutoutObjectPage::createConnections() {
 }
 
 void CutoutObjectPage::runCutoutAlgo(const QString &filePath) {
-    cv::Mat imageMat = cv::imread(filePath.toStdString());
+    cv::Mat imageMat = cv::imread(filePath.toLocal8Bit().toStdString());
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
         QString imageName = filePath;

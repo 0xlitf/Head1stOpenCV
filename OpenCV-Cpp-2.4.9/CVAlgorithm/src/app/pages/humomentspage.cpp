@@ -108,7 +108,7 @@ void HuMomentsPage::createComponents() {
                 QFileInfo fileInfo(filePath);
                 QString fileName = fileInfo.fileName();
 
-                cv::Mat imageMat = cv::imread(filePath.toStdString());
+                cv::Mat imageMat = cv::imread(filePath.toLocal8Bit().toStdString());
                 if (!imageMat.empty()) {
 
                 }
@@ -337,7 +337,7 @@ void HuMomentsPage::runHuMomentsMatch(const QString &filePath) {
 
     m_templateGridWidget->clearAllImages();
 
-    cv::Mat imageMat = cv::imread(filePath.toStdString());
+    cv::Mat imageMat = cv::imread(filePath.toLocal8Bit().toStdString());
     if (!imageMat.empty()) {
         // 获取一个唯一的标识名
         QString imageName = filePath;
@@ -374,7 +374,7 @@ void HuMomentsPage::runHuMomentsMatch(const QString &filePath) {
 
             m_templateGridWidget->addImage(QString("matchResult %1").arg(i), resultImage, result);
 
-            auto t = cv::imread(templateFileName.toStdString());
+            auto t = cv::imread(templateFileName.toLocal8Bit().toStdString());
             m_templateGridWidget->addImage(QString(QFileInfo(templateFileName).fileName()), t, result, true);
 
             ++i;
