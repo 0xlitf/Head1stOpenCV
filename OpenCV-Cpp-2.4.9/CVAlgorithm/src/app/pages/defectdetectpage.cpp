@@ -25,6 +25,7 @@ DefectDetectPage::DefectDetectPage() {
     this->loadConfig();
 
     m_detector.setDebugImageFlag(true);
+    m_detector.setCornerSideLength(50);
 
     // opencv中文路径
     // std::cout << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png" << std::endl;
@@ -87,7 +88,12 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     qDebug() << "p3_matchSubShapes subShapeDiff" << std::get<0>(subShapeDiff) << std::get<1>(subShapeDiff);
     qDebug() << "p4_fullMatchMatPixel defectScore" << std::get<0>(defectScore) << std::get<1>(defectScore) << std::get<2>(defectScore);
 
-    m_templateGridWidget->addImage("detector.thresholdDiff", m_detector.thresholdDiff());
+    m_templateGridWidget->clearAllImages();
+    int index = 0;
+    for (auto mat: m_detector.thresholdDiff()) {
+        m_templateGridWidget->addImage(QString("detector.thresholdDiff %1").arg(index), mat);
+        index++;
+    }
 
     QString color = std::get<0>(areaDiff) ? "green" : "red";
     m_resultText->append("-------------------------");

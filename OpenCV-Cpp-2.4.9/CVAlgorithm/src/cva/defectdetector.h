@@ -71,7 +71,7 @@ public:
 
     std::tuple<int, int> matchMatPixel(cv::Mat templateInput, cv::Mat defectInput);
 
-    cv::Mat thresholdDiff() const;
+    QList<cv::Mat> thresholdDiff() const;
 
     double overallAreaThreshold() const;
     void setOverallAreaThreshold(double newOverallAreaThreshold);
@@ -100,6 +100,9 @@ public:
     double colorDiffCountThreshold() const;
     void setColorDiffCountThreshold(double newColorDiffCountThreshold);
 
+    int cornerSideLength() const;
+    void setCornerSideLength(int newCornerSideLength);
+
 private:
     void addTemplate(const QString &fileName,cv::Mat templateImg);
 
@@ -125,7 +128,7 @@ private: // 工具类
     std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> m_subContours;
     std::tuple<double, double, double, double> m_subContourAreas;
 
-    cv::Mat m_thresholdDiff;
+    QList<cv::Mat> m_thresholdDiff;
 
 private:
     QList<std::tuple<QString,
@@ -137,6 +140,7 @@ private:
                      std::tuple<double, double, double, double>>> m_templateList;
 
     // 以下参数暂时不改
+    int m_binaryThreshold{240};
     int m_precision{2}; // 取决于进行几次下采样，暂时不可更改
     bool m_useHSV{false}; // false true
     bool m_debugImageFlag{false}; // false true 是否输出调试结果图片
@@ -157,6 +161,7 @@ private:
     double m_missingPixelCountThreshold{0}; // 缺失像素缺陷点的个数，根据下采样的次数决定
     double m_colorDiffCountThreshold{50}; // 色差像素缺陷点的个数，根据下采样的次数决定
 
+    int m_cornerSideLength{50};
  /*
 defectDetector.setOverallAreaThreshold(0.02); // double，默认0.02，范围 0-1.0，总体面积偏差百分比
 defectDetector.setOverallShapeThreshold(0.015); // double，默认0.015，范围 0-1.0，总体轮廓匹配偏差
@@ -170,6 +175,8 @@ defectDetector.setInnerWidth(50); // 整形，默认10，范围 0-100，内边�
 
 defectDetector.setMissingPixelCountThreshold(0); // 整形，默认0，范围 0-1000，矩形物料中检测边缘缺失
 defectDetector.setColorDiffCountThreshold(15); // 整形，默认50，范围 0-200，大于某个色差的像素点个数
+
+defectDetector.setCornerSideLength(50); // 整形，默认50，范围 0-200，设置四角检测的正方形边长大小
 */
 };
 
