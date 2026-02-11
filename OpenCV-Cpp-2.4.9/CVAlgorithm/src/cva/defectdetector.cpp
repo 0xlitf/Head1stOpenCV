@@ -287,7 +287,6 @@ bool DefectDetector::setInputMat(cv::Mat inputMat) {
 }
 
 void DefectDetector::addTemplate(const QString &fileName, cv::Mat templateImg) {
-    // 读取灰度图
     cv::Mat tInput = templateImg.clone();
     tInput = m_mini.findAndCropObject(tInput);
     std::vector<cv::Point> tInputContour = m_extractor.findLargestContour(tInput);
