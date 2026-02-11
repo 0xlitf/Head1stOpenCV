@@ -16,12 +16,15 @@
 #include <QLabel>
 #include <QSettings>
 #include <QSpinBox>
+#include <QMessageBox>
 #include "cornersplitter.h"
 
 DefectDetectPage::DefectDetectPage() {
     this->createComponents();
     this->createConnections();
     this->loadConfig();
+
+    m_detector.setDebugImageFlag(true);
 
     // opencv中文路径
     // std::cout << "C:/GitHub/Head1stOpenCV/OpenCV-Cpp-2.4.9/DefectDetection/template_black汉字/1ok.png" << std::endl;
@@ -44,7 +47,7 @@ DefectDetectPage::DefectDetectPage() {
 DefectDetectPage::~DefectDetectPage() { this->saveConfig(); }
 
 void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
-    qDebug() << "runDefectDetectAlgo 1";
+    // qDebug() << "runDefectDetectAlgo 1";
 
     auto dInputMat = cv::imread(filePath.toLocal8Bit().toStdString());
     // cv::imshow("dInputMat", dInputMat);
@@ -64,7 +67,11 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
         // cv::imshow("analyzeResult", std::get<1>(analyzeResult));
     }
 
-    m_detector.setInputMat(crop);
+    bool res = m_detector.setInputMat(crop);
+    if (!res) {
+        QMessageBox::warning(nullptr, "错误", "输入图片不合法");
+        return;
+    }
 
     QElapsedTimer timer;
     timer.start();
@@ -85,10 +92,10 @@ void DefectDetectPage::runDefectDetectAlgo(const QString &filePath) {
     QString color = std::get<0>(areaDiff) ? "green" : "red";
     m_resultText->append("-------------------------");
     m_resultText->append(m_currentProcessImageFile);
-    m_resultText->append(QString("<font color=\"%1\">总轮廓面积 %2 %3</font>").arg(std::get<0>(areaDiff) ? "green" : "red").arg(std::get<0>(areaDiff) ? "通过" : "失败").arg(std::get<1>(areaDiff)));
-    m_resultText->append(QString("<font color=\"%1\">总轮廓分数 %2 %3</font>").arg(std::get<0>(shapeDiff) ? "green" : "red").arg(std::get<0>(shapeDiff) ? "通过" : "失败").arg(std::get<1>(shapeDiff)));
-    m_resultText->append(QString("<font color=\"%1\">子轮廓面积 %2 %3</font>").arg(std::get<0>(subAreaDiff) ? "green" : "red").arg(std::get<0>(subAreaDiff) ? "通过" : "失败").arg(std::get<1>(subAreaDiff)));
-    m_resultText->append(QString("<font color=\"%1\">子轮廓分数 %2 %3</font>").arg(std::get<0>(subShapeDiff) ? "green" : "red").arg(std::get<0>(subShapeDiff) ? "通过" : "失败").arg(std::get<1>(subShapeDiff)));
+    m_resultText->append(QString("<font color=\"%1\">总面积偏差 %2 %3</font>").arg(std::get<0>(areaDiff) ? "green" : "red").arg(std::get<0>(areaDiff) ? "通过" : "失败").arg(std::get<1>(areaDiff)));
+    m_resultText->append(QString("<font color=\"%1\">总形状偏差 %2 %3</font>").arg(std::get<0>(shapeDiff) ? "green" : "red").arg(std::get<0>(shapeDiff) ? "通过" : "失败").arg(std::get<1>(shapeDiff)));
+    m_resultText->append(QString("<font color=\"%1\">子面积偏差 %2 %3</font>").arg(std::get<0>(subAreaDiff) ? "green" : "red").arg(std::get<0>(subAreaDiff) ? "通过" : "失败").arg(std::get<1>(subAreaDiff)));
+    m_resultText->append(QString("<font color=\"%1\">子形状偏差 %2 %3</font>").arg(std::get<0>(subShapeDiff) ? "green" : "red").arg(std::get<0>(subShapeDiff) ? "通过" : "失败").arg(std::get<1>(subShapeDiff)));
     m_resultText->append(QString("<font color=\"%1\">缺陷像素 %2 缺失数:%3 色差过大数:%4</font>").arg(std::get<0>(defectScore) ? "green" : "red").arg(std::get<0>(defectScore) ? "通过" : "失败").arg(std::get<1>(defectScore)).arg(std::get<2>(defectScore)));
     m_resultText->append(QString("elapsed: %1 ms").arg(double(timer.nsecsElapsed()) / 1e6));
     m_resultText->append("-------------------------");
@@ -153,7 +160,7 @@ void DefectDetectPage::createComponents() {
             }
         });
         connect(imageListViewWidget, &ImageListViewWidget::imageSelected, this, [=](const QString &imageFilePath) {
-            qDebug() << "imageSelected:" << imageFilePath;
+            // qDebug() << "imageSelected:" << imageFilePath;
 
             m_currentProcessImageFile = imageFilePath;
 
@@ -162,7 +169,7 @@ void DefectDetectPage::createComponents() {
         });
 
         connect(batchProcessButton, &QPushButton::clicked, this, [=]() {
-            qDebug() << "批量处理";
+            // qDebug() << "批量处理";
 
             QString folderPath = m_selectFolderWidget->getSelectFolder();
             QDir dir(folderPath);

@@ -27,6 +27,6 @@ public:
     std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat> splitCorners(const cv::Mat &inputImage);
 
 private:
-    int m_cornerSideLength{100};
+    int m_cornerSideLength{30};
 };
 #endif // CORNERSPLITTER_H

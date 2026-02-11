@@ -51,7 +51,7 @@ public:
 
     void setTemplateFolder(const QString &folderName);
 
-    void setInputMat(cv::Mat inputMat);
+    bool setInputMat(cv::Mat inputMat);
 
     std::tuple<bool, double> p0_matchArea();
 
@@ -103,7 +103,7 @@ public:
 private:
     void addTemplate(const QString &fileName,cv::Mat templateImg);
 
-    void addTemplateIntoMap(const QString &fileName,
+    void addTemplateIntoList(const QString &fileName,
                             cv::Mat tInput,
                             std::vector<cv::Point>,
                             double,
@@ -149,11 +149,13 @@ private:
 
     int m_whiteThreshold{50}; // 像素差值阈值，大于这个值被认为是缺陷点，一般设置为30-40
 
+
+
     // 非矩形物料暂时不要用像素检测
-    int m_outterWidth{4};
+    int m_outterWidth{2};
     int m_innerWidth{10};
-    double m_missingPixelCountThreshold{1}; // 缺失像素缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
-    double m_colorDiffCountThreshold{15}; // 色差像素缺陷点的个数，根据下采样的次数决定，m_precision为2时，此数值一般为10-20
+    double m_missingPixelCountThreshold{0}; // 缺失像素缺陷点的个数，根据下采样的次数决定
+    double m_colorDiffCountThreshold{50}; // 色差像素缺陷点的个数，根据下采样的次数决定
 
  /*
 defectDetector.setOverallAreaThreshold(0.02); // double，默认0.02，范围 0-1.0，总体面积偏差百分比

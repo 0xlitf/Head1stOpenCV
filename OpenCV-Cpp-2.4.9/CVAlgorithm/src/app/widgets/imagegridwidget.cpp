@@ -40,7 +40,7 @@ void ImageGridWidget::addImage(const QString &name, const cv::Mat &image) {
     if (idealItemWidth > 0 && idealItemHeight > 0) {
         newItem->setFixedWidth(idealItemWidth);
         newItem->setFixedHeight(idealItemHeight);
-        qDebug() << "idealItemWidth" << idealItemWidth << ", idealItemHeight" << idealItemHeight;
+        // qDebug() << "idealItemWidth" << idealItemWidth << ", idealItemHeight" << idealItemHeight;
     }
     m_imageItems[name] = newItem;
 
@@ -73,7 +73,7 @@ void ImageGridWidget::clearAllImages() {
 void ImageGridWidget::resizeEvent(QResizeEvent *event) {
     QScrollArea::resizeEvent(event);
 
-    qDebug() << "ImageGridWidget::resizeEvent";
+    // qDebug() << "ImageGridWidget::resizeEvent";
     m_resizeTimer->start(100);
 }
 
@@ -83,7 +83,7 @@ void ImageGridWidget::updateChildren() {
     idealItemWidth = calculateIdealItemWidth(viewportSize.width());
     idealItemHeight = calculateIdealItemHeight(viewportSize.height());
 
-    qDebug() << "idealItemWidth Height" << idealItemWidth << idealItemHeight;
+    // qDebug() << "idealItemWidth Height" << idealItemWidth << idealItemHeight;
 
     for (ImageGridItem *item : m_imageItems) {
         item->setFixedWidth(idealItemWidth);
