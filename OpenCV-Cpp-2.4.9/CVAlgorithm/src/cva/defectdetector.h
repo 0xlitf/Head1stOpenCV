@@ -163,20 +163,20 @@ private:
 
     int m_cornerSideLength{50};
  /*
-defectDetector.setOverallAreaThreshold(0.02); // 总面积偏差比, double，默认0.02，范围 0-1.0，总体面积偏差百分比
-defectDetector.setOverallShapeThreshold(0.015); // 总形状偏差, double，默认0.015，范围 0-1.0，总体轮廓匹配偏差
-defectDetector.setSubAreaThreshold(0.02); // 子面积偏差比, double，默认0.02，范围 0-1.0，子轮廓面积偏差百分比
-defectDetector.setSubShapeThreshold(0.002); // 子轮廓偏差, double，默认0.002，范围 0-1.0，子轮廓匹配偏差
+defectDetector.setOverallAreaThreshold(0.02); // 总面积偏差比, double，默认0.02，步长范围 0-1.0，0.001，总体面积偏差百分比
+defectDetector.setOverallShapeThreshold(0.02); // 总形状偏差, double，默认0.02，范围 0-1.0，步长0.001，总体轮廓匹配偏差
+defectDetector.setSubAreaThreshold(0.02); // 子面积偏差比, double，默认0.02，范围 0-1.0，步长0.001，子轮廓面积偏差百分比
+defectDetector.setSubShapeThreshold(0.02); // 子轮廓偏差, double，默认0.02，范围 0-1.0，步长0.001，子轮廓匹配偏差
 
-defectDetector.setWhiteThreshold(50); // 色差阈值, 整形，默认50，范围 0-100，色差阈值范围
+defectDetector.setWhiteThreshold(50); // 色差阈值, 整形，默认50，范围 0-150，步长1，色差阈值范围
 
-defectDetector.setOutterWidth(50); // 外嵌像素距离, 整形，默认4，范围 0-100，外边缘嵌入多少个像素
-defectDetector.setInnerWidth(50); // 内嵌像素距离, 整形，默认10，范围 0-100，内边缘嵌入多少个像素
+defectDetector.setOutterWidth(50); // 外嵌像素距离, 整形，默认4，范围 0-100，步长1，外边缘嵌入多少个像素
+defectDetector.setInnerWidth(50); // 内嵌像素距离, 整形，默认10，范围 0-100，步长1，内边缘嵌入多少个像素
 
-defectDetector.setMissingPixelCountThreshold(0); // 缺失像素数量阈值, 整形，默认0，范围 0-1000，矩形物料中检测边缘缺失
-defectDetector.setColorDiffCountThreshold(15); // 色差像素数量数值, 整形，默认50，范围 0-200，大于某个色差的像素点个数
+defectDetector.setMissingPixelCountThreshold(0); // 缺失像素数量阈值, 整形，默认0，范围 0-1000，步长1，矩形物料中检测边缘缺失
+defectDetector.setColorDiffCountThreshold(250); // 色差像素数量数值, 整形，默认250，范围 0-1000，步长1，大于某个色差的像素点个数
 
-defectDetector.setCornerSideLength(50); // 四角边长, 整形，默认50，范围 0-200，设置四角检测的正方形边长大小
+defectDetector.setCornerSideLength(50); // 四角边长, 整形，默认50，范围 0-300，设置四角检测的正方形边长大小
 */
 };
 

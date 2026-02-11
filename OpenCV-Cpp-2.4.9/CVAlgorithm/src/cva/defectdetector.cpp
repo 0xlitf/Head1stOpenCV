@@ -439,6 +439,11 @@ std::tuple<bool, double> DefectDetector::p0_matchArea() {
         if (areaDiff >= 0) {
             results.append(areaDiff);
         }
+
+        if (m_debugImageFlag) {
+            qDebug() << "p0_matchArea tInputArea" << tInputArea << ", inputMatArea" << inputMatArea << ", areaDiff" << areaDiff;
+        }
+
     }
 
     double minResult{9999};
@@ -448,7 +453,10 @@ std::tuple<bool, double> DefectDetector::p0_matchArea() {
                 minResult = value;
             }
         }
-        // qDebug() << "p0_matchArea" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
+
+        if (m_debugImageFlag) {
+            qDebug() << "p0_matchArea" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
+        }
     }
 
     return std::make_tuple((minResult < m_overallAreaThreshold), minResult);
@@ -477,6 +485,10 @@ std::tuple<bool, double> DefectDetector::p1_matchShapes() {
             if (shapeDiff >= 0) {
                 results.append(shapeDiff);
             }
+
+            if (m_debugImageFlag) {
+                qDebug() << "p1_matchShapes shapeDiff" << shapeDiff;
+            }
         }
     }
 
@@ -487,7 +499,10 @@ std::tuple<bool, double> DefectDetector::p1_matchShapes() {
                 minResult = value;
             }
         }
-        // qDebug() << "p1_matchShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
+
+        if (m_debugImageFlag) {
+            qDebug() << "p1_matchShapes" << results << "最小值:" << minResult << ", elapsed" << timer.nsecsElapsed();
+        }
     }
 
     return std::make_tuple((minResult < m_overallShapeThreshold), minResult);
@@ -511,10 +526,13 @@ std::tuple<bool, double> DefectDetector::p2_matchSubAreas() {
         std::tuple<std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>, std::vector<cv::Point>> subContours = std::get<5>(templateTuple);
         std::tuple<double, double, double, double> subContourAreas = std::get<6>(templateTuple);
 
-        qDebug() << "subContourAreas inputContourAreas" << std::get<0>(subContourAreas) << std::get<0>(inputContourAreas);
-        qDebug() << "subContourAreas inputContourAreas" << std::get<1>(subContourAreas) << std::get<1>(inputContourAreas);
-        qDebug() << "subContourAreas inputContourAreas" << std::get<2>(subContourAreas) << std::get<2>(inputContourAreas);
-        qDebug() << "subContourAreas inputContourAreas" << std::get<3>(subContourAreas) << std::get<3>(inputContourAreas);
+
+        if (m_debugImageFlag) {
+            qDebug() << "subContourAreas inputContourAreas" << std::get<0>(subContourAreas) << std::get<0>(inputContourAreas);
+            qDebug() << "subContourAreas inputContourAreas" << std::get<1>(subContourAreas) << std::get<1>(inputContourAreas);
+            qDebug() << "subContourAreas inputContourAreas" << std::get<2>(subContourAreas) << std::get<2>(inputContourAreas);
+            qDebug() << "subContourAreas inputContourAreas" << std::get<3>(subContourAreas) << std::get<3>(inputContourAreas);
+        }
 
         double areaDiff0{0.}, areaDiff1{0.}, areaDiff2{0.}, areaDiff3{0.};
         if (std::get<0>(subContourAreas) > 1e-9 && std::get<0>(inputContourAreas) > 1e-9) {
@@ -541,10 +559,13 @@ std::tuple<bool, double> DefectDetector::p2_matchSubAreas() {
 
         QList<double> areaDiffs;
         areaDiffs << areaDiff0 << areaDiff1 << areaDiff2 << areaDiff3;
-        qDebug() << "p2_matchSubAreas areaDiffs" << areaDiffs;
+
         double areaDiffMax = std::max({areaDiff0, areaDiff1, areaDiff2, areaDiff3});
         if (areaDiffMax >= 0) {
             results.append(areaDiffMax);
+        }
+        if (m_debugImageFlag) {
+            qDebug() << "p2_matchSubAreas areaDiffs max:" << areaDiffMax << ", in" << areaDiff0 << areaDiff1 << areaDiff2 << areaDiff3;
         }
     }
 
