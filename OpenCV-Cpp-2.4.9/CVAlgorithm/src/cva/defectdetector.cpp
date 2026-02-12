@@ -533,27 +533,18 @@ std::tuple<bool, double> DefectDetector::p2_matchSubAreas() {
             qDebug() << "subContourAreas inputContourAreas" << std::get<3>(subContourAreas) << std::get<3>(inputContourAreas);
         }
 
-        double areaDiff0{0.}, areaDiff1{0.}, areaDiff2{0.}, areaDiff3{0.};
+        double areaDiff0{-1.}, areaDiff1{-1.}, areaDiff2{-1.}, areaDiff3{-1.};
         if (std::get<0>(subContourAreas) > 1e-9 && std::get<0>(inputContourAreas) > 1e-9) {
             areaDiff0 = std::abs(std::get<0>(subContourAreas) - std::get<0>(inputContourAreas)) / std::get<0>(subContourAreas);
-        } else {
-            // 如果其中一个面积为0，就不对比
-            areaDiff0 = -1;
         }
         if (std::get<1>(subContourAreas) > 1e-9 && std::get<1>(inputContourAreas) > 1e-9) {
             areaDiff1 = std::abs(std::get<1>(subContourAreas) - std::get<1>(inputContourAreas)) / std::get<1>(subContourAreas);
-        } else {
-            areaDiff1 = -1;
         }
         if (std::get<2>(subContourAreas) > 1e-9 && std::get<2>(inputContourAreas) > 1e-9) {
             areaDiff2 = std::abs(std::get<2>(subContourAreas) - std::get<2>(inputContourAreas)) / std::get<2>(subContourAreas);
-        } else {
-            areaDiff2 = -1;
         }
         if (std::get<3>(subContourAreas) > 1e-9 && std::get<3>(inputContourAreas) > 1e-9) {
             areaDiff3 = std::abs(std::get<3>(subContourAreas) - std::get<3>(inputContourAreas)) / std::get<3>(subContourAreas);
-        } else {
-            areaDiff3 = -1;
         }
 
         QList<double> areaDiffs;
@@ -606,24 +597,39 @@ std::tuple<bool, double> DefectDetector::p3_matchSubShapes() {
         // qDebug() << "std::get<2>(subContours).size()" << std::get<2>(subContours).size();
         // qDebug() << "std::get<3>(subContours).size()" << std::get<3>(subContours).size();
 
-        if (std::get<0>(subContours).size() > 3 && std::get<0>(inputCornerContours).size() &&
-            std::get<1>(subContours).size() > 3 && std::get<1>(inputCornerContours).size() &&
-            std::get<2>(subContours).size() > 3 && std::get<2>(inputCornerContours).size() &&
-            std::get<3>(subContours).size() > 3 && std::get<3>(inputCornerContours).size()) {
-            double shapeDiff0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-            double shapeDiff1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-            double shapeDiff2 = cv::matchShapes(std::get<2>(subContours), std::get<2>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
-            double shapeDiff3 = cv::matchShapes(std::get<3>(subContours), std::get<3>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
 
-            QList<double> shapeDiffs;
-            shapeDiffs << shapeDiff0 << shapeDiff1 << shapeDiff2 << shapeDiff3;
-            // qDebug() << "p3_matchSubShapes matchShapes" << shapeDiffs;
-            double shapeDiffMax = std::max({shapeDiff0, shapeDiff1, shapeDiff2, shapeDiff3});
-            if (shapeDiffMax >= 0) {
-                results.append(shapeDiffMax);
-            }
+        double shapeDiff0{999.}, shapeDiff1{999.}, shapeDiff2{999.}, shapeDiff3{999.};
+        if (std::get<0>(subContours).size() > 3 && std::get<0>(inputCornerContours).size() > 3) {
+            shapeDiff0 = cv::matchShapes(std::get<0>(subContours), std::get<0>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
         } else {
-            qWarning() << "p3_matchSubShapes, subContours size maybe 0";
+            // 如果其中一个面积为0，就不对比
+            shapeDiff0 = -1;
+        }
+        if (std::get<1>(subContours).size() > 3 && std::get<1>(inputCornerContours).size() > 3) {
+            shapeDiff1 = cv::matchShapes(std::get<1>(subContours), std::get<1>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        } else {
+            // 如果其中一个面积为0，就不对比
+            shapeDiff1 = -1;
+        }
+        if (std::get<2>(subContours).size() > 3 && std::get<2>(inputCornerContours).size() > 3) {
+            shapeDiff2 = cv::matchShapes(std::get<2>(subContours), std::get<2>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        } else {
+            // 如果其中一个面积为0，就不对比
+            shapeDiff2 = -1;
+        }
+        if (std::get<3>(subContours).size() > 3 && std::get<3>(inputCornerContours).size() > 3) {
+            shapeDiff3 = cv::matchShapes(std::get<3>(subContours), std::get<3>(inputCornerContours), CV_CONTOURS_MATCH_I1, 0.0);
+        } else {
+            // 如果其中一个面积为0，就不对比
+            shapeDiff3 = -1;
+        }
+
+        QList<double> shapeDiffs;
+        shapeDiffs << shapeDiff0 << shapeDiff1 << shapeDiff2 << shapeDiff3;
+        // qDebug() << "p3_matchSubShapes matchShapes" << shapeDiffs;
+        double shapeDiffMax = std::max({shapeDiff0, shapeDiff1, shapeDiff2, shapeDiff3});
+        if (shapeDiffMax >= 0) {
+            results.append(shapeDiffMax);
         }
     }
 
